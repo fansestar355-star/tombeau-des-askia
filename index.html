@@ -9,12 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg:      #f9d58b;
-            --accent:  #4c3fb5;
-            --accent2: #7c6fca;
+            --bg:      #07050f;
+            --accent:  #6c63ff;
+            --accent2: #c4aff8;
             --gold:    #f9d58b;
-            --text:    #1a0f3c;
-            --muted:   #5a4a72;
+            --text:    #f0eaf8;
+            --muted:   #9490b8;
         }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,6 +36,7 @@
             display: flex;
             flex-direction: column;
             background: var(--bg);
+            overflow: hidden;
         }
 
         /* ── TOP BAR ── */
@@ -58,7 +59,7 @@
             font-size: 0.72rem;
             letter-spacing: 0.4em;
             text-transform: uppercase;
-            color: var(--accent);
+            color: var(--text);
         }
 
         /* ── MAIN AREA ── */
@@ -91,17 +92,28 @@
             position: absolute;
             right: 0;
             top: 0;
-            width: 58%;
+            width: 65%;
             height: 100%;
             z-index: 3;
         }
-        .model-wrap::before {
-            content: '';
+
+        /* Lueur violette atmosphérique derrière le modèle */
+        .bg-glow {
             position: absolute;
-            inset: 0;
+            width: 100%;
+            height: 100%;
+            top: -10%;
+            right: -15%;
+            background: radial-gradient(ellipse 70% 65% at 65% 42%,
+                rgba(140, 30, 230, 0.85) 0%,
+                rgba(100, 10, 190, 0.60) 22%,
+                rgba(60,   5, 140, 0.30) 45%,
+                transparent 70%);
+            filter: blur(48px);
             z-index: 0;
             pointer-events: none;
         }
+
         model-viewer {
             width: 100%;
             height: 100%;
@@ -141,7 +153,7 @@
             font-weight: 900;
             line-height: 0.95;
             letter-spacing: -0.01em;
-            color: var(--text);
+            color: #fff;
             text-transform: uppercase;
             overflow: hidden;
             min-height: 3em;
@@ -160,7 +172,7 @@
         /* Ligne dorée */
         .title-divider {
             height: 1px;
-            background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
+            background: linear-gradient(90deg, var(--gold), var(--accent2), transparent);
             margin: 18px 0;
             will-change: width, opacity;
         }
@@ -182,28 +194,31 @@
             margin-top: 28px;
             padding: 12px 28px;
             border-radius: 50px;
-            border: 1.5px solid rgba(76,63,181,0.5);
-            background: transparent;
-            color: var(--accent);
+            border: 1.5px solid rgba(196,175,248,0.5);
+            background: rgba(108,99,255,0.15);
+            color: var(--accent2);
             font-size: 0.7rem;
             font-weight: 600;
             letter-spacing: 0.2em;
             text-transform: uppercase;
             cursor: pointer;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             text-decoration: none;
             will-change: opacity;
         }
         .btn-enquete:hover {
-            background: rgba(76,63,181,0.1);
-            border-color: var(--accent);
-            color: var(--text);
+            background: rgba(108,99,255,0.3);
+            border-color: var(--accent2);
+            color: #fff;
+            box-shadow: 0 0 24px rgba(108,99,255,0.3);
         }
         .btn-enquete::before {
             content: '';
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--accent2);
+            box-shadow: 0 0 8px var(--accent2);
         }
 
         .btn-experience {
@@ -213,27 +228,30 @@
             margin-top: 12px;
             padding: 11px 24px;
             border-radius: 50px;
-            border: 1.5px solid rgba(76,63,181,0.5);
-            background: transparent;
-            color: var(--accent);
+            border: 1.5px solid rgba(249,213,139,0.4);
+            background: rgba(249,213,139,0.08);
+            color: var(--gold);
             font-size: 0.68rem;
             font-weight: 600;
             letter-spacing: 0.18em;
             text-transform: uppercase;
             cursor: pointer;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             text-decoration: none;
         }
         .btn-experience:hover {
-            background: rgba(76,63,181,0.1);
-            border-color: var(--accent);
-            color: var(--text);
+            background: rgba(249,213,139,0.18);
+            border-color: var(--gold);
+            color: #fff;
+            box-shadow: 0 0 24px rgba(249,213,139,0.2);
         }
         .btn-experience::before {
             content: '';
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--gold);
+            box-shadow: 0 0 8px var(--gold);
         }
 
         /* ── NAVIGATION DOTS ── */
@@ -246,14 +264,15 @@
         .dot {
             width: 5px; height: 5px;
             border-radius: 50%;
-            background: rgba(76,63,181,0.25);
+            background: rgba(196,175,248,0.25);
             transition: all 0.4s ease;
             cursor: pointer;
         }
         .dot.active {
             width: 22px;
             border-radius: 3px;
-            background: var(--accent);
+            background: var(--accent2);
+            box-shadow: 0 0 8px rgba(196,175,248,0.4);
         }
 
         /* ── TOGGLE MODÈLE ── */
@@ -273,24 +292,25 @@
             color: var(--muted);
             transition: color 0.3s ease;
         }
-        .toggle-label.active { color: var(--accent); }
+        .toggle-label.active { color: var(--accent2); }
         .toggle-arrow {
             width: 38px; height: 38px;
             border-radius: 50%;
-            border: 1.5px solid rgba(76,63,181,0.4);
-            background: rgba(249,213,139,0.4);
-            backdrop-filter: blur(6px);
+            border: 1.5px solid rgba(196,175,248,0.4);
+            background: rgba(108,99,255,0.12);
+            backdrop-filter: blur(10px);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .toggle-arrow:hover {
-            background: rgba(76,63,181,0.12);
-            border-color: var(--accent);
+            background: rgba(108,99,255,0.28);
+            border-color: var(--accent2);
+            box-shadow: 0 0 18px rgba(108,99,255,0.35);
         }
         .toggle-arrow svg {
             width: 16px; height: 16px;
-            stroke: var(--accent);
+            stroke: var(--accent2);
             fill: none;
             stroke-width: 2;
             stroke-linecap: round;
@@ -311,12 +331,12 @@
             font-size: 0.65rem;
             letter-spacing: 0.3em;
             text-transform: uppercase;
-            color: var(--muted);
+            color: rgba(148,163,184,0.5);
         }
         .bottom-year {
             font-family: 'Playfair Display', serif;
             font-size: 0.75rem;
-            color: var(--accent);
+            color: rgba(249,213,139,0.5);
             letter-spacing: 0.25em;
             transition: all 0.5s ease;
         }
@@ -339,12 +359,12 @@
             font-size: 0.58rem;
             letter-spacing: 0.3em;
             text-transform: uppercase;
-            color: rgba(76,63,181,0.5);
+            color: rgba(196,175,248,0.4);
         }
         .scroll-arrow {
             width: 1px;
             height: 28px;
-            background: linear-gradient(to top, var(--accent), transparent);
+            background: linear-gradient(to top, var(--accent2), transparent);
             animation: scrollPulse 1.8s ease-in-out infinite;
         }
         @keyframes scrollPulse {
@@ -403,7 +423,7 @@
                 max-width: 100%;
                 padding: 32px 24px 12px;
                 background: linear-gradient(to top,
-                    rgba(249,213,139,0.97) 60%,
+                    rgba(7,5,15,0.97) 60%,
                     transparent 100%);
                 z-index: 6;
             }
@@ -476,14 +496,17 @@
 
         <!-- Modèle -->
         <div class="model-wrap">
+            <!-- Lueur violette derrière le modèle -->
+            <div class="bg-glow"></div>
+
             <model-viewer
                 id="mv"
                 src="assets/3d/Askia_Mohamed_real.glb"
                 camera-orbit="90deg 85deg 2.2m"
                 interpolation-decay="200"
                 interaction-prompt="none"
-                shadow-intensity="1.0"
-                exposure="1.1"
+                shadow-intensity="1.2"
+                exposure="1.0"
                 tone-mapping="commerce">
             </model-viewer>
 
