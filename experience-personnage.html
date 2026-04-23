@@ -64,6 +64,13 @@
     #loading-bar-wrap { width: 200px; height: 2px; background: rgba(167,139,250,0.15); border-radius: 2px; overflow: hidden; }
     #loading-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #6c63ff, #a78bfa); border-radius: 2px; transition: width 0.3s ease; }
     #loading-text { font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(167,139,250,0.6); }
+    #error-msg {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: #0b0f1a; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    }
+    #error-msg.show { display: flex; }
+    #error-msg h2 { color: #ff6b6b; font-size: 1rem; letter-spacing: 0.1em; }
+    #error-msg p  { color: rgba(226,232,240,0.5); font-size: 0.7rem; letter-spacing: 0.12em; text-align: center; max-width: 360px; line-height: 1.8; }
   </style>
 </head>
 <body>
@@ -97,6 +104,11 @@
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
+<div id="error-msg">
+  <h2>⚠ Erreur de chargement</h2>
+  <p id="error-detail">Le fichier 3D n'a pas pu être chargé.</p>
+</div>
+
 <script type="importmap">
 {
   "imports": {
@@ -117,7 +129,7 @@ const TURN_SPEED   = 2.0;
 const CAM_DISTANCE = 3.5;
 const CAM_HEIGHT   = 1.8;
 const FADE_TIME    = 0.3;
-const DRACO_PATH   = 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/libs/draco/';
+const DRACO_PATH   = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
 
 /* ─── RENDERER ─── */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -228,7 +240,14 @@ loader.load(
     if (xhr.total) document.getElementById('loading-bar').style.width =
       Math.round(xhr.loaded / xhr.total * 100) + '%';
   },
-  err => console.error(err)
+  (err) => {
+    console.error('GLB load error:', err);
+    const msg = document.getElementById('error-msg');
+    const det = document.getElementById('error-detail');
+    det.textContent = 'Impossible de charger char1_walking.glb\n' + (err?.message || String(err));
+    document.getElementById('loading').style.display = 'none';
+    msg.classList.add('show');
+  }
 );
 
 /* ═══════════════════════════════════════════════════
