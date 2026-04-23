@@ -626,7 +626,7 @@ function applyMobileCamera(orbit) {
     /* Zoom arrière ×2 → modèle plus petit */
     const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.8).toFixed(1) + 'm');
     mv.setAttribute('camera-orbit', zoomedOut);
-    mv.setAttribute('camera-target', '-0.75m 0.35m 0m');
+    mv.setAttribute('camera-target', '-0.75m 0.65m 0m');
 }
 
 /* ── Chargement modèle ── */
@@ -795,6 +795,8 @@ function switchModel(idx) {
     mv.src = models[modelIdx];
     lblDraw.classList.toggle('active', modelIdx === 0);
     lblReal.classList.toggle('active', modelIdx === 1);
+    /* Réapplique la caméra mobile après chargement du nouveau modèle */
+    mv.addEventListener('load', () => applyMobileCamera(CHAPTERS[current].camera), { once: true });
 }
 
 document.getElementById('arrow-right').addEventListener('click', () => switchModel(modelIdx === 0 ? 1 : 0));
