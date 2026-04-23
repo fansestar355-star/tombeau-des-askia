@@ -634,9 +634,16 @@ intro
 ══════════════════════════════════════════════ */
 let wheelCooldown = false;
 window.addEventListener('wheel', (e) => {
-    if (wheelCooldown) return;
+    /* Bloque si animation en cours OU si cooldown actif */
+    if (wheelCooldown || transitioning) return;
     wheelCooldown = true;
-    setTimeout(() => { wheelCooldown = false; }, 900);
+    /* Attend la fin de l'animation + 400ms tampon anti-inertie */
+    const waitDone = setInterval(() => {
+        if (!transitioning) {
+            clearInterval(waitDone);
+            setTimeout(() => { wheelCooldown = false; }, 400);
+        }
+    }, 50);
 
     if (e.deltaY > 0) goTo(current + 1);   // scroll bas  → chapitre suivant
     else               goTo(current - 1);   // scroll haut → chapitre précédent
@@ -644,10 +651,19 @@ window.addEventListener('wheel', (e) => {
 
 /* ── Touch mobile ── */
 let touchStartY = 0;
+let touchCooldown = false;
 window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
 window.addEventListener('touchend', e => {
+    if (touchCooldown || transitioning) return;
     const delta = touchStartY - e.changedTouches[0].clientY;
     if (Math.abs(delta) < 30) return;
+    touchCooldown = true;
+    const waitTouchDone = setInterval(() => {
+        if (!transitioning) {
+            clearInterval(waitTouchDone);
+            setTimeout(() => { touchCooldown = false; }, 400);
+        }
+    }, 50);
     if (delta < 0) goTo(current + 1);
     else           goTo(current - 1);
 }, { passive: true });
