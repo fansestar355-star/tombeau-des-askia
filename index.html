@@ -771,7 +771,7 @@ window.addEventListener('touchend', e => {
             setTimeout(() => { touchCooldown = false; }, 400);
         }
     }, 50);
-    if (delta < 0) goTo(current + 1);
+    if (delta > 0) goTo(current + 1);
     else           goTo(current - 1);
 }, { passive: true });
 
