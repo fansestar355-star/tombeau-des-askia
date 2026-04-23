@@ -235,9 +235,8 @@ for (let gx = 0; gx < GRID; gx++) {
       const bz = cz + (rng() - 0.5) * (BS - bd - 2);
       const bm = rng() > 0.5 ? mBanco : mBanc2;
       addBox(bw, bh, bd, bx, bz, bm);
-      addBox(bw + 0.3, 0.18, bd + 0.3, bx, bz, { ...mToit, color:0xba8845 });
-      /* toit avec matériau distinct */
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw+0.3, 0.18, bd+0.3), mToit);
+      /* toit plat */
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.3, 0.18, bd + 0.3), mToit);
       roof.position.set(bx, bh + 0.09, bz);
       roof.receiveShadow = true;
       scene.add(roof);
