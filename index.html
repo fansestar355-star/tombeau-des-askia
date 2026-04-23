@@ -392,17 +392,17 @@
                 opacity: 1;
             }
 
-            /* container réduit à droite */
+            /* pleine largeur — pas de boîte, pas de coupure */
             #mv {
-                width: 72%;
-                margin-left: auto;
+                width: 100%;
+                margin-left: 0;
                 transform: none;
             }
 
             .bg-glow {
-                width: 80%;
+                width: 100%;
                 right: 0;
-                left: auto;
+                left: 0;
                 top: -10%;
                 transform: none;
             }
@@ -473,7 +473,7 @@
 
         /* ── Très petits écrans (≤ 480px) ── */
         @media (max-width: 480px) {
-            #mv          { width: 78%; transform: none; }
+            #mv          { width: 100%; transform: none; }
             .hero-gao    { font-size: clamp(3.8rem, 20vw, 6.5rem); top: -2%; }
             .hero-title  { font-size: clamp(1.7rem, 7.5vw, 2.5rem); }
             .hero-text   { padding: 90px 18px 14px; }
@@ -618,16 +618,25 @@ CHAPTERS.forEach((_, i) => {
     dotsWrap.appendChild(d);
 });
 
-/* ── Décalage mobile : modèle poussé à droite dans le container ── */
+/* ── Caméra mobile : zoom arrière + décalage droite ── */
 const isMobile = window.innerWidth <= 768;
-function applyMobileTarget() {
-    if (isMobile) mv.setAttribute('camera-target', '-0.18m 0m 0m');
+
+function mobilizeOrbit(orbit) {
+    /* Multiplie le rayon ×2 pour zoomer en arrière → modèle plus petit */
+    return orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.0).toFixed(1) + 'm');
+}
+
+function applyMobileCamera(orbit) {
+    if (!isMobile) return;
+    mv.setAttribute('camera-orbit', mobilizeOrbit(orbit));
+    /* Décale le point de vue vers la gauche → modèle apparaît à droite dans le canvas */
+    mv.setAttribute('camera-target', '-0.28m 0.05m 0m');
 }
 
 /* ── Chargement modèle ── */
 mv.addEventListener('load', () => {
     mv.classList.add('loaded');
-    applyMobileTarget();
+    applyMobileCamera(CHAPTERS[current].camera);
 });
 
 /* ══════════════════════════════════════════════
@@ -653,8 +662,8 @@ function goTo(index) {
     /* ─── MISE À JOUR CONTENU (milieu de l'animation) ── */
     tl.call(() => {
         /* Camera modèle */
-        mv.setAttribute('camera-orbit', next.camera);
-        applyMobileTarget();
+        if (isMobile) applyMobileCamera(next.camera);
+        else mv.setAttribute('camera-orbit', next.camera);
 
         /* Année en bas */
         bottomY.textContent = next.year;
