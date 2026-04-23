@@ -552,7 +552,6 @@
             </h1>
             <div class="title-divider" id="ch-divider" style="width:200px;"></div>
             <p class="hero-desc" id="ch-desc">L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.</p>
-            <a class="btn-enquete" id="ch-btn" href="#">Enquête historique</a>
             <a class="btn-experience" href="experience-personnage.html">Explorer le personnage</a>
             <div class="nav-dots" id="nav-dots"></div>
         </div>
@@ -620,7 +619,7 @@ const chTag     = document.getElementById('ch-tag');
 const chTitle   = document.getElementById('ch-title');
 const chDivider = document.getElementById('ch-divider');
 const chDesc    = document.getElementById('ch-desc');
-const chBtn     = document.getElementById('ch-btn');
+const chBtn     = null;
 const bottomY   = document.getElementById('bottom-year');
 const scrollHint= document.getElementById('scroll-hint');
 const dotsWrap  = document.getElementById('nav-dots');
@@ -668,7 +667,7 @@ function goTo(index) {
       .to(lines,   { y: dir * -60 + '%', opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
       .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
       .to(chDesc,  { y: -16, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.15)
-      .to(chBtn,   { y: -12, opacity: 0, duration: 0.3, ease: 'power2.in' }, 0.18);
+      ;
 
     /* ─── MISE À JOUR CONTENU (milieu de l'animation) ── */
     tl.call(() => {
@@ -699,8 +698,6 @@ function goTo(index) {
         /* Description */
         chDesc.innerHTML = next.desc.replace('\n', '<br>');
 
-        /* Bouton */
-        chBtn.style.display = next.btn ? 'inline-flex' : 'none';
 
         /* Dots */
         dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index));
@@ -728,9 +725,7 @@ function goTo(index) {
       .fromTo(chDesc,
         { y: 16, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, '<0.1')
-      .fromTo(chBtn,
-        { y: 12, opacity: 0 },
-        { y: 0, opacity: next.btn ? 1 : 0, duration: 0.4, ease: 'power3.out' }, '<0.1');
+      ;
 }
 
 /* ══════════════════════════════════════════════
@@ -738,7 +733,7 @@ function goTo(index) {
 ══════════════════════════════════════════════ */
 gsap.set(heroGao, { opacity: 0, y: 30 });
 gsap.set(chTag,   { opacity: 0, y: 14 });
-gsap.set([chDesc, chBtn], { opacity: 0, y: 16 });
+gsap.set(chDesc, { opacity: 0, y: 16 });
 gsap.set(chDivider, { width: 0, opacity: 0 });
 gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
 
@@ -750,7 +745,7 @@ intro
         { opacity: 1, y: '0%', stagger: 0.12, duration: 0.65, ease: 'power3.out' }, '-=0.4')
     .to(chDivider, { width: 200, opacity: 1, duration: 0.7, ease: 'power2.out' }, '-=0.3')
     .to(chDesc,  { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
-    .to(chBtn,   { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, '-=0.2');
+    ;
 
 /* ══════════════════════════════════════════════
    SCROLL WHEEL
