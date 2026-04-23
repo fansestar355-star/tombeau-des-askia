@@ -624,10 +624,9 @@ const isMobile = window.innerWidth <= 768;
 function applyMobileCamera(orbit) {
     if (!isMobile) return;
     /* Zoom arrière ×2 → modèle plus petit */
-    const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.0).toFixed(1) + 'm');
+    const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.8).toFixed(1) + 'm');
     mv.setAttribute('camera-orbit', zoomedOut);
-    /* Décale vers la droite dans le canvas */
-    mv.setAttribute('camera-target', '-0.85m 0.05m 0m');
+    mv.setAttribute('camera-target', '-0.75m 0.05m 0m');
 }
 
 /* ── Chargement modèle ── */
