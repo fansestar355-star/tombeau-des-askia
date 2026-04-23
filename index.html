@@ -121,6 +121,22 @@
         }
         model-viewer.loaded { opacity: 1; }
 
+        /* ── LUMIÈRE VIOLETTE DROITE ── */
+        .light-right {
+            position: absolute;
+            right: -5%;
+            top: 0;
+            width: 70%;
+            height: 100%;
+            background: radial-gradient(ellipse 80% 70% at 100% 50%,
+                rgba(139, 92, 246, 0.65) 0%,
+                rgba(109, 40, 217, 0.25) 35%,
+                transparent 68%);
+            z-index: 2;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
         /* ── TEXTE HÉROS ── */
         .hero-text {
             position: relative;
@@ -146,7 +162,8 @@
             font-weight: 900;
             line-height: 0.95;
             letter-spacing: -0.01em;
-            color: #fff;
+            color: #f9d58b;
+            text-shadow: 0 0 40px rgba(249, 213, 139, 0.25);
             text-transform: uppercase;
             overflow: hidden;
             min-height: 3em;
@@ -395,13 +412,16 @@
             <model-viewer
                 id="mv"
                 src="assets/3d/Askia_Mohamed_draw.glb"
-                camera-orbit="0deg 85deg 2.2m"
+                camera-orbit="90deg 85deg 2.2m"
                 interpolation-decay="200"
                 interaction-prompt="none"
                 shadow-intensity="0.8"
-                exposure="1.1"
+                exposure="0.72"
                 tone-mapping="commerce">
             </model-viewer>
+
+            <!-- Lumière violette depuis la droite -->
+            <div class="light-right"></div>
 
             <div class="model-toggle">
                 <span class="toggle-label active" id="lbl-draw">Dessin</span>
@@ -454,7 +474,7 @@ const CHAPTERS = [
     {
         gao:    "GAO",
         tag:    "",
-        camera: "0deg 85deg 2.2m",
+        camera: "90deg 85deg 2.2m",
         lines:  ["Askia Mohamed", "Roi des Rois"],
         desc:   "L'empereur bâtisseur,\nréformateur de l'Afrique de l'Ouest.",
         btn:    true,
@@ -472,7 +492,7 @@ const CHAPTERS = [
     {
         gao:    "EMPIRE",
         tag:    "L'apogée Songhaï",
-        camera: "90deg 80deg 2.0m",
+        camera: "0deg 80deg 2.0m",
         lines:  ["De l'Or", "et du Sel"],
         desc:   "De Tombouctou à Agadez, l'Empire Songhaï contrôle les routes trans-sahariennes. Askia fait de Tombouctou un phare intellectuel du monde islamique.",
         btn:    false,
