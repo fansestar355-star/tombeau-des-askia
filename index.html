@@ -13,7 +13,7 @@
             --accent:  #6c63ff;
             --accent2: #a78bfa;
             --gold:    #f9d58b;
-            --text:    #e2e8f0;
+            --text:    #f9d58b;
             --muted:   #94a3b8;
         }
 
@@ -121,17 +121,17 @@
         }
         model-viewer.loaded { opacity: 1; }
 
-        /* ── LUMIÈRE VIOLETTE DROITE ── */
+        /* ── HALO AMBIANT VIOLET (scène, pas le modèle) ── */
         .light-right {
             position: absolute;
-            right: -5%;
+            right: 0;
             top: 0;
-            width: 70%;
+            width: 55%;
             height: 100%;
-            background: radial-gradient(ellipse 80% 70% at 100% 50%,
-                rgba(139, 92, 246, 0.65) 0%,
-                rgba(109, 40, 217, 0.25) 35%,
-                transparent 68%);
+            background: radial-gradient(ellipse 90% 80% at 100% 50%,
+                rgba(139, 92, 246, 0.28) 0%,
+                rgba(109, 40, 217, 0.10) 45%,
+                transparent 70%);
             z-index: 2;
             pointer-events: none;
             mix-blend-mode: screen;
@@ -415,8 +415,8 @@
                 camera-orbit="90deg 85deg 2.2m"
                 interpolation-decay="200"
                 interaction-prompt="none"
-                shadow-intensity="0.8"
-                exposure="0.72"
+                shadow-intensity="1.2"
+                exposure="1.3"
                 tone-mapping="commerce">
             </model-viewer>
 
@@ -525,8 +525,48 @@ CHAPTERS.forEach((_, i) => {
     dotsWrap.appendChild(d);
 });
 
+/* ══════════════════════════════════════════════
+   ENVIRONNEMENT IBL — lumière violette à droite
+══════════════════════════════════════════════ */
+function buildEnv() {
+    const W = 512, H = 256;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+
+    /* Base très sombre */
+    ctx.fillStyle = '#04040e';
+    ctx.fillRect(0, 0, W, H);
+
+    /* Lumière violette forte depuis la droite (longitude +90° ≈ x=384) */
+    const rim = ctx.createRadialGradient(400, 100, 8, 400, 100, 260);
+    rim.addColorStop(0,    'rgba(210, 90, 255, 1.0)');
+    rim.addColorStop(0.15, 'rgba(170, 60, 240, 0.95)');
+    rim.addColorStop(0.35, 'rgba(120, 30, 200, 0.65)');
+    rim.addColorStop(0.65, 'rgba(60,  10, 120, 0.25)');
+    rim.addColorStop(1,    'rgba(0,   0,   0,  0)');
+    ctx.fillStyle = rim;
+    ctx.fillRect(0, 0, W, H);
+
+    /* Remplissage subtil face avant (longitude 0° ≈ x=256) */
+    const fill = ctx.createRadialGradient(240, H / 2, 0, 240, H / 2, 130);
+    fill.addColorStop(0, 'rgba(90, 75, 160, 0.28)');
+    fill.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, W, H);
+
+    return c.toDataURL('image/png');
+}
+
 /* ── Chargement modèle ── */
-mv.addEventListener('load', () => mv.classList.add('loaded'));
+let envApplied = false;
+mv.addEventListener('load', () => {
+    mv.classList.add('loaded');
+    if (!envApplied) {
+        envApplied = true;
+        mv.setAttribute('environment-image', buildEnv());
+    }
+});
 
 /* ══════════════════════════════════════════════
    TRANSITION
