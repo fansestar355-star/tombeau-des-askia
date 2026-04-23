@@ -2,55 +2,65 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
   <title>Askia Mohamed — Expérience</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#111; overflow:hidden; font-family:system-ui,sans-serif; color:#fff; }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { background:#111; overflow:hidden; font-family:system-ui,sans-serif; color:#fff; touch-action:none; }
 
     #ui-back {
       position:fixed; top:20px; left:20px; z-index:10;
-      padding:8px 18px; border-radius:40px;
+      padding:10px 20px; border-radius:40px;
       border:1px solid rgba(255,255,255,0.15);
-      background:rgba(0,0,0,0.5); color:rgba(255,255,255,0.7);
-      font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
+      background:rgba(0,0,0,0.55); color:rgba(255,255,255,0.7);
+      font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase;
       text-decoration:none; backdrop-filter:blur(10px);
-      transition:background 0.2s;
     }
-    #ui-back:hover { background:rgba(255,255,255,0.12); color:#fff; }
 
-    #ui-keys {
+    /* ── Joystick tactile ── */
+    #controls {
       position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
-      display:flex; flex-direction:column; align-items:center; gap:5px;
-      pointer-events:none; z-index:10;
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      z-index:10; user-select:none;
     }
-    .krow { display:flex; gap:5px; }
-    .k {
-      width:38px; height:38px; border-radius:7px;
-      border:1px solid rgba(255,255,255,0.15);
-      background:rgba(0,0,0,0.45); backdrop-filter:blur(8px);
+    .crow { display:flex; gap:6px; }
+    .btn-key {
+      width:54px; height:54px; border-radius:10px;
+      border:1.5px solid rgba(255,255,255,0.18);
+      background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);
       display:flex; align-items:center; justify-content:center;
-      color:rgba(255,255,255,0.35); font-size:11px;
-      transition:all 0.1s;
+      color:rgba(255,255,255,0.45); font-size:18px;
+      cursor:pointer; touch-action:none;
+      transition:background 0.1s, border-color 0.1s, color 0.1s;
+      -webkit-user-select:none; user-select:none;
     }
-    .k.on { border-color:rgba(255,220,100,0.6); background:rgba(255,200,0,0.12); color:#ffd; }
+    .btn-key.on {
+      border-color:rgba(255,210,80,0.7);
+      background:rgba(255,190,0,0.18);
+      color:#ffe;
+      box-shadow:0 0 16px rgba(255,200,0,0.2);
+    }
+    #hint {
+      font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase;
+      color:rgba(255,255,255,0.2); margin-top:4px; text-align:center;
+    }
 
     #ui-status {
-      position:fixed; top:20px; right:20px; z-index:10;
-      font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase;
-      color:rgba(255,255,255,0.3);
+      position:fixed; top:22px; right:22px; z-index:10;
+      font-size:0.55rem; letter-spacing:0.22em; text-transform:uppercase;
+      color:rgba(255,255,255,0.25);
     }
 
     #screen-load {
       position:fixed; inset:0; z-index:100;
       background:#111; display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:16px;
+      align-items:center; justify-content:center; gap:14px;
       transition:opacity 0.5s;
     }
     #screen-load.hide { opacity:0; pointer-events:none; }
-    #load-label { font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
-    #load-bar-bg { width:180px; height:2px; background:rgba(255,255,255,0.08); border-radius:2px; }
-    #load-bar    { height:100%; width:0%; background:#ffd; border-radius:2px; transition:width 0.2s; }
+    #load-label { font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.38); }
+    #load-bar-bg { width:180px; height:2px; background:rgba(255,255,255,0.07); border-radius:2px; overflow:hidden; }
+    #load-bar    { height:100%; width:0%; background:#ffd; border-radius:2px; transition:width 0.25s; }
 
     #screen-err {
       display:none; position:fixed; inset:0; z-index:200;
@@ -58,27 +68,30 @@
       align-items:center; justify-content:center; gap:12px;
     }
     #screen-err.show { display:flex; }
-    #screen-err h2  { color:#f66; font-size:0.9rem; letter-spacing:0.1em; }
-    #screen-err pre { color:rgba(255,255,255,0.4); font-size:0.62rem; max-width:440px; white-space:pre-wrap; text-align:center; line-height:1.7; }
+    #screen-err h2  { color:#f66; font-size:0.88rem; letter-spacing:0.1em; }
+    #screen-err pre { color:rgba(255,255,255,0.38); font-size:0.6rem; max-width:440px; white-space:pre-wrap; text-align:center; line-height:1.7; }
   </style>
 </head>
 <body>
 
 <a id="ui-back" href="index.html">← Retour</a>
-
-<div id="ui-keys">
-  <div class="krow"><div class="k" id="k-up">▲</div></div>
-  <div class="krow">
-    <div class="k" id="k-left">◀</div>
-    <div class="k" id="k-down">▼</div>
-    <div class="k" id="k-right">▶</div>
-  </div>
-</div>
-
 <div id="ui-status">IDLE</div>
 
+<!-- Boutons directionnels tactiles + clavier -->
+<div id="controls">
+  <div class="crow">
+    <div class="btn-key" id="k-up">▲</div>
+  </div>
+  <div class="crow">
+    <div class="btn-key" id="k-left">◀</div>
+    <div class="btn-key" id="k-down">▼</div>
+    <div class="btn-key" id="k-right">▶</div>
+  </div>
+  <div id="hint">Flèches · WASD · Tactile</div>
+</div>
+
 <div id="screen-load">
-  <div id="load-label">Chargement…</div>
+  <div id="load-label">Chargement du personnage…</div>
   <div id="load-bar-bg"><div id="load-bar"></div></div>
 </div>
 
@@ -102,85 +115,114 @@ import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 /* ── Erreurs globales ── */
-const errBox  = document.getElementById('screen-err');
-const errText = document.getElementById('err-text');
 function fatal(msg) {
   document.getElementById('screen-load').style.display = 'none';
-  errText.textContent = msg;
-  errBox.classList.add('show');
+  document.getElementById('err-text').textContent = msg;
+  document.getElementById('screen-err').classList.add('show');
 }
-window.addEventListener('error',            e => fatal(e.message));
+window.addEventListener('error',             e => fatal(e.message));
 window.addEventListener('unhandledrejection', e => fatal(String(e.reason)));
 
-/* ── Base URL ── */
 const BASE = new URL('.', document.baseURI).href;
 
 /* ── Renderer ── */
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
-renderer.toneMapping       = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.shadowMap.enabled   = true;
+renderer.shadowMap.type      = THREE.PCFSoftShadowMap;
+renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
 document.body.appendChild(renderer.domElement);
 
 /* ── Scène ── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0d0d1a);
-scene.fog        = new THREE.FogExp2(0x0d0d1a, 0.032);
+scene.fog        = new THREE.FogExp2(0x0d0d1a, 0.03);
 
 /* ── Caméra ── */
 const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.05, 300);
 
 /* ── Lumières ── */
-scene.add(new THREE.AmbientLight(0x8877cc, 0.6));
+scene.add(new THREE.AmbientLight(0x9988dd, 0.55));
 
 const sun = new THREE.DirectionalLight(0xffe0aa, 2.2);
 sun.position.set(6, 12, 8);
 sun.castShadow = true;
 sun.shadow.mapSize.setScalar(2048);
-sun.shadow.camera.near   = 0.5;
+sun.shadow.camera.near   =  0.5;
 sun.shadow.camera.far    = 60;
-sun.shadow.camera.left   = -12;
-sun.shadow.camera.right  =  12;
-sun.shadow.camera.top    =  12;
-sun.shadow.camera.bottom = -12;
+sun.shadow.camera.left   = -14;
+sun.shadow.camera.right  =  14;
+sun.shadow.camera.top    =  14;
+sun.shadow.camera.bottom = -14;
 scene.add(sun);
 
-const fill = new THREE.DirectionalLight(0x6688ff, 0.6);
+const fill = new THREE.DirectionalLight(0x5566ff, 0.5);
 fill.position.set(-5, 5, -6);
 scene.add(fill);
 
 /* ── Sol ── */
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(100, 100),
-  new THREE.MeshStandardMaterial({ color:0x1a1208, roughness:0.9, metalness:0 })
+  new THREE.PlaneGeometry(120, 120),
+  new THREE.MeshStandardMaterial({ color:0x1a1208, roughness:0.92 })
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-const grid = new THREE.GridHelper(100, 50, 0x5533aa, 0x22113a);
-grid.material.opacity = 0.18;
+const grid = new THREE.GridHelper(120, 60, 0x4422aa, 0x1a0c30);
+grid.material.opacity = 0.16;
 grid.material.transparent = true;
 scene.add(grid);
 
-/* ── Clavier ── */
+/* ══════════════════════════════════════════
+   CONTRÔLES — clavier + tactile
+══════════════════════════════════════════ */
 const keys = { up:false, down:false, left:false, right:false };
-const MAP  = { ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down', ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right' };
-const KEL  = { up:document.getElementById('k-up'), down:document.getElementById('k-down'), left:document.getElementById('k-left'), right:document.getElementById('k-right') };
-window.addEventListener('keydown', e => { const k=MAP[e.code]; if(k){ e.preventDefault(); keys[k]=true;  KEL[k].classList.add('on'); } });
-window.addEventListener('keyup',   e => { const k=MAP[e.code]; if(k){ keys[k]=false; KEL[k].classList.remove('on'); } });
 
-/* ── État ── */
-let model      = null;
-let mixer      = null;
-let walkClip   = null;
-let bones      = {};
-let idleTimer  = 0;
-let isWalking  = false;
-const status   = document.getElementById('ui-status');
+/* Clavier */
+const KMAP = {
+  ArrowUp:'up', KeyW:'up',
+  ArrowDown:'down', KeyS:'down',
+  ArrowLeft:'left', KeyA:'left',
+  ArrowRight:'right', KeyD:'right',
+};
+window.addEventListener('keydown', e => { const k=KMAP[e.code]; if(k){ e.preventDefault(); setKey(k,true);  } });
+window.addEventListener('keyup',   e => { const k=KMAP[e.code]; if(k){ setKey(k,false); } });
+
+/* Tactile — chaque bouton répond au touch */
+const BTN = {
+  up:    document.getElementById('k-up'),
+  down:  document.getElementById('k-down'),
+  left:  document.getElementById('k-left'),
+  right: document.getElementById('k-right'),
+};
+
+function setKey(k, val) {
+  keys[k] = val;
+  if (val) BTN[k].classList.add('on');
+  else     BTN[k].classList.remove('on');
+}
+
+Object.entries(BTN).forEach(([dir, el]) => {
+  el.addEventListener('touchstart', e => { e.preventDefault(); setKey(dir, true);  }, { passive:false });
+  el.addEventListener('touchend',   e => { e.preventDefault(); setKey(dir, false); }, { passive:false });
+  el.addEventListener('touchcancel',e => { e.preventDefault(); setKey(dir, false); }, { passive:false });
+  /* souris aussi (desktop) */
+  el.addEventListener('mousedown', e => { e.preventDefault(); setKey(dir, true);  });
+  el.addEventListener('mouseup',   e => { setKey(dir, false); });
+  el.addEventListener('mouseleave',e => { setKey(dir, false); });
+});
+
+/* ── État personnage ── */
+let model     = null;
+let mixer     = null;
+let walkClip  = null;
+let bones     = {};
+let idleTimer = 0;
+let isWalking = false;
+const status  = document.getElementById('ui-status');
 
 /* ── Chargement ── */
 const draco = new DRACOLoader();
@@ -196,18 +238,19 @@ loader.load(
     model = gltf.scene;
     model.traverse(o => {
       if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
-      if (o.isBone) bones[o.name] = o;
+      if (o.isBone) { bones[o.name] = o; }
     });
     scene.add(model);
 
-    /* enregistrer la pose de repos de chaque os */
+    /* pose de repos pour l'idle */
     model.traverse(o => { if (o.isBone) o.userData.rest = o.quaternion.clone(); });
 
-    /* animation de marche */
-    if (gltf.animations.length > 0) {
+    /* animation walk */
+    if (gltf.animations && gltf.animations.length > 0) {
       mixer    = new THREE.AnimationMixer(model);
       walkClip = mixer.clipAction(gltf.animations[0]);
       walkClip.setLoop(THREE.LoopRepeat, Infinity);
+      walkClip.clampWhenFinished = false;
     }
 
     document.getElementById('screen-load').classList.add('hide');
@@ -215,116 +258,114 @@ loader.load(
 
   xhr => {
     if (xhr.total > 0)
-      document.getElementById('load-bar').style.width = (xhr.loaded/xhr.total*100) + '%';
+      document.getElementById('load-bar').style.width =
+        Math.round(xhr.loaded / xhr.total * 100) + '%';
   },
 
-  err => fatal('Impossible de charger le modèle 3D\n' + (err?.message ?? String(err)))
+  err => fatal('Impossible de charger char1_walking.glb\n' + (err?.message ?? String(err)))
 );
 
-/* ── Idle procédural ── */
+/* ══════════════════════════════════════════
+   ANIMATION IDLE PROCÉDURALE
+   Respiration douce + regard naturel
+══════════════════════════════════════════ */
 const _Q = new THREE.Quaternion();
 const _E = new THREE.Euler();
 const D  = g => g * Math.PI / 180;
 
 function applyIdle(t) {
-  const b  = Math.PI*2 * t / 4.2;   // respiration 4.2s
-  const sw = Math.PI*2 * t / 8.0;   // balancement 8s
-  const lk = Math.PI*2 * t / 11.0;  // regard  11s
+  const br = Math.PI*2 * t / 4.5;   // respiration 4.5 s
+  const sw = Math.PI*2 * t / 8.0;   // balancement 8 s
+  const lk = Math.PI*2 * t / 12.0;  // regard 12 s
 
   function rot(name, rx, ry, rz) {
-    const bone = bones[name];
-    if (!bone || !bone.userData.rest) return;
+    const b = bones[name];
+    if (!b || !b.userData.rest) return;
     _E.set(rx, ry, rz, 'XYZ');
     _Q.setFromEuler(_E);
-    bone.quaternion.copy(bone.userData.rest).multiply(_Q);
+    b.quaternion.copy(b.userData.rest).multiply(_Q);
   }
 
-  /* bassin : très léger */
-  rot('Hips',   D(0.4)*Math.sin(b), 0, D(0.6)*Math.sin(sw));
+  rot('Hips',   D(0.3)*Math.sin(br), 0, D(0.5)*Math.sin(sw));
+  rot('Spine',  D(0.7)+D(0.4)*Math.sin(br), 0, D(0.25)*-Math.sin(sw));
+  rot('Spine1', D(0.5)+D(0.3)*Math.sin(br), 0, D(0.2) *-Math.sin(sw+0.15));
+  rot('Spine2', D(0.4)+D(0.25)*Math.sin(br+0.1), 0, 0);
 
-  /* colonne : respiration subtile */
-  rot('Spine',  D(0.8)+D(0.4)*Math.sin(b), 0, D(0.3)*-Math.sin(sw));
-  rot('Spine1', D(0.6)+D(0.3)*Math.sin(b), 0, D(0.2)*-Math.sin(sw+0.2));
-  rot('Spine2', D(0.4)+D(0.3)*Math.sin(b+0.1), 0, 0);
+  rot('Neck', D(2.0)+D(0.25)*Math.sin(br+0.3), D(1.0)*Math.sin(lk), 0);
+  rot('Head', D(-1.5)+D(0.3)*Math.sin(br),  D(1.5)*Math.sin(lk+0.5), D(0.35)*Math.sin(sw));
 
-  /* tête : regard qui dérive doucement */
-  rot('Neck', D(2)+D(0.3)*Math.sin(b+0.3), D(1.2)*Math.sin(lk), 0);
-  rot('Head', D(-1.5)+D(0.3)*Math.sin(b), D(1.8)*Math.sin(lk+0.6), D(0.4)*Math.sin(sw));
-
-  /* bras pendants naturellement */
-  rot('LeftArm',      D(3)+D(0.8)*Math.sin(b),      D(2),  D(-4));
-  rot('LeftForeArm',  D(6)+D(0.5)*Math.sin(b+0.2),  0,     D(1.5));
-  rot('RightArm',     D(3)+D(0.8)*Math.sin(b+Math.PI), D(-2), D(4));
-  rot('RightForeArm', D(6)+D(0.5)*Math.sin(b+Math.PI+0.2), 0, D(-1.5));
+  rot('LeftArm',      D(3)+D(0.7)*Math.sin(br),       D(2),  D(-4));
+  rot('LeftForeArm',  D(5)+D(0.5)*Math.sin(br+0.2),   0,     D(1.5));
+  rot('RightArm',     D(3)+D(0.7)*Math.sin(br+Math.PI), D(-2), D(4));
+  rot('RightForeArm', D(5)+D(0.5)*Math.sin(br+Math.PI+0.2), 0, D(-1.5));
 }
 
-/* ── Caméra troisième personne ── */
-const camOffset = new THREE.Vector3();
-const camTarget = new THREE.Vector3();
+/* ── Caméra 3e personne ── */
+const camOff = new THREE.Vector3();
+const camTgt = new THREE.Vector3();
 
 function updateCamera() {
   if (!model) return;
   const ry = model.rotation.y;
-  camOffset.set(
+  camOff.set(
     model.position.x - Math.sin(ry) * 3.8,
-    model.position.y + 1.9,
+    model.position.y + 2.0,
     model.position.z - Math.cos(ry) * 3.8
   );
-  camera.position.lerp(camOffset, 0.07);
-  camTarget.copy(model.position).add(new THREE.Vector3(0, 1.0, 0));
-  camera.lookAt(camTarget);
+  camera.position.lerp(camOff, 0.08);
+  camTgt.set(model.position.x, model.position.y + 1.0, model.position.z);
+  camera.lookAt(camTgt);
   sun.target.position.copy(model.position);
   sun.target.updateMatrixWorld();
 }
 
-/* ── Boucle ── */
+/* ── Boucle principale ── */
 const clock = new THREE.Clock();
 
 (function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), 0.05);
 
-  if (model) {
-    const moving = keys.up || keys.down || keys.left || keys.right;
+  if (!model) { renderer.render(scene, camera); return; }
 
-    /* rotation et déplacement */
-    if (keys.left)  model.rotation.y += 2.0 * dt;
-    if (keys.right) model.rotation.y -= 2.0 * dt;
-    if (keys.up) {
-      model.position.x -= Math.sin(model.rotation.y) * 2.2 * dt;
-      model.position.z -= Math.cos(model.rotation.y) * 2.2 * dt;
-    }
-    if (keys.down) {
-      model.position.x += Math.sin(model.rotation.y) * 2.2 * dt;
-      model.position.z += Math.cos(model.rotation.y) * 2.2 * dt;
-    }
+  const moving = keys.up || keys.down || keys.left || keys.right;
 
-    /* transition walk ↔ idle */
-    if (moving && !isWalking) {
-      isWalking = true;
-      idleTimer = 0;
-      if (walkClip) walkClip.reset().play();
-      status.textContent = 'MARCHE';
-    } else if (!moving && isWalking) {
-      isWalking = false;
-      if (walkClip) walkClip.stop();
-      status.textContent = 'IDLE';
-    }
-
-    if (isWalking) {
-      if (mixer) mixer.update(dt);
-    } else {
-      idleTimer += dt;
-      applyIdle(idleTimer);
-    }
-
-    updateCamera();
+  /* déplacement */
+  if (keys.left)  model.rotation.y += 2.2 * dt;
+  if (keys.right) model.rotation.y -= 2.2 * dt;
+  if (keys.up) {
+    model.position.x -= Math.sin(model.rotation.y) * 2.3 * dt;
+    model.position.z -= Math.cos(model.rotation.y) * 2.3 * dt;
+  }
+  if (keys.down) {
+    model.position.x += Math.sin(model.rotation.y) * 2.3 * dt;
+    model.position.z += Math.cos(model.rotation.y) * 2.3 * dt;
   }
 
+  /* transition walk ↔ idle */
+  if (moving && !isWalking) {
+    isWalking = true;
+    idleTimer = 0;
+    if (walkClip) walkClip.reset().play();
+    status.textContent = 'MARCHE';
+  } else if (!moving && isWalking) {
+    isWalking = false;
+    if (walkClip) walkClip.stop();
+    status.textContent = 'IDLE';
+  }
+
+  /* animation — walk OU idle, jamais les deux en même temps */
+  if (isWalking) {
+    if (mixer) mixer.update(dt);
+  } else {
+    idleTimer += dt;
+    applyIdle(idleTimer);
+  }
+
+  updateCamera();
   renderer.render(scene, camera);
 })();
 
-/* ── Resize ── */
 window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
