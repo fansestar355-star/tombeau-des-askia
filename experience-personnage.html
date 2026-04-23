@@ -128,44 +128,166 @@ document.body.appendChild(renderer.domElement);
 
 /* ── Scène ── */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d0d1a);
-scene.fog        = new THREE.FogExp2(0x0d0d1a, 0.03);
+scene.background = new THREE.Color(0x9ecfed);
+scene.fog        = new THREE.Fog(0xd4b896, 80, 220);
 
 /* ── Caméra ── */
 const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.05, 300);
 
 /* ── Lumières ── */
-scene.add(new THREE.AmbientLight(0x9988dd, 0.55));
+scene.add(new THREE.HemisphereLight(0x9ecfed, 0xd4a96a, 0.8));
 
-const sun = new THREE.DirectionalLight(0xffe0aa, 2.2);
-sun.position.set(6, 12, 8);
+const sun = new THREE.DirectionalLight(0xfff0cc, 2.8);
+sun.position.set(40, 80, 30);
 sun.castShadow = true;
-sun.shadow.mapSize.setScalar(2048);
-sun.shadow.camera.near   =  0.5;
-sun.shadow.camera.far    = 60;
-sun.shadow.camera.left   = -14;
-sun.shadow.camera.right  =  14;
-sun.shadow.camera.top    =  14;
-sun.shadow.camera.bottom = -14;
+sun.shadow.mapSize.setScalar(4096);
+sun.shadow.camera.near   =   1;
+sun.shadow.camera.far    = 250;
+sun.shadow.camera.left   = -100;
+sun.shadow.camera.right  =  100;
+sun.shadow.camera.top    =  100;
+sun.shadow.camera.bottom = -100;
 scene.add(sun);
 
-const fill = new THREE.DirectionalLight(0x5566ff, 0.5);
-fill.position.set(-5, 5, -6);
-scene.add(fill);
+/* ════════════════════════════════════════════
+   VILLE DE GAO — Génération procédurale
+   Compounds en banco, arbres sahéliens,
+   place centrale réservée au Tombeau des Askia
+════════════════════════════════════════════ */
 
-/* ── Sol ── */
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(120, 120),
-  new THREE.MeshStandardMaterial({ color:0x1a1208, roughness:0.92 })
-);
+/* Matériaux */
+const mSol   = new THREE.MeshStandardMaterial({ color:0xd4a96a, roughness:0.97 });
+const mBanco = new THREE.MeshStandardMaterial({ color:0xc19055, roughness:0.93 });
+const mBanc2 = new THREE.MeshStandardMaterial({ color:0xac7a3e, roughness:0.92 });
+const mToit  = new THREE.MeshStandardMaterial({ color:0xba8845, roughness:0.88 });
+const mFeuil = new THREE.MeshStandardMaterial({ color:0x2e7020, roughness:0.85 });
+const mTronc = new THREE.MeshStandardMaterial({ color:0x4a2e10, roughness:0.95 });
+const mPlaza = new THREE.MeshStandardMaterial({ color:0xc8956a, roughness:0.97 });
+const mTomb  = new THREE.MeshStandardMaterial({ color:0xb87040, roughness:0.85 });
+
+/* Sol sablonneux */
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), mSol);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-const grid = new THREE.GridHelper(120, 60, 0x4422aa, 0x1a0c30);
-grid.material.opacity = 0.16;
-grid.material.transparent = true;
-scene.add(grid);
+/* Générateur pseudo-aléatoire déterministe */
+let _s = 2317;
+function rng() {
+  _s = (_s * 1664525 + 1013904223) & 0x7fffffff;
+  return _s / 0x7fffffff;
+}
+
+/* Helpers géométrie */
+function addBox(w, h, d, x, z, mat) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, h / 2, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  scene.add(m);
+}
+
+function addTree(x, z) {
+  const th = 2.0 + rng() * 2.5;
+  const cr = 1.0 + rng() * 1.8;
+  addBox(0.28, th, 0.28, x, z, mTronc);
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 8, 6), mFeuil);
+  crown.position.set(x, th + cr * 0.6, z);
+  crown.castShadow = true;
+  scene.add(crown);
+}
+
+/* Paramètres de la grille */
+const BS   = 22;    // taille d'un bloc (m)
+const RUE  = 5;     // largeur des rues (m)
+const CELL = BS + RUE;
+const GRID = 10;    // 10×10 blocs
+const OFF  = -(GRID * CELL) / 2;
+
+/* Zone centrale réservée au Tombeau : blocs 4 et 5 (0-indexé) */
+const T0 = 4, T1 = 5;
+
+for (let gx = 0; gx < GRID; gx++) {
+  for (let gz = 0; gz < GRID; gz++) {
+    const cx = OFF + gx * CELL + BS / 2;
+    const cz = OFF + gz * CELL + BS / 2;
+
+    /* Place du Tombeau : laisser libre */
+    if (gx >= T0 && gx <= T1 && gz >= T0 && gz <= T1) continue;
+
+    /* ─ Murs du compound ─ */
+    const wh  = 2.2 + rng() * 1.0;
+    const wt  = 0.42;
+    const mat = rng() > 0.45 ? mBanco : mBanc2;
+
+    addBox(BS, wh, wt, cx, cz - BS/2, mat);
+    addBox(BS, wh, wt, cx, cz + BS/2, mat);
+    addBox(wt, wh, BS, cx - BS/2, cz, mat);
+    addBox(wt, wh, BS, cx + BS/2, cz, mat);
+
+    /* ─ Bâtiments intérieurs ─ */
+    const nb = 1 + Math.floor(rng() * 3);
+    for (let i = 0; i < nb; i++) {
+      const bw = 4 + rng() * 7;
+      const bd = 4 + rng() * 6;
+      const bh = 2.6 + rng() * 2.8;
+      const bx = cx + (rng() - 0.5) * (BS - bw - 2);
+      const bz = cz + (rng() - 0.5) * (BS - bd - 2);
+      const bm = rng() > 0.5 ? mBanco : mBanc2;
+      addBox(bw, bh, bd, bx, bz, bm);
+      addBox(bw + 0.3, 0.18, bd + 0.3, bx, bz, { ...mToit, color:0xba8845 });
+      /* toit avec matériau distinct */
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw+0.3, 0.18, bd+0.3), mToit);
+      roof.position.set(bx, bh + 0.09, bz);
+      roof.receiveShadow = true;
+      scene.add(roof);
+    }
+
+    /* ─ Arbre dans le compound (65 %) ─ */
+    if (rng() > 0.35)
+      addTree(cx + (rng()-0.5)*(BS-5), cz + (rng()-0.5)*(BS-5));
+  }
+}
+
+/* Arbres dans les rues */
+for (let i = 0; i < 140; i++) {
+  const tx = OFF + rng() * GRID * CELL;
+  const tz = OFF + rng() * GRID * CELL;
+  addTree(tx, tz);
+}
+
+/* ── Place du Tombeau des Askia ── */
+const tombX = OFF + T0 * CELL + CELL;   // centre de la zone 2×2
+const tombZ = OFF + T0 * CELL + CELL;
+
+/* Sol de la place légèrement différent */
+const plaza = new THREE.Mesh(new THREE.PlaneGeometry(CELL*2+2, CELL*2+2), mPlaza);
+plaza.rotation.x = -Math.PI / 2;
+plaza.position.set(tombX, 0.02, tombZ);
+plaza.receiveShadow = true;
+scene.add(plaza);
+
+/* Murs d'enceinte de la place */
+const pSize = CELL * 2;
+const pwh   = 1.8, pwt = 0.5;
+addBox(pSize, pwh, pwt, tombX, tombZ - pSize/2, mTomb);
+addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb);
+addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb);
+addBox(pwt, pwh, pSize, tombX + pSize/2, tombZ, mTomb);
+
+/* Placeholder : socle du Tombeau */
+const socle = new THREE.Mesh(
+  new THREE.BoxGeometry(10, 0.6, 10), mTomb
+);
+socle.position.set(tombX, 0.3, tombZ);
+socle.receiveShadow = true;
+scene.add(socle);
+
+/* Label 3D — panneau indicatif */
+const panMat = new THREE.MeshStandardMaterial({ color:0x8b5e20 });
+const panneau = new THREE.Mesh(new THREE.BoxGeometry(6, 1.2, 0.1), panMat);
+panneau.position.set(tombX, 2.8, tombZ - 6);
+scene.add(panneau);
 
 /* ══════════════════════════════════════════
    CONTRÔLES — joystick tactile + clavier
@@ -275,6 +397,9 @@ loader.load(
       if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
       if (o.isBone) { bones[o.name] = o; }
     });
+    /* Positionner le personnage à l'entrée de la place du Tombeau */
+    model.position.set(tombX, 0, tombZ + pSize / 2 + 3);
+    model.rotation.y = Math.PI;
     scene.add(model);
 
     /* pose de repos pour l'idle */
