@@ -64,13 +64,18 @@
     #loading-bar-wrap { width: 200px; height: 2px; background: rgba(167,139,250,0.15); border-radius: 2px; overflow: hidden; }
     #loading-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #6c63ff, #a78bfa); border-radius: 2px; transition: width 0.3s ease; }
     #loading-text { font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(167,139,250,0.6); }
-    #error-msg {
+
+    #error-box {
       display: none; position: fixed; inset: 0; z-index: 200;
-      background: #0b0f1a; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      background: #0b0f1a; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
     }
-    #error-msg.show { display: flex; }
-    #error-msg h2 { color: #ff6b6b; font-size: 1rem; letter-spacing: 0.1em; }
-    #error-msg p  { color: rgba(226,232,240,0.5); font-size: 0.7rem; letter-spacing: 0.12em; text-align: center; max-width: 360px; line-height: 1.8; }
+    #error-box.show { display: flex; }
+    #error-box h2 { color: #ff6b6b; font-size: 1rem; letter-spacing: 0.1em; }
+    #error-box pre {
+      color: rgba(226,232,240,0.55); font-size: 0.65rem; max-width: 480px;
+      white-space: pre-wrap; word-break: break-all; text-align: center; line-height: 1.7;
+    }
   </style>
 </head>
 <body>
@@ -104,9 +109,9 @@
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
-<div id="error-msg">
-  <h2>⚠ Erreur de chargement</h2>
-  <p id="error-detail">Le fichier 3D n'a pas pu être chargé.</p>
+<div id="error-box">
+  <h2>Erreur de chargement</h2>
+  <pre id="error-detail">—</pre>
 </div>
 
 <script type="importmap">
@@ -123,12 +128,26 @@ import * as THREE from 'three';
 import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  const box = document.getElementById('error-box');
+  document.getElementById('error-detail').textContent = msg;
+  box.classList.add('show');
+}
+
+window.addEventListener('error', e => showError(e.message));
+window.addEventListener('unhandledrejection', e => showError(String(e.reason)));
+
 /* ─── CONFIG ─── */
 const WALK_SPEED   = 2.2;
 const TURN_SPEED   = 2.0;
 const CAM_DISTANCE = 3.5;
 const CAM_HEIGHT   = 1.8;
 const FADE_TIME    = 0.3;
+
+/* chemin absolu pour que DRACOLoader le retrouve depuis son Worker */
+const BASE = new URL('.', document.baseURI).href;
+const DRACO_PATH = BASE + 'assets/draco/';
 
 /* ─── RENDERER ─── */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -150,14 +169,20 @@ camera.position.set(0, CAM_HEIGHT, CAM_DISTANCE);
 
 /* ─── LUMIÈRES ─── */
 scene.add(new THREE.AmbientLight(0x6c63ff, 0.55));
+
 const dirLight = new THREE.DirectionalLight(0xffd699, 2.0);
 dirLight.position.set(5, 10, 5);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.setScalar(2048);
-dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -15;
-dirLight.shadow.camera.right = dirLight.shadow.camera.top  =  15;
+dirLight.shadow.camera.left   = -15;
+dirLight.shadow.camera.right  =  15;
+dirLight.shadow.camera.top    =  15;
+dirLight.shadow.camera.bottom = -15;
 scene.add(dirLight);
-scene.add(Object.assign(new THREE.DirectionalLight(0xa78bfa, 0.75), { position: new THREE.Vector3(-4, 6, -4) }));
+
+const rimLight = new THREE.DirectionalLight(0xa78bfa, 0.75);
+rimLight.position.set(-4, 6, -4);
+scene.add(rimLight);
 
 /* ─── SOL ─── */
 const ground = new THREE.Mesh(
@@ -180,55 +205,68 @@ const keyMap = {
   ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right',
 };
 const keyEls = {
-  up: document.getElementById('key-up'), down: document.getElementById('key-down'),
-  left: document.getElementById('key-left'), right: document.getElementById('key-right'),
+  up:    document.getElementById('key-up'),
+  down:  document.getElementById('key-down'),
+  left:  document.getElementById('key-left'),
+  right: document.getElementById('key-right'),
 };
 window.addEventListener('keydown', e => {
-  const k = keyMap[e.code]; if (!k) return; e.preventDefault();
-  keys[k] = true; keyEls[k].classList.add('active');
+  const k = keyMap[e.code];
+  if (!k) return;
+  e.preventDefault();
+  keys[k] = true;
+  keyEls[k].classList.add('active');
 });
 window.addEventListener('keyup', e => {
-  const k = keyMap[e.code]; if (!k) return;
-  keys[k] = false; keyEls[k].classList.remove('active');
+  const k = keyMap[e.code];
+  if (!k) return;
+  keys[k] = false;
+  keyEls[k].classList.remove('active');
 });
 
 /* ─── ÉTAT PERSONNAGE ─── */
-let character  = null;
-let mixer      = null;
-let walkAction = null;
-let bones      = {};       // { boneName: THREE.Bone }
-let idleTime   = 0;        // chrono pour l'animation idle procédurale
-let currentAnim = 'idle';
-let fadeProgress = 1;      // 0 → 1, interpolation idle ↔ walk
+let character    = null;
+let mixer        = null;
+let walkAction   = null;
+let bones        = {};
+let idleTime     = 0;
+let currentAnim  = 'idle';
+let fadeProgress = 0;
 const badge = document.getElementById('anim-badge');
 
 /* ─── CHARGEMENT ─── */
 const draco = new DRACOLoader();
-draco.setDecoderPath('assets/draco/');   // fichiers locaux, pas de CDN externe
+draco.setDecoderPath(DRACO_PATH);
+
 const loader = new GLTFLoader();
 loader.setDRACOLoader(draco);
 
 loader.load(
-  'assets/3d/char1_walking.glb',
+  BASE + 'assets/3d/char1_walking.glb',
   (gltf) => {
     character = gltf.scene;
+
     character.traverse(obj => {
-      if (obj.isMesh)  { obj.castShadow = true; obj.receiveShadow = true; }
-      if (obj.isBone || obj.type === 'Bone') bones[obj.name] = obj;
+      if (obj.isMesh) {
+        obj.castShadow    = true;
+        obj.receiveShadow = true;
+      }
+      if (obj.isBone) {
+        bones[obj.name] = obj;
+      }
     });
 
     scene.add(character);
 
-    /* Walk animation via AnimationMixer */
     mixer = new THREE.AnimationMixer(character);
     if (gltf.animations.length > 0) {
       walkAction = mixer.clipAction(gltf.animations[0]);
       walkAction.setLoop(THREE.LoopRepeat);
     }
 
-    /* Stocker la rotation de repos de chaque os */
+    /* Stocker le quaternion de repos après ajout en scène, avant animation */
     character.traverse(obj => {
-      if (obj.isBone || (obj.name && bones[obj.name])) {
+      if (obj.isBone) {
         obj.userData.restQuat = obj.quaternion.clone();
       }
     });
@@ -236,148 +274,97 @@ loader.load(
     document.getElementById('loading').classList.add('hidden');
   },
   (xhr) => {
-    if (xhr.total) document.getElementById('loading-bar').style.width =
-      Math.round(xhr.loaded / xhr.total * 100) + '%';
+    if (xhr.total > 0) {
+      document.getElementById('loading-bar').style.width =
+        Math.round(xhr.loaded / xhr.total * 100) + '%';
+    }
   },
   (err) => {
-    console.error('GLB load error:', err);
-    const msg = document.getElementById('error-msg');
-    const det = document.getElementById('error-detail');
-    det.textContent = 'Impossible de charger char1_walking.glb\n' + (err?.message || String(err));
-    document.getElementById('loading').style.display = 'none';
-    msg.classList.add('show');
+    showError('Impossible de charger char1_walking.glb\n\n' + (err?.message || String(err)));
   }
 );
 
-/* ═══════════════════════════════════════════════════
-   ANIMATION IDLE PROCÉDURALE
-   Reproduit un "Standing Idle" : respiration, balancement,
-   bras naturellement pendants avec micro-sway
-═══════════════════════════════════════════════════ */
+/* ─── ANIMATION IDLE PROCÉDURALE ─── */
 const Q = new THREE.Quaternion();
 const E = new THREE.Euler();
+const A = (deg) => deg * Math.PI / 180;
 
 function applyIdlePose(t, weight) {
   if (!character || weight <= 0) return;
 
-  const sin  = Math.sin;
-  const cos  = Math.cos;
-  const PI2  = Math.PI * 2;
+  const breath = (Math.PI * 2) * t / 3.5;
+  const sway   = (Math.PI * 2) * t / 5.0;
+  const micro  = (Math.PI * 2) * t / 2.2;
 
-  /* Fréquences */
-  const breath = PI2 * t / 3.5;     // respiration : 3.5s par cycle
-  const sway   = PI2 * t / 5.0;     // balancement : 5.0s
-  const micro  = PI2 * t / 2.2;     // micro-mouvements : 2.2s
-
-  /* Amplitudes (radians) */
-  const A = (deg) => deg * Math.PI / 180;
-
-  function applyRot(boneName, rx, ry, rz) {
-    const bone = bones[boneName];
-    if (!bone) return;
-    const rest = bone.userData.restQuat;
-    if (!rest) return;
+  function applyRot(name, rx, ry, rz) {
+    const bone = bones[name];
+    if (!bone || !bone.userData.restQuat) return;
     E.set(rx * weight, ry * weight, rz * weight, 'XYZ');
     Q.setFromEuler(E);
-    bone.quaternion.copy(rest).multiply(Q);
+    bone.quaternion.copy(bone.userData.restQuat).multiply(Q);
   }
 
-  /* ── HIPS : balancement gauche/droite + micro avant/arrière ── */
   applyRot('Hips',
-    A(0.6)  * sin(breath),           // avant/arrière (respiration)
-    0,
-    A(1.5)  * sin(sway)              // gauche/droite
+    A(0.6)  * Math.sin(breath), 0,
+    A(1.5)  * Math.sin(sway)
   );
-
-  /* ── COLONNE : contre-rotation douce, expansion poitrine ── */
   applyRot('Spine',
-    A(2.0) + A(0.8) * sin(breath),   // légère avancée + respiration
-    0,
-    A(0.8) * -sin(sway)
+    A(2.0) + A(0.8) * Math.sin(breath), 0,
+    A(0.8) * -Math.sin(sway)
   );
   applyRot('Spine1',
-    A(1.5) + A(0.5) * sin(breath),
-    0,
-    A(0.5) * -sin(sway + 0.3)
+    A(1.5) + A(0.5) * Math.sin(breath), 0,
+    A(0.5) * -Math.sin(sway + 0.3)
   );
   applyRot('Spine2',
-    A(1.0) + A(0.6) * sin(breath + 0.2),
-    0,
-    A(0.4) * -sin(sway + 0.6)
+    A(1.0) + A(0.6) * Math.sin(breath + 0.2), 0,
+    A(0.4) * -Math.sin(sway + 0.6)
   );
-
-  /* ── COU : léger hochement, regard légèrement baissé ── */
   applyRot('Neck',
-    A(3.0) + A(0.4) * sin(breath + 0.5),
-    A(0.3) * sin(micro * 0.5),
-    0
+    A(3.0) + A(0.4) * Math.sin(breath + 0.5),
+    A(0.3) * Math.sin(micro * 0.5), 0
   );
   applyRot('Head',
-    A(-4.0) + A(0.6) * sin(breath + 0.4),
-    A(0.5) * sin(micro * 0.4),
-    A(0.3) * sin(sway * 0.6)
+    A(-4.0) + A(0.6) * Math.sin(breath + 0.4),
+    A(0.5)  * Math.sin(micro * 0.4),
+    A(0.3)  * Math.sin(sway * 0.6)
   );
-
-  /* ── BRAS GAUCHE : pendant naturel, léger balancement ── */
   applyRot('LeftShoulder',
-    A(5.0),
-    A(-3.0) + A(1.2) * sin(micro),
-    A(-2.0)
+    A(5.0), A(-3.0) + A(1.2) * Math.sin(micro), A(-2.0)
   );
   applyRot('LeftArm',
-    A(28.0) + A(2.5) * sin(micro + 0.5),
-    A(5.0)  + A(1.0) * sin(sway),
+    A(28.0) + A(2.5) * Math.sin(micro + 0.5),
+    A(5.0)  + A(1.0) * Math.sin(sway),
     A(-10.0)
   );
   applyRot('LeftForeArm',
-    A(18.0) + A(1.5) * sin(micro + 1.0),
-    0,
-    A(4.0)
+    A(18.0) + A(1.5) * Math.sin(micro + 1.0), 0, A(4.0)
   );
   applyRot('LeftHand',
-    A(5.0)  + A(1.0) * sin(micro * 1.2),
-    0,
-    A(-2.0)
+    A(5.0) + A(1.0) * Math.sin(micro * 1.2), 0, A(-2.0)
   );
-
-  /* ── BRAS DROIT : légèrement différent (tenu comme si porte objet) ── */
   applyRot('RightShoulder',
-    A(5.0),
-    A(3.0)  + A(1.2) * sin(micro + Math.PI),
-    A(2.0)
+    A(5.0), A(3.0) + A(1.2) * Math.sin(micro + Math.PI), A(2.0)
   );
   applyRot('RightArm',
-    A(32.0) + A(2.5) * sin(micro + Math.PI + 0.5),
-    A(-5.0) + A(1.0) * sin(sway + Math.PI),
+    A(32.0) + A(2.5) * Math.sin(micro + Math.PI + 0.5),
+    A(-5.0) + A(1.0) * Math.sin(sway + Math.PI),
     A(10.0)
   );
   applyRot('RightForeArm',
-    A(42.0) + A(2.0) * sin(micro + Math.PI + 1.0),
-    0,
-    A(-4.0)
+    A(42.0) + A(2.0) * Math.sin(micro + Math.PI + 1.0), 0, A(-4.0)
   );
   applyRot('RightHand',
-    A(8.0)  + A(1.0) * sin(micro * 1.2 + Math.PI),
-    0,
-    A(2.0)
+    A(8.0) + A(1.0) * Math.sin(micro * 1.2 + Math.PI), 0, A(2.0)
   );
-
-  /* ── JAMBES : micro-transfert de poids ── */
-  applyRot('LeftUpLeg',
-    A(0.5),
-    0,
-    A(-0.8) * sin(sway)
-  );
-  applyRot('RightUpLeg',
-    A(0.5),
-    0,
-    A(0.8)  * sin(sway)
-  );
+  applyRot('LeftUpLeg',  A(0.5), 0, A(-0.8) * Math.sin(sway));
+  applyRot('RightUpLeg', A(0.5), 0,  A(0.8) * Math.sin(sway));
 }
 
 /* ─── CAMÉRA ─── */
 const camPos = new THREE.Vector3();
 const camTgt = new THREE.Vector3();
+
 function updateCamera() {
   if (!character) return;
   const a = character.rotation.y;
@@ -387,7 +374,8 @@ function updateCamera() {
     character.position.z - Math.cos(a) * CAM_DISTANCE
   );
   camera.position.lerp(camPos, 0.08);
-  camTgt.copy(character.position); camTgt.y += 0.9;
+  camTgt.copy(character.position);
+  camTgt.y += 0.9;
   camera.lookAt(camTgt);
 }
 
@@ -396,13 +384,11 @@ const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt   = clock.getDelta();
-  const time = clock.elapsedTime;
+  const dt = clock.getDelta();
 
   if (character) {
     const moving = keys.up || keys.down || keys.left || keys.right;
 
-    /* Mouvement */
     if (keys.left)  character.rotation.y += TURN_SPEED * dt;
     if (keys.right) character.rotation.y -= TURN_SPEED * dt;
     if (keys.up) {
@@ -414,26 +400,23 @@ function animate() {
       character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
     }
 
-    /* Transition fluide idle ↔ walk */
-    const targetFade = moving ? 1 : 0;   // 1 = walk, 0 = idle
+    const targetFade = moving ? 1 : 0;
     fadeProgress += (targetFade - fadeProgress) * Math.min(dt / FADE_TIME, 1);
 
     if (moving && currentAnim !== 'walk') {
       currentAnim = 'walk';
-      walkAction?.reset().fadeIn(FADE_TIME).play();
+      if (walkAction) walkAction.reset().fadeIn(FADE_TIME).play();
       badge.textContent = 'MARCHE';
       badge.classList.add('walk');
     } else if (!moving && currentAnim !== 'idle') {
       currentAnim = 'idle';
-      walkAction?.fadeOut(FADE_TIME);
+      if (walkAction) walkAction.fadeOut(FADE_TIME);
       badge.textContent = 'IDLE';
       badge.classList.remove('walk');
     }
 
-    /* Animation walk via mixer */
     if (mixer) mixer.update(dt);
 
-    /* Animation idle procédurale (poids inverse du fade walk) */
     idleTime += dt;
     applyIdlePose(idleTime, 1 - fadeProgress);
 
