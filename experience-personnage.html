@@ -191,20 +191,22 @@ function addBox(w, h, d, x, z, mat, solid = true) {
 }
 
 function addTree(x, z) {
-  const th = 2.0 + rng() * 2.5;
-  const cr = 1.0 + rng() * 1.8;
-  addBox(0.28, th, 0.28, x, z, mTronc, false);  // pas de collision
-  const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 8, 6), mFeuil);
-  crown.position.set(x, th + cr * 0.6, z);
+  const th = 1.2 + rng() * 1.5;        // hauteur tronc réduite
+  const cr = 0.55 + rng() * 0.8;       // couronne plus petite
+  addBox(0.18, th, 0.18, x, z, mTronc, true);   // tronc avec collider
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 7, 5), mFeuil);
+  crown.position.set(x, th + cr * 0.55, z);
   crown.castShadow = true;
   scene.add(crown);
+  /* collider sphère de la couronne (boîte englobante) */
+  colliders.push({ minX: x-cr, maxX: x+cr, minZ: z-cr, maxZ: z+cr });
 }
 
 /* Paramètres de la grille */
-const BS   = 22;    // taille d'un bloc (m)
-const RUE  = 5;     // largeur des rues (m)
+const BS   = 12;    // taille d'un bloc (m) — réduit
+const RUE  = 4;     // largeur des rues (m)
 const CELL = BS + RUE;
-const GRID = 10;    // 10×10 blocs
+const GRID = 10;
 const OFF  = -(GRID * CELL) / 2;
 
 /* Zone centrale réservée au Tombeau : blocs 4 et 5 (0-indexé) */
@@ -219,23 +221,23 @@ for (let gx = 0; gx < GRID; gx++) {
     if (gx >= T0 && gx <= T1 && gz >= T0 && gz <= T1) continue;
 
     /* ─ Murs du compound ─ */
-    const wh  = 2.2 + rng() * 1.0;
-    const wt  = 0.42;
+    const wh  = 1.2 + rng() * 0.8;    // murs plus bas
+    const wt  = 0.35;
     const mat = rng() > 0.45 ? mBanco : mBanc2;
 
-    addBox(BS, wh, wt, cx, cz - BS/2, mat, false);  // murs visuels, pas de collision
-    addBox(BS, wh, wt, cx, cz + BS/2, mat, false);
-    addBox(wt, wh, BS, cx - BS/2, cz, mat, false);
-    addBox(wt, wh, BS, cx + BS/2, cz, mat, false);
+    addBox(BS, wh, wt, cx, cz - BS/2, mat, true);   // collider actif
+    addBox(BS, wh, wt, cx, cz + BS/2, mat, true);
+    addBox(wt, wh, BS, cx - BS/2, cz, mat, true);
+    addBox(wt, wh, BS, cx + BS/2, cz, mat, true);
 
     /* ─ Bâtiments intérieurs ─ */
-    const nb = 1 + Math.floor(rng() * 3);
+    const nb = 1 + Math.floor(rng() * 2);
     for (let i = 0; i < nb; i++) {
-      const bw = 4 + rng() * 7;
-      const bd = 4 + rng() * 6;
-      const bh = 2.6 + rng() * 2.8;
-      const bx = cx + (rng() - 0.5) * (BS - bw - 2);
-      const bz = cz + (rng() - 0.5) * (BS - bd - 2);
+      const bw = 2.5 + rng() * 4.0;   // bâtiments plus petits
+      const bd = 2.5 + rng() * 3.5;
+      const bh = 1.5 + rng() * 2.0;
+      const bx = cx + (rng() - 0.5) * (BS - bw - 1.5);
+      const bz = cz + (rng() - 0.5) * (BS - bd - 1.5);
       const bm = rng() > 0.5 ? mBanco : mBanc2;
       addBox(bw, bh, bd, bx, bz, bm);
       /* toit plat */
@@ -245,9 +247,9 @@ for (let gx = 0; gx < GRID; gx++) {
       scene.add(roof);
     }
 
-    /* ─ Arbre dans le compound (65 %) ─ */
-    if (rng() > 0.35)
-      addTree(cx + (rng()-0.5)*(BS-5), cz + (rng()-0.5)*(BS-5));
+    /* ─ Arbre dans le compound (50 %) ─ */
+    if (rng() > 0.5)
+      addTree(cx + (rng()-0.5)*(BS-3), cz + (rng()-0.5)*(BS-3));
   }
 }
 
@@ -269,9 +271,9 @@ plaza.position.set(tombX, 0.02, tombZ);
 plaza.receiveShadow = true;
 scene.add(plaza);
 
-/* Murs d'enceinte de la place */
+/* Murs d'enceinte de la place — visuels seulement, pas de collision */
 const pSize = CELL * 2;
-const pwh   = 1.8, pwt = 0.5;
+const pwh   = 1.4, pwt = 0.4;
 addBox(pSize, pwh, pwt, tombX, tombZ - pSize/2, mTomb, false);
 addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb, false);
 addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb, false);
