@@ -341,12 +341,12 @@
             transition: all 0.5s ease;
         }
 
-        /* ── HINT SCROLL ── */
+        /* ── HINT SCROLL — barre droite ── */
         .scroll-hint {
             position: fixed;
-            bottom: 72px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -356,74 +356,42 @@
             transition: opacity 0.8s ease;
         }
         .scroll-hint-label {
-            font-size: 0.5rem;
-            letter-spacing: 0.4em;
+            font-size: 0.42rem;
+            letter-spacing: 0.3em;
             text-transform: uppercase;
-            color: rgba(196,175,248,0.5);
+            color: rgba(196,175,248,0.45);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
         }
-        /* Souris (desktop) */
-        .scroll-mouse {
-            width: 22px;
-            height: 34px;
-            border: 2px solid rgba(196,175,248,0.55);
-            border-radius: 11px;
-            position: relative;
-            box-shadow: 0 0 12px rgba(140,30,230,0.3);
-        }
-        .scroll-mouse::before {
-            content: '';
-            position: absolute;
-            top: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 3px;
-            height: 6px;
-            background: rgba(196,175,248,0.9);
-            border-radius: 2px;
-            animation: scrollDot 1.8s ease-in-out infinite;
-        }
-        @keyframes scrollDot {
-            0%   { opacity: 1;   top: 5px;  }
-            60%  { opacity: 0;   top: 16px; }
-            61%  { opacity: 0;   top: 5px;  }
-            100% { opacity: 1;   top: 5px;  }
-        }
-        /* Doigt swipe (mobile) */
-        .scroll-finger {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 0;
-        }
-        .scroll-finger svg {
-            width: 26px;
-            height: 26px;
-            fill: none;
-            stroke: rgba(196,175,248,0.75);
-            stroke-width: 1.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            animation: fingerSwipe 1.8s ease-in-out infinite;
-            filter: drop-shadow(0 0 6px rgba(140,30,230,0.5));
-        }
-        .scroll-trail {
+        .scroll-bar-track {
             width: 2px;
-            height: 20px;
-            background: linear-gradient(to top, rgba(196,175,248,0.7), transparent);
-            border-radius: 1px;
-            animation: trailFade 1.8s ease-in-out infinite;
+            height: 80px;
+            background: rgba(196,175,248,0.15);
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
         }
-        @keyframes fingerSwipe {
-            0%, 100% { transform: translateY(6px);  opacity: 0.4; }
-            50%       { transform: translateY(-6px); opacity: 1;   }
+        .scroll-bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35%;
+            border-radius: 2px;
+            background: linear-gradient(to top,
+                rgba(196,175,248,0.95),
+                rgba(140,30,230,0.6));
+            box-shadow: 0 0 8px rgba(140,30,230,0.7),
+                        0 0 16px rgba(140,30,230,0.3);
+            animation: barSlide 2s cubic-bezier(0.4,0,0.2,1) infinite;
         }
-        @keyframes trailFade {
-            0%, 100% { opacity: 0.2; transform: scaleY(0.6); }
-            50%       { opacity: 0.8; transform: scaleY(1);   }
-        }
-        @media (max-width: 768px) {
-            .scroll-mouse  { display: none; }
-            .scroll-finger { display: flex; }
+        @keyframes barSlide {
+            0%   { bottom: -35%; opacity: 0;   }
+            15%  { opacity: 1;               }
+            70%  { bottom: 100%; opacity: 0.8; }
+            71%  { bottom: -35%; opacity: 0;   }
+            100% { bottom: -35%; opacity: 0;   }
         }
         .scroll-hint.hidden { opacity: 0; }
 
@@ -608,16 +576,8 @@
 
 <!-- Hint scroll -->
 <div class="scroll-hint" id="scroll-hint">
-    <!-- Desktop : souris animée -->
-    <div class="scroll-mouse"></div>
-    <!-- Mobile : doigt swipe -->
-    <div class="scroll-finger">
-        <div class="scroll-trail"></div>
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 11V6a2 2 0 0 1 4 0v5"/>
-            <path d="M13 6a2 2 0 0 1 4 0v3"/>
-            <path d="M17 9a2 2 0 0 1 4 0v4c0 3.314-2.686 6-6 6H13c-1.6 0-3-.7-4-2l-4-5a2 2 0 0 1 3-2.646L9 11"/>
-        </svg>
+    <div class="scroll-bar-track">
+        <div class="scroll-bar-fill"></div>
     </div>
     <span class="scroll-hint-label" id="scroll-hint-label">Scroll</span>
 </div>
