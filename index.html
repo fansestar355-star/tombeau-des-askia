@@ -794,8 +794,14 @@ function switchModel(idx) {
     mv.src = models[modelIdx];
     lblDraw.classList.toggle('active', modelIdx === 0);
     lblReal.classList.toggle('active', modelIdx === 1);
-    /* Réapplique la caméra mobile après chargement du nouveau modèle */
-    mv.addEventListener('load', () => applyMobileCamera(CHAPTERS[current].camera), { once: true });
+    /* Ajuste exposition : draw (blanc) = 0.65, real (coloré) = 1.0 */
+    mv.setAttribute('exposure', modelIdx === 0 ? '0.65' : '1.0');
+    /* Réapplique la caméra du chapitre actuel après chargement */
+    mv.addEventListener('load', () => {
+        mv.classList.add('loaded');
+        if (isMobile) applyMobileCamera(CHAPTERS[current].camera);
+        else mv.setAttribute('camera-orbit', CHAPTERS[current].camera);
+    }, { once: true });
 }
 
 document.getElementById('arrow-right').addEventListener('click', () => switchModel(modelIdx === 0 ? 1 : 0));
