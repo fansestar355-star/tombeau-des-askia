@@ -349,7 +349,13 @@ tombLoader.load(
     const box = new THREE.Box3().setFromObject(tomb);
     const center = box.getCenter(new THREE.Vector3());
     tomb.position.set(tombX - center.x, -box.min.y, tombZ - center.z);
-    /* pas de collider — le personnage peut entrer à l'intérieur */
+    /* collider uniquement sur le node "Tombeaux" (la tour principale) */
+    tomb.traverse(o => {
+      if (o.name === 'Tombeaux') {
+        const nb = new THREE.Box3().setFromObject(o);
+        colliders.push({ minX: nb.min.x, maxX: nb.max.x, minZ: nb.min.z, maxZ: nb.max.z });
+      }
+    });
   },
   null,
   (err) => console.warn('Tombeau GLB non chargé :', err)
