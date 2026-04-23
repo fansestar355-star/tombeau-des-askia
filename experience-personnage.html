@@ -343,15 +343,13 @@ tombLoader.load(
     tomb.traverse(o => {
       if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
     });
+    tomb.scale.setScalar(4);
     scene.add(tomb);
     /* centrer automatiquement le modèle sur la place et poser au sol */
     const box = new THREE.Box3().setFromObject(tomb);
     const center = box.getCenter(new THREE.Vector3());
     tomb.position.set(tombX - center.x, -box.min.y, tombZ - center.z);
-    /* collider autour du tombeau */
-    const hw = (box.max.x - box.min.x) / 2 + 0.5;
-    const hd = (box.max.z - box.min.z) / 2 + 0.5;
-    colliders.push({ minX: tombX - hw, maxX: tombX + hw, minZ: tombZ - hd, maxZ: tombZ + hd });
+    /* pas de collider — le personnage peut entrer à l'intérieur */
   },
   null,
   (err) => console.warn('Tombeau GLB non chargé :', err)
