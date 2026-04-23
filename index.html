@@ -624,7 +624,7 @@ const isMobile = window.innerWidth <= 768;
 function applyMobileCamera(orbit) {
     if (!isMobile) return;
     /* Zoom arrière ×2.8, azimut conservé → rotation naturelle autour de l'origine */
-    const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.8).toFixed(1) + 'm');
+    const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.0).toFixed(1) + 'm');
     mv.setAttribute('camera-orbit', zoomedOut);
     mv.setAttribute('camera-target', '0m 0m 0m');
 }
