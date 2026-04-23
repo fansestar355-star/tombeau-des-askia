@@ -341,10 +341,10 @@
             transition: all 0.5s ease;
         }
 
-        /* ── HINT SCROLL — barre droite ── */
+        /* ── SCROLL PROGRESS BAR — droite ── */
         .scroll-hint {
             position: fixed;
-            right: 18px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
@@ -353,45 +353,74 @@
             gap: 10px;
             z-index: 20;
             pointer-events: none;
-            transition: opacity 0.8s ease;
+            opacity: 1;
+            transition: opacity 0.6s ease;
         }
         .scroll-hint-label {
-            font-size: 0.42rem;
-            letter-spacing: 0.3em;
+            font-size: 0.38rem;
+            letter-spacing: 0.35em;
             text-transform: uppercase;
-            color: rgba(196,175,248,0.45);
+            color: rgba(196,175,248,0.4);
             writing-mode: vertical-rl;
-            text-orientation: mixed;
             transform: rotate(180deg);
         }
+        /* Conteneur barre */
         .scroll-bar-track {
-            width: 2px;
-            height: 80px;
-            background: rgba(196,175,248,0.15);
-            border-radius: 2px;
+            width: 3px;
+            height: 110px;
+            background: rgba(196,175,248,0.12);
+            border-radius: 3px;
             position: relative;
-            overflow: hidden;
         }
-        .scroll-bar-fill {
+        /* Progression réelle (chapitres) */
+        .scroll-bar-progress {
             position: absolute;
-            bottom: 0;
+            top: 0; left: 0;
+            width: 100%;
+            height: 33.33%; /* chapitre 0 = 1/3 */
+            border-radius: 3px;
+            background: linear-gradient(to bottom,
+                rgba(196,175,248,0.9),
+                rgba(108,99,255,0.7));
+            transition: height 0.7s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 0 10px rgba(140,30,230,0.6),
+                        0 0 22px rgba(140,30,230,0.25);
+        }
+        /* Dot lumineux à la pointe de la progression */
+        .scroll-bar-dot {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #c4aff8;
+            box-shadow: 0 0 8px rgba(196,175,248,0.9),
+                        0 0 18px rgba(140,30,230,0.6);
+            top: 33.33%;
+            transition: top 0.7s cubic-bezier(0.4,0,0.2,1);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%,100% { box-shadow: 0 0 8px rgba(196,175,248,0.9), 0 0 18px rgba(140,30,230,0.6); }
+            50%      { box-shadow: 0 0 14px rgba(196,175,248,1),  0 0 30px rgba(140,30,230,0.9); }
+        }
+        /* Segment animé au-dessous (invite à continuer) */
+        .scroll-bar-pulse {
+            position: absolute;
             left: 0;
             width: 100%;
-            height: 35%;
-            border-radius: 2px;
-            background: linear-gradient(to top,
-                rgba(196,175,248,0.95),
-                rgba(140,30,230,0.6));
-            box-shadow: 0 0 8px rgba(140,30,230,0.7),
-                        0 0 16px rgba(140,30,230,0.3);
-            animation: barSlide 2s cubic-bezier(0.4,0,0.2,1) infinite;
+            border-radius: 3px;
+            background: linear-gradient(to bottom,
+                rgba(196,175,248,0.5), transparent);
+            animation: pulseDown 2s ease-in-out infinite;
+            top: 33.33%;
         }
-        @keyframes barSlide {
-            0%   { bottom: -35%; opacity: 0;   }
-            15%  { opacity: 1;               }
-            70%  { bottom: 100%; opacity: 0.8; }
-            71%  { bottom: -35%; opacity: 0;   }
-            100% { bottom: -35%; opacity: 0;   }
+        @keyframes pulseDown {
+            0%   { height: 0;    opacity: 0;   }
+            30%  { opacity: 0.7;              }
+            80%  { height: 28px; opacity: 0;   }
+            100% { height: 0;    opacity: 0;   }
         }
         .scroll-hint.hidden { opacity: 0; }
 
@@ -490,7 +519,7 @@
                 background: rgba(7,5,15,0.85);
             }
             .bottom-label { font-size: 0.55rem; letter-spacing: 0.2em; }
-            .scroll-hint  { bottom: 60px; }
+            .scroll-hint  { right: 10px; }
         }
 
         /* ── Très petits écrans (≤ 480px) ── */
@@ -574,12 +603,14 @@
 
 </div>
 
-<!-- Hint scroll -->
+<!-- Scroll progress bar droite -->
 <div class="scroll-hint" id="scroll-hint">
     <div class="scroll-bar-track">
-        <div class="scroll-bar-fill"></div>
+        <div class="scroll-bar-progress" id="sb-progress"></div>
+        <div class="scroll-bar-dot"      id="sb-dot"></div>
+        <div class="scroll-bar-pulse"    id="sb-pulse"></div>
     </div>
-    <span class="scroll-hint-label" id="scroll-hint-label">Scroll</span>
+    <span class="scroll-hint-label" id="scroll-hint-label">Swipe</span>
 </div>
 
 <script>
@@ -631,6 +662,21 @@ const chDesc    = document.getElementById('ch-desc');
 const chBtn     = null;
 const bottomY   = document.getElementById('bottom-year');
 const scrollHint= document.getElementById('scroll-hint');
+const sbProgress= document.getElementById('sb-progress');
+const sbDot     = document.getElementById('sb-dot');
+const sbPulse   = document.getElementById('sb-pulse');
+
+function updateScrollBar(idx) {
+    const total   = CHAPTERS.length;
+    const pct     = ((idx + 1) / total * 100).toFixed(2);
+    const isLast  = idx === total - 1;
+    sbProgress.style.height = pct + '%';
+    sbDot.style.top         = pct + '%';
+    sbPulse.style.top       = pct + '%';
+    /* Sur le dernier chapitre : arrête l'animation pulse */
+    sbPulse.style.animationPlayState = isLast ? 'paused' : 'running';
+    sbPulse.style.opacity            = isLast ? '0' : '';
+}
 const dotsWrap  = document.getElementById('nav-dots');
 
 /* ── Génère les dots ── */
@@ -713,8 +759,8 @@ function goTo(index) {
 
         current = index;
 
-        /* Hint scroll : disparaît après le premier défilement */
-        scrollHint.classList.add('hidden');
+        /* Met à jour la barre de progression */
+        updateScrollBar(index);
     });
 
     /* ─── ENTRÉE ─── */
