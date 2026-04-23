@@ -392,22 +392,19 @@
                 opacity: 1;
             }
 
-            /* model-viewer pleine largeur + scale depuis droite/haut → pas de coupure du turban */
+            /* container réduit à droite */
             #mv {
-                width: 100%;
-                margin-left: 0;
-                transform: scale(0.65);
-                transform-origin: right 10%;
+                width: 72%;
+                margin-left: auto;
+                transform: none;
             }
 
-            /* glow suit */
             .bg-glow {
-                width: 100%;
+                width: 80%;
                 right: 0;
-                left: 0;
+                left: auto;
                 top: -10%;
-                transform: scale(0.72);
-                transform-origin: right 10%;
+                transform: none;
             }
 
             /* GAO bien visible à gauche en haut */
@@ -476,7 +473,7 @@
 
         /* ── Très petits écrans (≤ 480px) ── */
         @media (max-width: 480px) {
-            #mv          { transform: scale(0.70); transform-origin: right 10%; }
+            #mv          { width: 78%; transform: none; }
             .hero-gao    { font-size: clamp(3.8rem, 20vw, 6.5rem); top: -2%; }
             .hero-title  { font-size: clamp(1.7rem, 7.5vw, 2.5rem); }
             .hero-text   { padding: 90px 18px 14px; }
@@ -621,8 +618,17 @@ CHAPTERS.forEach((_, i) => {
     dotsWrap.appendChild(d);
 });
 
+/* ── Décalage mobile : modèle poussé à droite dans le container ── */
+const isMobile = window.innerWidth <= 768;
+function applyMobileTarget() {
+    if (isMobile) mv.setAttribute('camera-target', '-0.18m 0m 0m');
+}
+
 /* ── Chargement modèle ── */
-mv.addEventListener('load', () => mv.classList.add('loaded'));
+mv.addEventListener('load', () => {
+    mv.classList.add('loaded');
+    applyMobileTarget();
+});
 
 /* ══════════════════════════════════════════════
    TRANSITION
@@ -648,6 +654,7 @@ function goTo(index) {
     tl.call(() => {
         /* Camera modèle */
         mv.setAttribute('camera-orbit', next.camera);
+        applyMobileTarget();
 
         /* Année en bas */
         bottomY.textContent = next.year;
