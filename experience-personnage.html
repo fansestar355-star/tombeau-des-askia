@@ -223,10 +223,10 @@ for (let gx = 0; gx < GRID; gx++) {
     const wt  = 0.42;
     const mat = rng() > 0.45 ? mBanco : mBanc2;
 
-    addBox(BS, wh, wt, cx, cz - BS/2, mat);
-    addBox(BS, wh, wt, cx, cz + BS/2, mat);
-    addBox(wt, wh, BS, cx - BS/2, cz, mat);
-    addBox(wt, wh, BS, cx + BS/2, cz, mat);
+    addBox(BS, wh, wt, cx, cz - BS/2, mat, false);  // murs visuels, pas de collision
+    addBox(BS, wh, wt, cx, cz + BS/2, mat, false);
+    addBox(wt, wh, BS, cx - BS/2, cz, mat, false);
+    addBox(wt, wh, BS, cx + BS/2, cz, mat, false);
 
     /* ─ Bâtiments intérieurs ─ */
     const nb = 1 + Math.floor(rng() * 3);
@@ -272,10 +272,10 @@ scene.add(plaza);
 /* Murs d'enceinte de la place */
 const pSize = CELL * 2;
 const pwh   = 1.8, pwt = 0.5;
-addBox(pSize, pwh, pwt, tombX, tombZ - pSize/2, mTomb);
-addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb);
-addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb);
-addBox(pwt, pwh, pSize, tombX + pSize/2, tombZ, mTomb);
+addBox(pSize, pwh, pwt, tombX, tombZ - pSize/2, mTomb, false);
+addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb, false);
+addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb, false);
+addBox(pwt, pwh, pSize, tombX + pSize/2, tombZ, mTomb, false);
 
 /* Placeholder : socle du Tombeau */
 const socle = new THREE.Mesh(
@@ -400,8 +400,8 @@ loader.load(
       if (o.isBone) { bones[o.name] = o; }
     });
     /* Positionner le personnage à l'entrée de la place du Tombeau */
-    model.position.set(tombX, 0, tombZ + pSize / 2 + 3);
-    model.rotation.y = Math.PI;
+    model.position.set(tombX, 0, tombZ - 8);  // devant le socle du Tombeau
+    model.rotation.y = 0;
     scene.add(model);
 
     /* pose de repos pour l'idle */
