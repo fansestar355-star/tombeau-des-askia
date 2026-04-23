@@ -299,16 +299,16 @@ loader.load(
 
 /* ══════════════════════════════════════════
    ANIMATION IDLE PROCÉDURALE
-   Respiration douce + regard naturel
+   Bras relâchés le long du corps +
+   tête qui tourne lentement gauche/droite
 ══════════════════════════════════════════ */
 const _Q = new THREE.Quaternion();
 const _E = new THREE.Euler();
 const D  = g => g * Math.PI / 180;
 
 function applyIdle(t) {
-  const br = Math.PI*2 * t / 4.5;   // respiration 4.5 s
-  const sw = Math.PI*2 * t / 8.0;   // balancement 8 s
-  const lk = Math.PI*2 * t / 12.0;  // regard 12 s
+  const br  = Math.PI*2 * t / 5.0;   // respiration 5 s
+  const lk  = Math.PI*2 * t / 6.0;   // rotation tête gauche/droite 6 s
 
   function rot(name, rx, ry, rz) {
     const b = bones[name];
@@ -318,18 +318,31 @@ function applyIdle(t) {
     b.quaternion.copy(b.userData.rest).multiply(_Q);
   }
 
-  rot('Hips',   D(0.3)*Math.sin(br), 0, D(0.5)*Math.sin(sw));
-  rot('Spine',  D(0.7)+D(0.4)*Math.sin(br), 0, D(0.25)*-Math.sin(sw));
-  rot('Spine1', D(0.5)+D(0.3)*Math.sin(br), 0, D(0.2) *-Math.sin(sw+0.15));
-  rot('Spine2', D(0.4)+D(0.25)*Math.sin(br+0.1), 0, 0);
+  /* Bassin : micro-respiration, quasi immobile */
+  rot('Hips',   D(0.2)*Math.sin(br), 0, 0);
 
-  rot('Neck', D(2.0)+D(0.25)*Math.sin(br+0.3), D(1.0)*Math.sin(lk), 0);
-  rot('Head', D(-1.5)+D(0.3)*Math.sin(br),  D(1.5)*Math.sin(lk+0.5), D(0.35)*Math.sin(sw));
+  /* Colonne : légère expansion poitrine à l'inspiration */
+  rot('Spine',  D(0.5)*Math.sin(br), 0, 0);
+  rot('Spine1', D(0.4)*Math.sin(br), 0, 0);
+  rot('Spine2', D(0.3)*Math.sin(br), 0, 0);
 
-  rot('LeftArm',      D(3)+D(0.7)*Math.sin(br),       D(2),  D(-4));
-  rot('LeftForeArm',  D(5)+D(0.5)*Math.sin(br+0.2),   0,     D(1.5));
-  rot('RightArm',     D(3)+D(0.7)*Math.sin(br+Math.PI), D(-2), D(4));
-  rot('RightForeArm', D(5)+D(0.5)*Math.sin(br+Math.PI+0.2), 0, D(-1.5));
+  /* Cou : accompagne légèrement la tête */
+  rot('Neck', 0, D(10)*Math.sin(lk) * 0.3, 0);
+
+  /* Tête : tourne sur l'axe Y (gauche/droite) — 30° max */
+  rot('Head', 0, D(30)*Math.sin(lk), 0);
+
+  /* Bras gauche : relâché, pendant naturellement */
+  rot('LeftShoulder', 0, 0, 0);
+  rot('LeftArm',     D(1)*Math.sin(br), 0, 0);
+  rot('LeftForeArm', D(2), 0, 0);
+  rot('LeftHand',    0, 0, 0);
+
+  /* Bras droit : relâché, pendant naturellement */
+  rot('RightShoulder', 0, 0, 0);
+  rot('RightArm',     D(1)*Math.sin(br + Math.PI), 0, 0);
+  rot('RightForeArm', D(2), 0, 0);
+  rot('RightHand',    0, 0, 0);
 }
 
 /* ── Caméra 3e personne ── */
