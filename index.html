@@ -405,22 +405,27 @@
             0%,100% { box-shadow: 0 0 8px rgba(196,175,248,0.9), 0 0 18px rgba(140,30,230,0.6); }
             50%      { box-shadow: 0 0 14px rgba(196,175,248,1),  0 0 30px rgba(140,30,230,0.9); }
         }
-        /* Segment animé au-dessous (invite à continuer) */
-        .scroll-bar-pulse {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            border-radius: 3px;
-            background: linear-gradient(to bottom,
-                rgba(196,175,248,0.5), transparent);
-            animation: pulseDown 2s ease-in-out infinite;
-            top: 33.33%;
+        /* Chevrons vers le haut */
+        .scroll-chevrons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
         }
-        @keyframes pulseDown {
-            0%   { height: 0;    opacity: 0;   }
-            30%  { opacity: 0.7;              }
-            80%  { height: 28px; opacity: 0;   }
-            100% { height: 0;    opacity: 0;   }
+        .scroll-chevrons i {
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-top: 1.8px solid rgba(196,175,248,0.8);
+            border-right: 1.8px solid rgba(196,175,248,0.8);
+            transform: rotate(-45deg);
+        }
+        .scroll-chevrons i:nth-child(1) { animation: chevUp 1.4s ease-in-out infinite 0s; }
+        .scroll-chevrons i:nth-child(2) { animation: chevUp 1.4s ease-in-out infinite 0.2s; }
+        .scroll-chevrons i:nth-child(3) { animation: chevUp 1.4s ease-in-out infinite 0.4s; }
+        @keyframes chevUp {
+            0%,100% { opacity: 0.15; transform: rotate(-45deg) translateY(3px); }
+            50%      { opacity: 1;    transform: rotate(-45deg) translateY(-3px); }
         }
         .scroll-hint.hidden { opacity: 0; }
 
@@ -605,10 +610,12 @@
 
 <!-- Scroll progress bar droite -->
 <div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-chevrons">
+        <i></i><i></i><i></i>
+    </div>
     <div class="scroll-bar-track">
         <div class="scroll-bar-progress" id="sb-progress"></div>
         <div class="scroll-bar-dot"      id="sb-dot"></div>
-        <div class="scroll-bar-pulse"    id="sb-pulse"></div>
     </div>
     <span class="scroll-hint-label" id="scroll-hint-label">Swipe</span>
 </div>
@@ -662,20 +669,18 @@ const chDesc    = document.getElementById('ch-desc');
 const chBtn     = null;
 const bottomY   = document.getElementById('bottom-year');
 const scrollHint= document.getElementById('scroll-hint');
-const sbProgress= document.getElementById('sb-progress');
-const sbDot     = document.getElementById('sb-dot');
-const sbPulse   = document.getElementById('sb-pulse');
+const sbProgress  = document.getElementById('sb-progress');
+const sbDot       = document.getElementById('sb-dot');
+const sbChevrons  = document.querySelector('.scroll-chevrons');
 
 function updateScrollBar(idx) {
-    const total   = CHAPTERS.length;
-    const pct     = ((idx + 1) / total * 100).toFixed(2);
-    const isLast  = idx === total - 1;
+    const total  = CHAPTERS.length;
+    const pct    = ((idx + 1) / total * 100).toFixed(2);
+    const isLast = idx === total - 1;
     sbProgress.style.height = pct + '%';
     sbDot.style.top         = pct + '%';
-    sbPulse.style.top       = pct + '%';
-    /* Sur le dernier chapitre : arrête l'animation pulse */
-    sbPulse.style.animationPlayState = isLast ? 'paused' : 'running';
-    sbPulse.style.opacity            = isLast ? '0' : '';
+    /* Dernier chapitre : stoppe les chevrons */
+    sbChevrons.style.opacity = isLast ? '0' : '1';
 }
 const dotsWrap  = document.getElementById('nav-dots');
 
