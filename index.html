@@ -214,6 +214,39 @@
             box-shadow: 0 0 8px var(--accent2);
         }
 
+        .btn-experience {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 11px 24px;
+            border-radius: 50px;
+            border: 1.5px solid rgba(249,213,139,0.45);
+            background: rgba(249,213,139,0.07);
+            color: var(--gold);
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-experience:hover {
+            background: rgba(249,213,139,0.18);
+            border-color: var(--gold);
+            color: #fff;
+            box-shadow: 0 0 24px rgba(249,213,139,0.25);
+        }
+        .btn-experience::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 8px var(--gold);
+        }
+
         /* ── NAVIGATION DOTS ── */
         .nav-dots {
             display: flex;
@@ -392,6 +425,7 @@
             <div class="title-divider" id="ch-divider" style="width:200px;"></div>
             <p class="hero-desc" id="ch-desc">L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.</p>
             <a class="btn-enquete" id="ch-btn" href="#">Enquête historique</a>
+            <a class="btn-experience" href="experience-personnage.html">Explorer le personnage</a>
             <div class="nav-dots" id="nav-dots"></div>
         </div>
 
@@ -429,36 +463,18 @@ const CHAPTERS = [
     {
         gao:    "1493",
         tag:    "La prise du pouvoir",
-        camera: "-55deg 82deg 2.2m",
+        camera: "45deg 82deg 2.2m",
         lines:  ["L'Homme", "qui refusa", "d'obéir"],
         desc:   "Mohammed Touré renverse la dynastie de Sunni Ali Ber et prend le titre d'Askia — «celui qui ne sera pas». Il fonde une nouvelle légitimité sur l'islam et la justice.",
         btn:    false,
         year:   "1493 · Empire Songhaï"
     },
     {
-        gao:    "1496",
-        tag:    "Le pèlerinage à La Mecque",
-        camera: "-90deg 78deg 2.4m",
-        lines:  ["Le Calife", "du Soudan"],
-        desc:   "Avec 500 cavaliers et 1 000 fantassins, Askia accomplit le Hajj. Le Calife d'Égypte lui confère le titre de Calife du Soudan occidental. Il en revient transformé.",
-        btn:    false,
-        year:   "1496 — 1497 · La Mecque"
-    },
-    {
-        gao:    "1495",
-        tag:    "La pyramide de banco",
-        camera: "-125deg 83deg 2.0m",
-        lines:  ["La Pyramide", "de Banco"],
-        desc:   "À Gao, il ordonne la construction d'une pyramide de 17 mètres en banco — argile, paille et eau. Unique en Afrique de l'Ouest. Inscrite au Patrimoine mondial UNESCO en 2004.",
-        btn:    false,
-        year:   "1495 · Gao, Mali"
-    },
-    {
         gao:    "EMPIRE",
         tag:    "L'apogée Songhaï",
-        camera: "-160deg 80deg 2.6m",
+        camera: "90deg 80deg 2.0m",
         lines:  ["De l'Or", "et du Sel"],
-        desc:   "De Tombouctou à Agadez, l'Empire Songhaï contrôle les routes trans-sahariennes. Askia fait de Tombouctou un phare intellectuel du monde islamique — un empire sans précédent.",
+        desc:   "De Tombouctou à Agadez, l'Empire Songhaï contrôle les routes trans-sahariennes. Askia fait de Tombouctou un phare intellectuel du monde islamique.",
         btn:    false,
         year:   "1493 — 1528 · Apogée"
     }
@@ -602,8 +618,8 @@ window.addEventListener('wheel', (e) => {
     wheelCooldown = true;
     setTimeout(() => { wheelCooldown = false; }, 900);
 
-    if (e.deltaY < 0) goTo(current + 1);   // scroll haut → chapitre suivant
-    else               goTo(current - 1);   // scroll bas  → chapitre précédent
+    if (e.deltaY > 0) goTo(current + 1);   // scroll bas  → chapitre suivant
+    else               goTo(current - 1);   // scroll haut → chapitre précédent
 }, { passive: true });
 
 /* ── Touch mobile ── */
@@ -612,7 +628,7 @@ window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY;
 window.addEventListener('touchend', e => {
     const delta = touchStartY - e.changedTouches[0].clientY;
     if (Math.abs(delta) < 30) return;
-    if (delta > 0) goTo(current + 1);
+    if (delta < 0) goTo(current + 1);
     else           goTo(current - 1);
 }, { passive: true });
 
