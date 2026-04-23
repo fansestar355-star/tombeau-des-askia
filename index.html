@@ -626,7 +626,7 @@ function applyMobileCamera(orbit) {
     /* Zoom arrière ×2 → modèle plus petit */
     const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.8).toFixed(1) + 'm');
     mv.setAttribute('camera-orbit', zoomedOut);
-    mv.setAttribute('camera-target', '-0.75m 0.65m 0m');
+    mv.setAttribute('camera-target', '-0.75m 1.4m 0m');
 }
 
 /* ── Chargement modèle ── */
