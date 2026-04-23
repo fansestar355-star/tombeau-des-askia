@@ -392,24 +392,28 @@
                 opacity: 1;
             }
 
-            /* model-viewer pleine largeur — aucune coupure */
+            /* model-viewer pleine largeur + scale depuis la droite → petit, pas de coupure */
             #mv {
                 width: 100%;
                 margin-left: 0;
+                transform: scale(0.62);
+                transform-origin: right center;
             }
 
-            /* glow recentré */
+            /* glow suit le modèle à droite */
             .bg-glow {
                 width: 100%;
                 right: 0;
                 left: 0;
                 top: -10%;
+                transform: scale(0.7);
+                transform-origin: right center;
             }
 
-            /* GAO monté — visible dans les zones transparentes autour du modèle */
+            /* GAO bien visible à gauche en haut */
             .hero-gao {
                 font-size: clamp(4.5rem, 22vw, 8rem);
-                top: -4%;
+                top: -2%;
                 left: 10px;
                 z-index: 2;
             }
@@ -472,8 +476,8 @@
 
         /* ── Très petits écrans (≤ 480px) ── */
         @media (max-width: 480px) {
-            #mv          { width: 100%; margin-left: 0; }
-            .hero-gao    { font-size: clamp(3.8rem, 20vw, 6.5rem); top: -3%; }
+            #mv          { transform: scale(0.68); transform-origin: right center; }
+            .hero-gao    { font-size: clamp(3.8rem, 20vw, 6.5rem); top: -2%; }
             .hero-title  { font-size: clamp(1.7rem, 7.5vw, 2.5rem); }
             .hero-text   { padding: 90px 18px 14px; }
             .hero-desc   { font-size: 0.78rem; -webkit-line-clamp: 2; line-clamp: 2; }
