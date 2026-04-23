@@ -331,8 +331,11 @@ addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb, false);
 addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb, false);
 addBox(pwt, pwh, pSize, tombX + pSize/2, tombZ, mTomb, false);
 
-/* ── Modèle 3D du Tombeau des Askia ── */
+/* ── Modèle 3D du Tombeau des Askia (Draco) ── */
+const tombDraco = new DRACOLoader();
+tombDraco.setDecoderPath(BASE + 'assets/draco/');
 const tombLoader = new GLTFLoader();
+tombLoader.setDRACOLoader(tombDraco);
 tombLoader.load(
   BASE + 'assets/3d/Tombeaux_des_Askia.glb',
   (gltf) => {
@@ -340,12 +343,15 @@ tombLoader.load(
     tomb.traverse(o => {
       if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
     });
-    tomb.position.set(tombX, 0, tombZ);
-    /* ajustement d'échelle — à modifier si trop grand/petit */
-    tomb.scale.setScalar(1);
     scene.add(tomb);
+    /* centrer automatiquement le modèle sur la place et poser au sol */
+    const box = new THREE.Box3().setFromObject(tomb);
+    const center = box.getCenter(new THREE.Vector3());
+    tomb.position.set(tombX - center.x, -box.min.y, tombZ - center.z);
     /* collider autour du tombeau */
-    colliders.push({ minX: tombX - 5, maxX: tombX + 5, minZ: tombZ - 5, maxZ: tombZ + 5 });
+    const hw = (box.max.x - box.min.x) / 2 + 0.5;
+    const hd = (box.max.z - box.min.z) / 2 + 0.5;
+    colliders.push({ minX: tombX - hw, maxX: tombX + hw, minZ: tombZ - hd, maxZ: tombZ + hd });
   },
   null,
   (err) => console.warn('Tombeau GLB non chargé :', err)
