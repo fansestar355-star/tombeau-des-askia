@@ -9,12 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg:      #0b0f1a;
-            --accent:  #6c63ff;
-            --accent2: #a78bfa;
+            --bg:      #f9d58b;
+            --accent:  #4c3fb5;
+            --accent2: #7c6fca;
             --gold:    #f9d58b;
-            --text:    #e2e8f0;
-            --muted:   #94a3b8;
+            --text:    #1a0f3c;
+            --muted:   #5a4a72;
         }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,10 +35,7 @@
             position: relative;
             display: flex;
             flex-direction: column;
-            background:
-                radial-gradient(ellipse 70% 80% at 75% 50%, rgba(108,99,255,0.22) 0%, transparent 65%),
-                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(167,139,250,0.08) 0%, transparent 60%),
-                var(--bg);
+            background: var(--bg);
         }
 
         /* ── TOP BAR ── */
@@ -61,8 +58,7 @@
             font-size: 0.72rem;
             letter-spacing: 0.4em;
             text-transform: uppercase;
-            color: var(--gold);
-            text-shadow: 0 0 18px rgba(249,213,139,0.4);
+            color: var(--accent);
         }
 
         /* ── MAIN AREA ── */
@@ -87,7 +83,6 @@
             letter-spacing: -0.02em;
             z-index: 2;
             pointer-events: none;
-            mix-blend-mode: screen;
             will-change: transform, opacity;
         }
 
@@ -104,10 +99,8 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 70% 80% at 50% 45%, rgba(108,99,255,0.32) 0%, transparent 70%);
             z-index: 0;
             pointer-events: none;
-            transition: opacity 0.8s ease;
         }
         model-viewer {
             width: 100%;
@@ -121,21 +114,7 @@
         }
         model-viewer.loaded { opacity: 1; }
 
-        /* ── LUMIÈRE VIOLETTE DROITE ── */
-        .light-right {
-            position: absolute;
-            right: -5%;
-            top: 0;
-            width: 70%;
-            height: 100%;
-            background: radial-gradient(ellipse 80% 70% at 100% 50%,
-                rgba(139, 92, 246, 0.65) 0%,
-                rgba(109, 40, 217, 0.25) 35%,
-                transparent 68%);
-            z-index: 2;
-            pointer-events: none;
-            mix-blend-mode: screen;
-        }
+        .light-right { display: none; }
 
         /* ── TEXTE HÉROS ── */
         .hero-text {
@@ -162,8 +141,7 @@
             font-weight: 900;
             line-height: 0.95;
             letter-spacing: -0.01em;
-            color: #f9d58b;
-            text-shadow: 0 0 40px rgba(249, 213, 139, 0.25);
+            color: var(--text);
             text-transform: uppercase;
             overflow: hidden;
             min-height: 3em;
@@ -182,7 +160,7 @@
         /* Ligne dorée */
         .title-divider {
             height: 1px;
-            background: linear-gradient(90deg, var(--gold), var(--accent2), transparent);
+            background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
             margin: 18px 0;
             will-change: width, opacity;
         }
@@ -204,31 +182,28 @@
             margin-top: 28px;
             padding: 12px 28px;
             border-radius: 50px;
-            border: 1.5px solid rgba(167,139,250,0.6);
-            background: rgba(108,99,255,0.12);
-            color: var(--accent2);
+            border: 1.5px solid rgba(76,63,181,0.5);
+            background: transparent;
+            color: var(--accent);
             font-size: 0.7rem;
             font-weight: 600;
             letter-spacing: 0.2em;
             text-transform: uppercase;
             cursor: pointer;
-            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             text-decoration: none;
             will-change: opacity;
         }
         .btn-enquete:hover {
-            background: rgba(108,99,255,0.28);
-            border-color: var(--accent2);
-            color: #fff;
-            box-shadow: 0 0 24px rgba(108,99,255,0.3);
+            background: rgba(76,63,181,0.1);
+            border-color: var(--accent);
+            color: var(--text);
         }
         .btn-enquete::before {
             content: '';
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--accent2);
-            box-shadow: 0 0 8px var(--accent2);
+            background: var(--accent);
         }
 
         .btn-experience {
@@ -238,30 +213,27 @@
             margin-top: 12px;
             padding: 11px 24px;
             border-radius: 50px;
-            border: 1.5px solid rgba(249,213,139,0.45);
-            background: rgba(249,213,139,0.07);
-            color: var(--gold);
+            border: 1.5px solid rgba(76,63,181,0.5);
+            background: transparent;
+            color: var(--accent);
             font-size: 0.68rem;
             font-weight: 600;
             letter-spacing: 0.18em;
             text-transform: uppercase;
             cursor: pointer;
-            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             text-decoration: none;
         }
         .btn-experience:hover {
-            background: rgba(249,213,139,0.18);
-            border-color: var(--gold);
-            color: #fff;
-            box-shadow: 0 0 24px rgba(249,213,139,0.25);
+            background: rgba(76,63,181,0.1);
+            border-color: var(--accent);
+            color: var(--text);
         }
         .btn-experience::before {
             content: '';
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--gold);
-            box-shadow: 0 0 8px var(--gold);
+            background: var(--accent);
         }
 
         /* ── NAVIGATION DOTS ── */
@@ -274,15 +246,14 @@
         .dot {
             width: 5px; height: 5px;
             border-radius: 50%;
-            background: rgba(167,139,250,0.25);
+            background: rgba(76,63,181,0.25);
             transition: all 0.4s ease;
             cursor: pointer;
         }
         .dot.active {
             width: 22px;
             border-radius: 3px;
-            background: var(--accent2);
-            box-shadow: 0 0 8px rgba(167,139,250,0.5);
+            background: var(--accent);
         }
 
         /* ── TOGGLE MODÈLE ── */
@@ -302,25 +273,24 @@
             color: var(--muted);
             transition: color 0.3s ease;
         }
-        .toggle-label.active { color: var(--accent2); }
+        .toggle-label.active { color: var(--accent); }
         .toggle-arrow {
             width: 38px; height: 38px;
             border-radius: 50%;
-            border: 1.5px solid rgba(167,139,250,0.45);
-            background: rgba(108,99,255,0.12);
-            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(76,63,181,0.4);
+            background: rgba(249,213,139,0.4);
+            backdrop-filter: blur(6px);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .toggle-arrow:hover {
-            background: rgba(108,99,255,0.28);
-            border-color: var(--accent2);
-            box-shadow: 0 0 18px rgba(108,99,255,0.35);
+            background: rgba(76,63,181,0.12);
+            border-color: var(--accent);
         }
         .toggle-arrow svg {
             width: 16px; height: 16px;
-            stroke: var(--accent2);
+            stroke: var(--accent);
             fill: none;
             stroke-width: 2;
             stroke-linecap: round;
@@ -341,12 +311,12 @@
             font-size: 0.65rem;
             letter-spacing: 0.3em;
             text-transform: uppercase;
-            color: rgba(148,163,184,0.5);
+            color: var(--muted);
         }
         .bottom-year {
             font-family: 'Playfair Display', serif;
             font-size: 0.75rem;
-            color: rgba(249,213,139,0.35);
+            color: var(--accent);
             letter-spacing: 0.25em;
             transition: all 0.5s ease;
         }
@@ -369,12 +339,12 @@
             font-size: 0.58rem;
             letter-spacing: 0.3em;
             text-transform: uppercase;
-            color: rgba(167,139,250,0.45);
+            color: rgba(76,63,181,0.5);
         }
         .scroll-arrow {
             width: 1px;
             height: 28px;
-            background: linear-gradient(to top, var(--accent2), transparent);
+            background: linear-gradient(to top, var(--accent), transparent);
             animation: scrollPulse 1.8s ease-in-out infinite;
         }
         @keyframes scrollPulse {
@@ -433,7 +403,7 @@
                 max-width: 100%;
                 padding: 32px 24px 12px;
                 background: linear-gradient(to top,
-                    rgba(11,15,26,0.97) 60%,
+                    rgba(249,213,139,0.97) 60%,
                     transparent 100%);
                 z-index: 6;
             }
@@ -508,12 +478,12 @@
         <div class="model-wrap">
             <model-viewer
                 id="mv"
-                src="assets/3d/Askia_Mohamed_draw.glb"
+                src="assets/3d/Askia_Mohamed_real.glb"
                 camera-orbit="90deg 85deg 2.2m"
                 interpolation-decay="200"
                 interaction-prompt="none"
-                shadow-intensity="0.8"
-                exposure="0.45"
+                shadow-intensity="1.0"
+                exposure="1.1"
                 tone-mapping="commerce">
             </model-viewer>
 
@@ -772,9 +742,11 @@ const models = [
     'assets/3d/Askia_Mohamed_draw.glb',
     'assets/3d/Askia_Mohamed_real.glb'
 ];
-let modelIdx = 0;
+let modelIdx = 1;
 const lblDraw = document.getElementById('lbl-draw');
 const lblReal = document.getElementById('lbl-real');
+lblDraw.classList.remove('active');
+lblReal.classList.add('active');
 
 function switchModel(idx) {
     modelIdx = idx;
