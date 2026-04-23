@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Askia Mohamed — Empire Songhaï</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Palette Toguna + Takienta ── */
+        :root {
+            --bg:      #0b0f1a;
+            --accent:  #6c63ff;
+            --accent2: #a78bfa;
+            --gold:    #f9d58b;
+            --text:    #e2e8f0;
+            --muted:   #94a3b8;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ─────────────── LAYOUT ─────────────── */
+        .scene {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background:
+                radial-gradient(ellipse 70% 80% at 75% 50%, rgba(108,99,255,0.22) 0%, transparent 65%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(167,139,250,0.08) 0%, transparent 60%),
+                var(--bg);
+        }
+
+        /* ── Barre du haut ── */
+        .top-bar {
+            width: 100%;
+            padding: 28px 50px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeDown 0.8s ease 0.2s forwards;
+        }
+
+        .top-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .top-center {
+            font-size: 0.72rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 500;
+            text-shadow: 0 0 18px rgba(249,213,139,0.4);
+        }
+
+        /* ── Zone principale ── */
+        .main-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            padding: 0 50px 0 50px;
+        }
+
+        /* ── "GAO" géant en fond ── */
+        .hero-gao {
+            position: absolute;
+            top: -2%;
+            left: 30px;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(9rem, 20vw, 17rem);
+            font-weight: 900;
+            color: var(--accent2);
+            line-height: 1;
+            letter-spacing: -0.02em;
+            opacity: 0;
+            z-index: 2;
+            user-select: none;
+            /* Légère transparence pour laisser voir le modèle derrière */
+            mix-blend-mode: screen;
+            animation: gaoReveal 1.2s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+        }
+
+        @keyframes gaoReveal {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); filter: blur(12px); }
+            to   { opacity: 0.78; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        /* ── Modèle 3D ── */
+        .model-wrap {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 58%;
+            height: 100%;
+            z-index: 3;
+        }
+
+        /* Halo violet derrière le modèle */
+        .model-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 80% at 50% 45%, rgba(108,99,255,0.35) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            --poster-color: transparent;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        model-viewer.loaded { opacity: 1; }
+
+        /* ── Texte héros ── */
+        .hero-text {
+            position: relative;
+            z-index: 5;
+            padding-bottom: 56px;
+            max-width: 48%;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 5.5vw, 5rem);
+            font-weight: 900;
+            line-height: 0.95;
+            letter-spacing: -0.01em;
+            color: #fff;
+            text-transform: uppercase;
+            overflow: hidden;
+        }
+
+        /* Chaque mot du titre s'anime séparément */
+        .word {
+            display: inline-block;
+            overflow: hidden;
+        }
+        .word span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(100%);
+        }
+
+        .word:nth-child(1) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.0s forwards; }
+        .word:nth-child(2) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.2s forwards; }
+        .word:nth-child(3) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.4s forwards; }
+        .word:nth-child(4) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.6s forwards; }
+
+        @keyframes wordUp {
+            from { opacity: 0; transform: translateY(100%); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Ligne séparatrice animée */
+        .title-divider {
+            height: 1px;
+            width: 0;
+            background: linear-gradient(90deg, var(--gold), var(--accent2), transparent);
+            margin: 18px 0;
+            animation: lineGrow 1s ease 1.8s forwards;
+        }
+        @keyframes lineGrow {
+            to { width: 200px; }
+        }
+
+        /* Description */
+        .hero-desc {
+            font-size: 0.9rem;
+            line-height: 1.65;
+            color: var(--muted);
+            font-weight: 300;
+            max-width: 300px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 2.0s forwards;
+        }
+
+        /* Bouton */
+        .btn-enquete {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 28px;
+            padding: 12px 28px;
+            border-radius: 50px;
+            border: 1.5px solid rgba(167,139,250,0.6);
+            background: rgba(108,99,255,0.12);
+            color: var(--accent2);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 2.2s forwards;
+            text-decoration: none;
+        }
+        .btn-enquete:hover {
+            background: rgba(108,99,255,0.28);
+            border-color: var(--accent2);
+            color: #fff;
+            box-shadow: 0 0 24px rgba(108,99,255,0.3);
+            letter-spacing: 0.25em;
+        }
+        .btn-enquete::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent2);
+            box-shadow: 0 0 8px var(--accent2);
+        }
+
+        /* ── Barre du bas ── */
+        .bottom-bar {
+            width: 100%;
+            padding: 0 50px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 2.4s forwards;
+        }
+
+        .bottom-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(148,163,184,0.5);
+            font-weight: 400;
+        }
+
+        .bottom-year {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.75rem;
+            color: rgba(249,213,139,0.35);
+            letter-spacing: 0.25em;
+        }
+
+        /* ── Utilitaires ── */
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .model-wrap   { width: 100%; opacity: 0.4; }
+            .hero-text    { max-width: 100%; }
+            .top-bar      { padding: 20px 24px 0; }
+            .main-area    { padding: 0 24px; }
+            .bottom-bar   { padding: 0 24px 20px; }
+            .hero-gao     { font-size: clamp(6rem, 28vw, 9rem); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="scene">
+
+    <!-- Barre du haut -->
+    <div class="top-bar">
+        <span class="top-label">Conservation du patrimoine</span>
+        <span class="top-center">Askia Mohamed — Empire Songhaï</span>
+        <span class="top-label">Gao historique</span>
+    </div>
+
+    <!-- Zone principale -->
+    <div class="main-area">
+
+        <!-- "GAO" géant -->
+        <div class="hero-gao" aria-hidden="true">GAO</div>
+
+        <!-- Modèle 3D -->
+        <div class="model-wrap">
+            <model-viewer
+                id="mv"
+                src="assets/3d/Askia_Mohamed_real.glb"
+                auto-rotate
+                rotation-per-second="6deg"
+                camera-orbit="0deg 85deg 2.2m"
+                min-camera-orbit="auto auto auto"
+                max-camera-orbit="auto auto auto"
+                interaction-prompt="none"
+                shadow-intensity="0.8"
+                exposure="1.1"
+                tone-mapping="commerce">
+            </model-viewer>
+        </div>
+
+        <!-- Texte héros -->
+        <div class="hero-text">
+            <h1 class="hero-title">
+                <span class="word"><span>Askia</span></span>&nbsp;
+                <span class="word"><span>Mohamed</span></span><br>
+                <span class="word"><span>Roi</span></span>&nbsp;<span class="word"><span>des&nbsp;Rois</span></span>
+            </h1>
+
+            <div class="title-divider"></div>
+
+            <p class="hero-desc">
+                L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.
+            </p>
+
+            <a class="btn-enquete" href="#">Enquête historique</a>
+        </div>
+
+    </div>
+
+    <!-- Barre du bas -->
+    <div class="bottom-bar">
+        <span class="bottom-label">Conservation du patrimoine</span>
+        <span class="bottom-year">1495 · Gao · Mali</span>
+        <span class="bottom-label">Gao historique</span>
+    </div>
+
+</div>
+
+<script>
+    const mv = document.getElementById('mv');
+    mv.addEventListener('load', () => mv.classList.add('loaded'));
+</script>
+
+</body>
+</html>
