@@ -235,6 +235,59 @@
             box-shadow: 0 0 8px var(--accent2);
         }
 
+        /* ── Toggle modèle ── */
+        .model-toggle {
+            position: absolute;
+            bottom: 32px;
+            right: 32px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 2.6s forwards;
+        }
+
+        .toggle-label {
+            font-size: 0.62rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+        .toggle-label.active { color: var(--accent2); }
+
+        .toggle-arrow {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(167,139,250,0.45);
+            background: rgba(108,99,255,0.12);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .toggle-arrow:hover {
+            background: rgba(108,99,255,0.28);
+            border-color: var(--accent2);
+            box-shadow: 0 0 18px rgba(108,99,255,0.35);
+        }
+        .toggle-arrow svg {
+            width: 16px; height: 16px;
+            stroke: var(--accent2);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.4s ease;
+        }
+        .toggle-arrow:hover svg { transform: scale(1.15); }
+
         /* ── Barre du bas ── */
         .bottom-bar {
             width: 100%;
@@ -316,6 +369,21 @@
                 exposure="1.1"
                 tone-mapping="commerce">
             </model-viewer>
+
+            <!-- Toggle draw / real -->
+            <div class="model-toggle">
+                <span class="toggle-label active" id="lbl-draw">Dessin</span>
+
+                <button class="toggle-arrow" id="arrow-left" title="Précédent">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+
+                <button class="toggle-arrow" id="arrow-right" title="Suivant">
+                    <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+                </button>
+
+                <span class="toggle-label" id="lbl-real">Réel</span>
+            </div>
         </div>
 
         <!-- Texte héros -->
@@ -347,8 +415,33 @@
 </div>
 
 <script>
-    const mv = document.getElementById('mv');
+    const mv       = document.getElementById('mv');
+    const lblDraw  = document.getElementById('lbl-draw');
+    const lblReal  = document.getElementById('lbl-real');
+
+    const models = [
+        'assets/3d/Askia_Mohamed_draw.glb',
+        'assets/3d/Askia_Mohamed_real.glb'
+    ];
+    let current = 0;
+
     mv.addEventListener('load', () => mv.classList.add('loaded'));
+
+    function switchModel(index) {
+        current = index;
+        mv.classList.remove('loaded');
+        mv.src = models[current];
+
+        lblDraw.classList.toggle('active', current === 0);
+        lblReal.classList.toggle('active', current === 1);
+    }
+
+    document.getElementById('arrow-right').addEventListener('click', () => {
+        switchModel(current === 0 ? 1 : 0);
+    });
+    document.getElementById('arrow-left').addEventListener('click', () => {
+        switchModel(current === 0 ? 1 : 0);
+    });
 </script>
 
 </body>
