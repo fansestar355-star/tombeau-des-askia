@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Askia Mohamed — Empire Songhaï</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
     <style>
-        /* ── Palette Toguna + Takienta ── */
         :root {
             --bg:      #0b0f1a;
             --accent:  #6c63ff;
@@ -25,9 +25,10 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
+            user-select: none;
         }
 
-        /* ─────────────── LAYOUT ─────────────── */
+        /* ── LAYOUT ── */
         .scene {
             width: 100vw;
             height: 100vh;
@@ -40,7 +41,7 @@
                 var(--bg);
         }
 
-        /* ── Barre du haut ── */
+        /* ── TOP BAR ── */
         .top-bar {
             width: 100%;
             padding: 28px 50px 0;
@@ -49,28 +50,22 @@
             align-items: center;
             position: relative;
             z-index: 10;
-            opacity: 0;
-            animation: fadeDown 0.8s ease 0.2s forwards;
         }
-
         .top-label {
             font-size: 0.68rem;
             letter-spacing: 0.35em;
             text-transform: uppercase;
             color: var(--muted);
-            font-weight: 400;
         }
-
         .top-center {
             font-size: 0.72rem;
             letter-spacing: 0.4em;
             text-transform: uppercase;
             color: var(--gold);
-            font-weight: 500;
             text-shadow: 0 0 18px rgba(249,213,139,0.4);
         }
 
-        /* ── Zone principale ── */
+        /* ── MAIN AREA ── */
         .main-area {
             flex: 1;
             position: relative;
@@ -79,7 +74,7 @@
             padding: 0 50px 0 50px;
         }
 
-        /* ── "GAO" géant en fond ── */
+        /* ── "GAO" géant ── */
         .hero-gao {
             position: absolute;
             top: -2%;
@@ -90,20 +85,13 @@
             color: var(--accent2);
             line-height: 1;
             letter-spacing: -0.02em;
-            opacity: 0;
             z-index: 2;
-            user-select: none;
-            /* Légère transparence pour laisser voir le modèle derrière */
+            pointer-events: none;
             mix-blend-mode: screen;
-            animation: gaoReveal 1.2s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+            will-change: transform, opacity;
         }
 
-        @keyframes gaoReveal {
-            from { opacity: 0; transform: translateY(30px) scale(0.96); filter: blur(12px); }
-            to   { opacity: 0.78; transform: translateY(0) scale(1); filter: blur(0); }
-        }
-
-        /* ── Modèle 3D ── */
+        /* ── MODÈLE 3D ── */
         .model-wrap {
             position: absolute;
             right: 0;
@@ -112,17 +100,15 @@
             height: 100%;
             z-index: 3;
         }
-
-        /* Halo violet derrière le modèle */
         .model-wrap::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 70% 80% at 50% 45%, rgba(108,99,255,0.35) 0%, transparent 70%);
+            background: radial-gradient(ellipse 70% 80% at 50% 45%, rgba(108,99,255,0.32) 0%, transparent 70%);
             z-index: 0;
             pointer-events: none;
+            transition: opacity 0.8s ease;
         }
-
         model-viewer {
             width: 100%;
             height: 100%;
@@ -135,12 +121,23 @@
         }
         model-viewer.loaded { opacity: 1; }
 
-        /* ── Texte héros ── */
+        /* ── TEXTE HÉROS ── */
         .hero-text {
             position: relative;
             z-index: 5;
             padding-bottom: 56px;
             max-width: 48%;
+        }
+
+        /* Numéro/tag de chapitre */
+        .chapter-tag {
+            font-size: 0.65rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--accent2);
+            margin-bottom: 14px;
+            min-height: 1em;
+            will-change: transform, opacity;
         }
 
         .hero-title {
@@ -152,53 +149,37 @@
             color: #fff;
             text-transform: uppercase;
             overflow: hidden;
+            min-height: 3em;
         }
 
-        /* Chaque mot du titre s'anime séparément */
-        .word {
-            display: inline-block;
+        .title-line {
+            display: block;
             overflow: hidden;
+            line-height: 1.05;
         }
-        .word span {
+        .title-line span {
             display: inline-block;
-            opacity: 0;
-            transform: translateY(100%);
+            will-change: transform, opacity;
         }
 
-        .word:nth-child(1) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.0s forwards; }
-        .word:nth-child(2) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.2s forwards; }
-        .word:nth-child(3) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.4s forwards; }
-        .word:nth-child(4) span { animation: wordUp 0.7s cubic-bezier(0.22,1,0.36,1) 1.6s forwards; }
-
-        @keyframes wordUp {
-            from { opacity: 0; transform: translateY(100%); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Ligne séparatrice animée */
+        /* Ligne dorée */
         .title-divider {
             height: 1px;
-            width: 0;
             background: linear-gradient(90deg, var(--gold), var(--accent2), transparent);
             margin: 18px 0;
-            animation: lineGrow 1s ease 1.8s forwards;
-        }
-        @keyframes lineGrow {
-            to { width: 200px; }
+            will-change: width, opacity;
         }
 
-        /* Description */
         .hero-desc {
-            font-size: 0.9rem;
-            line-height: 1.65;
+            font-size: 0.92rem;
+            line-height: 1.7;
             color: var(--muted);
             font-weight: 300;
-            max-width: 300px;
-            opacity: 0;
-            animation: fadeUp 0.8s ease 2.0s forwards;
+            max-width: 320px;
+            will-change: transform, opacity;
         }
 
-        /* Bouton */
+        /* Bouton enquête */
         .btn-enquete {
             display: inline-flex;
             align-items: center;
@@ -216,16 +197,14 @@
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
-            opacity: 0;
-            animation: fadeUp 0.8s ease 2.2s forwards;
             text-decoration: none;
+            will-change: opacity;
         }
         .btn-enquete:hover {
             background: rgba(108,99,255,0.28);
             border-color: var(--accent2);
             color: #fff;
             box-shadow: 0 0 24px rgba(108,99,255,0.3);
-            letter-spacing: 0.25em;
         }
         .btn-enquete::before {
             content: '';
@@ -235,7 +214,28 @@
             box-shadow: 0 0 8px var(--accent2);
         }
 
-        /* ── Toggle modèle ── */
+        /* ── NAVIGATION DOTS ── */
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 32px;
+            align-items: center;
+        }
+        .dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: rgba(167,139,250,0.25);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+        .dot.active {
+            width: 22px;
+            border-radius: 3px;
+            background: var(--accent2);
+            box-shadow: 0 0 8px rgba(167,139,250,0.5);
+        }
+
+        /* ── TOGGLE MODÈLE ── */
         .model-toggle {
             position: absolute;
             bottom: 32px;
@@ -244,33 +244,24 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            opacity: 0;
-            animation: fadeUp 0.8s ease 2.6s forwards;
         }
-
         .toggle-label {
             font-size: 0.62rem;
             letter-spacing: 0.2em;
             text-transform: uppercase;
             color: var(--muted);
-            font-weight: 400;
             transition: color 0.3s ease;
         }
         .toggle-label.active { color: var(--accent2); }
-
         .toggle-arrow {
-            width: 38px;
-            height: 38px;
+            width: 38px; height: 38px;
             border-radius: 50%;
             border: 1.5px solid rgba(167,139,250,0.45);
             background: rgba(108,99,255,0.12);
             backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            flex-shrink: 0;
         }
         .toggle-arrow:hover {
             background: rgba(108,99,255,0.28);
@@ -284,11 +275,9 @@
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
-            transition: transform 0.4s ease;
         }
-        .toggle-arrow:hover svg { transform: scale(1.15); }
 
-        /* ── Barre du bas ── */
+        /* ── BOTTOM BAR ── */
         .bottom-bar {
             width: 100%;
             padding: 0 50px 28px;
@@ -297,51 +286,66 @@
             align-items: center;
             position: relative;
             z-index: 10;
-            opacity: 0;
-            animation: fadeUp 0.8s ease 2.4s forwards;
         }
-
         .bottom-label {
             font-size: 0.65rem;
             letter-spacing: 0.3em;
             text-transform: uppercase;
             color: rgba(148,163,184,0.5);
-            font-weight: 400;
         }
-
         .bottom-year {
             font-family: 'Playfair Display', serif;
             font-size: 0.75rem;
             color: rgba(249,213,139,0.35);
             letter-spacing: 0.25em;
+            transition: all 0.5s ease;
         }
 
-        /* ── Utilitaires ── */
-        @keyframes fadeDown {
-            from { opacity: 0; transform: translateY(-14px); }
-            to   { opacity: 1; transform: translateY(0); }
+        /* ── HINT SCROLL ── */
+        .scroll-hint {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 20;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
         }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(14px); }
-            to   { opacity: 1; transform: translateY(0); }
+        .scroll-hint span {
+            font-size: 0.58rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(167,139,250,0.45);
         }
+        .scroll-arrow {
+            width: 1px;
+            height: 28px;
+            background: linear-gradient(to top, var(--accent2), transparent);
+            animation: scrollPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.2; transform: scaleY(0.7) translateY(6px); }
+            50%       { opacity: 0.8; transform: scaleY(1) translateY(0); }
+        }
+        .scroll-hint.hidden { opacity: 0; }
 
-        /* ── Responsive ── */
+        /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
-            .model-wrap   { width: 100%; opacity: 0.4; }
+            .model-wrap   { width: 100%; opacity: 0.35; }
             .hero-text    { max-width: 100%; }
-            .top-bar      { padding: 20px 24px 0; }
-            .main-area    { padding: 0 24px; }
-            .bottom-bar   { padding: 0 24px 20px; }
+            .top-bar, .main-area, .bottom-bar { padding-left: 24px; padding-right: 24px; }
             .hero-gao     { font-size: clamp(6rem, 28vw, 9rem); }
         }
     </style>
 </head>
 <body>
-
 <div class="scene">
 
-    <!-- Barre du haut -->
+    <!-- Top bar -->
     <div class="top-bar">
         <span class="top-label">Conservation du patrimoine</span>
         <span class="top-center">Askia Mohamed — Empire Songhaï</span>
@@ -351,98 +355,288 @@
     <!-- Zone principale -->
     <div class="main-area">
 
-        <!-- "GAO" géant -->
-        <div class="hero-gao" aria-hidden="true">GAO</div>
+        <div class="hero-gao" id="hero-gao">GAO</div>
 
-        <!-- Modèle 3D -->
+        <!-- Modèle -->
         <div class="model-wrap">
             <model-viewer
                 id="mv"
                 src="assets/3d/Askia_Mohamed_draw.glb"
-                auto-rotate
-                rotation-per-second="6deg"
                 camera-orbit="0deg 85deg 2.2m"
-                min-camera-orbit="auto auto auto"
-                max-camera-orbit="auto auto auto"
+                interpolation-decay="200"
                 interaction-prompt="none"
                 shadow-intensity="0.8"
                 exposure="1.1"
                 tone-mapping="commerce">
             </model-viewer>
 
-            <!-- Toggle draw / real -->
             <div class="model-toggle">
                 <span class="toggle-label active" id="lbl-draw">Dessin</span>
-
                 <button class="toggle-arrow" id="arrow-left" title="Précédent">
                     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
-
                 <button class="toggle-arrow" id="arrow-right" title="Suivant">
                     <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
                 </button>
-
                 <span class="toggle-label" id="lbl-real">Réel</span>
             </div>
         </div>
 
         <!-- Texte héros -->
         <div class="hero-text">
-            <h1 class="hero-title">
-                <span class="word"><span>Askia</span></span>&nbsp;
-                <span class="word"><span>Mohamed</span></span><br>
-                <span class="word"><span>Roi</span></span>&nbsp;<span class="word"><span>des&nbsp;Rois</span></span>
+            <div class="chapter-tag" id="ch-tag"></div>
+            <h1 class="hero-title" id="ch-title">
+                <span class="title-line"><span>Askia Mohamed</span></span>
+                <span class="title-line"><span>Roi des Rois</span></span>
             </h1>
-
-            <div class="title-divider"></div>
-
-            <p class="hero-desc">
-                L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.
-            </p>
-
-            <a class="btn-enquete" href="#">Enquête historique</a>
+            <div class="title-divider" id="ch-divider" style="width:200px;"></div>
+            <p class="hero-desc" id="ch-desc">L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.</p>
+            <a class="btn-enquete" id="ch-btn" href="#">Enquête historique</a>
+            <div class="nav-dots" id="nav-dots"></div>
         </div>
 
     </div>
 
-    <!-- Barre du bas -->
+    <!-- Bottom bar -->
     <div class="bottom-bar">
         <span class="bottom-label">Conservation du patrimoine</span>
-        <span class="bottom-year">1495 · Gao · Mali</span>
+        <span class="bottom-year" id="bottom-year">1495 · Gao · Mali</span>
         <span class="bottom-label">Gao historique</span>
     </div>
 
 </div>
 
+<!-- Hint scroll -->
+<div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-arrow"></div>
+    <span>Défiler</span>
+</div>
+
 <script>
-    const mv       = document.getElementById('mv');
-    const lblDraw  = document.getElementById('lbl-draw');
-    const lblReal  = document.getElementById('lbl-real');
-
-    const models = [
-        'assets/3d/Askia_Mohamed_draw.glb',
-        'assets/3d/Askia_Mohamed_real.glb'
-    ];
-    let current = 0;
-
-    mv.addEventListener('load', () => mv.classList.add('loaded'));
-
-    function switchModel(index) {
-        current = index;
-        mv.classList.remove('loaded');
-        mv.src = models[current];
-
-        lblDraw.classList.toggle('active', current === 0);
-        lblReal.classList.toggle('active', current === 1);
+/* ══════════════════════════════════════════════
+   CHAPITRES — données tirées du rapport historique
+══════════════════════════════════════════════ */
+const CHAPTERS = [
+    {
+        gao:    "GAO",
+        tag:    "",
+        camera: "0deg 85deg 2.2m",
+        lines:  ["Askia Mohamed", "Roi des Rois"],
+        desc:   "L'empereur bâtisseur,\nréformateur de l'Afrique de l'Ouest.",
+        btn:    true,
+        year:   "1495 · Gao · Mali"
+    },
+    {
+        gao:    "1493",
+        tag:    "La prise du pouvoir",
+        camera: "-55deg 82deg 2.2m",
+        lines:  ["L'Homme", "qui refusa", "d'obéir"],
+        desc:   "Mohammed Touré renverse la dynastie de Sunni Ali Ber et prend le titre d'Askia — «celui qui ne sera pas». Il fonde une nouvelle légitimité sur l'islam et la justice.",
+        btn:    false,
+        year:   "1493 · Empire Songhaï"
+    },
+    {
+        gao:    "1496",
+        tag:    "Le pèlerinage à La Mecque",
+        camera: "-90deg 78deg 2.4m",
+        lines:  ["Le Calife", "du Soudan"],
+        desc:   "Avec 500 cavaliers et 1 000 fantassins, Askia accomplit le Hajj. Le Calife d'Égypte lui confère le titre de Calife du Soudan occidental. Il en revient transformé.",
+        btn:    false,
+        year:   "1496 — 1497 · La Mecque"
+    },
+    {
+        gao:    "1495",
+        tag:    "La pyramide de banco",
+        camera: "-125deg 83deg 2.0m",
+        lines:  ["La Pyramide", "de Banco"],
+        desc:   "À Gao, il ordonne la construction d'une pyramide de 17 mètres en banco — argile, paille et eau. Unique en Afrique de l'Ouest. Inscrite au Patrimoine mondial UNESCO en 2004.",
+        btn:    false,
+        year:   "1495 · Gao, Mali"
+    },
+    {
+        gao:    "EMPIRE",
+        tag:    "L'apogée Songhaï",
+        camera: "-160deg 80deg 2.6m",
+        lines:  ["De l'Or", "et du Sel"],
+        desc:   "De Tombouctou à Agadez, l'Empire Songhaï contrôle les routes trans-sahariennes. Askia fait de Tombouctou un phare intellectuel du monde islamique — un empire sans précédent.",
+        btn:    false,
+        year:   "1493 — 1528 · Apogée"
     }
+];
 
-    document.getElementById('arrow-right').addEventListener('click', () => {
-        switchModel(current === 0 ? 1 : 0);
+/* ══════════════════════════════════════════════
+   ÉTAT
+══════════════════════════════════════════════ */
+let current     = 0;
+let transitioning = false;
+
+const mv        = document.getElementById('mv');
+const heroGao   = document.getElementById('hero-gao');
+const chTag     = document.getElementById('ch-tag');
+const chTitle   = document.getElementById('ch-title');
+const chDivider = document.getElementById('ch-divider');
+const chDesc    = document.getElementById('ch-desc');
+const chBtn     = document.getElementById('ch-btn');
+const bottomY   = document.getElementById('bottom-year');
+const scrollHint= document.getElementById('scroll-hint');
+const dotsWrap  = document.getElementById('nav-dots');
+
+/* ── Génère les dots ── */
+CHAPTERS.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+});
+
+/* ── Chargement modèle ── */
+mv.addEventListener('load', () => mv.classList.add('loaded'));
+
+/* ══════════════════════════════════════════════
+   TRANSITION
+══════════════════════════════════════════════ */
+function goTo(index) {
+    if (transitioning || index === current || index < 0 || index >= CHAPTERS.length) return;
+    transitioning = true;
+
+    const dir      = index > current ? 1 : -1;
+    const next     = CHAPTERS[index];
+    const tl       = gsap.timeline({ onComplete: () => { transitioning = false; } });
+    const lines    = chTitle.querySelectorAll('.title-line span');
+
+    /* ─── SORTIE ─── */
+    tl.to(heroGao, { y: dir * -40, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
+      .to(chTag,   { y: -18, opacity: 0, duration: 0.3, ease: 'power2.in' }, 0)
+      .to(lines,   { y: dir * -60 + '%', opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
+      .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
+      .to(chDesc,  { y: -16, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.15)
+      .to(chBtn,   { y: -12, opacity: 0, duration: 0.3, ease: 'power2.in' }, 0.18);
+
+    /* ─── MISE À JOUR CONTENU (milieu de l'animation) ── */
+    tl.call(() => {
+        /* Camera modèle */
+        mv.setAttribute('camera-orbit', next.camera);
+
+        /* Année en bas */
+        bottomY.textContent = next.year;
+
+        /* GAO / année */
+        heroGao.textContent = next.gao;
+
+        /* Tag */
+        chTag.textContent = next.tag;
+
+        /* Titre — reconstruction des lignes */
+        chTitle.innerHTML = '';
+        next.lines.forEach(txt => {
+            const line = document.createElement('span');
+            line.className = 'title-line';
+            const inner = document.createElement('span');
+            inner.textContent = txt;
+            line.appendChild(inner);
+            chTitle.appendChild(line);
+        });
+
+        /* Description */
+        chDesc.innerHTML = next.desc.replace('\n', '<br>');
+
+        /* Bouton */
+        chBtn.style.display = next.btn ? 'inline-flex' : 'none';
+
+        /* Dots */
+        dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index));
+
+        current = index;
+
+        /* Hint scroll : disparaît après le premier défilement */
+        scrollHint.classList.add('hidden');
     });
-    document.getElementById('arrow-left').addEventListener('click', () => {
-        switchModel(current === 0 ? 1 : 0);
-    });
+
+    /* ─── ENTRÉE ─── */
+    const enterOffset = dir * 50;
+    tl.fromTo(heroGao,
+        { y: -enterOffset, opacity: 0 },
+        { y: 0, opacity: 0.78, duration: 0.6, ease: 'power3.out' }, '+=0.05')
+      .fromTo(chTag,
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' }, '<0.1')
+      .fromTo(chTitle.querySelectorAll('.title-line span'),
+        { y: '80%', opacity: 0 },
+        { y: '0%', opacity: 1, stagger: 0.1, duration: 0.55, ease: 'power3.out' }, '<0.05')
+      .fromTo(chDivider,
+        { width: 0, opacity: 0 },
+        { width: 200, opacity: 1, duration: 0.6, ease: 'power2.out' }, '<0.15')
+      .fromTo(chDesc,
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, '<0.1')
+      .fromTo(chBtn,
+        { y: 12, opacity: 0 },
+        { y: 0, opacity: next.btn ? 1 : 0, duration: 0.4, ease: 'power3.out' }, '<0.1');
+}
+
+/* ══════════════════════════════════════════════
+   ENTRÉE INITIALE
+══════════════════════════════════════════════ */
+gsap.set(heroGao, { opacity: 0, y: 30 });
+gsap.set(chTag,   { opacity: 0, y: 14 });
+gsap.set([chDesc, chBtn], { opacity: 0, y: 16 });
+gsap.set(chDivider, { width: 0, opacity: 0 });
+gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
+
+const intro = gsap.timeline({ delay: 0.3 });
+intro
+    .to(heroGao, { opacity: 0.78, y: 0, duration: 1.0, ease: 'power3.out' })
+    .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
+    .to(chTitle.querySelectorAll('.title-line span'),
+        { opacity: 1, y: '0%', stagger: 0.12, duration: 0.65, ease: 'power3.out' }, '-=0.4')
+    .to(chDivider, { width: 200, opacity: 1, duration: 0.7, ease: 'power2.out' }, '-=0.3')
+    .to(chDesc,  { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
+    .to(chBtn,   { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, '-=0.2');
+
+/* ══════════════════════════════════════════════
+   SCROLL WHEEL
+══════════════════════════════════════════════ */
+let wheelCooldown = false;
+window.addEventListener('wheel', (e) => {
+    if (wheelCooldown) return;
+    wheelCooldown = true;
+    setTimeout(() => { wheelCooldown = false; }, 900);
+
+    if (e.deltaY < 0) goTo(current + 1);   // scroll haut → chapitre suivant
+    else               goTo(current - 1);   // scroll bas  → chapitre précédent
+}, { passive: true });
+
+/* ── Touch mobile ── */
+let touchStartY = 0;
+window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+window.addEventListener('touchend', e => {
+    const delta = touchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(delta) < 30) return;
+    if (delta > 0) goTo(current + 1);
+    else           goTo(current - 1);
+}, { passive: true });
+
+/* ══════════════════════════════════════════════
+   TOGGLE DRAW / REAL
+══════════════════════════════════════════════ */
+const models = [
+    'assets/3d/Askia_Mohamed_draw.glb',
+    'assets/3d/Askia_Mohamed_real.glb'
+];
+let modelIdx = 0;
+const lblDraw = document.getElementById('lbl-draw');
+const lblReal = document.getElementById('lbl-real');
+
+function switchModel(idx) {
+    modelIdx = idx;
+    mv.classList.remove('loaded');
+    mv.src = models[modelIdx];
+    lblDraw.classList.toggle('active', modelIdx === 0);
+    lblReal.classList.toggle('active', modelIdx === 1);
+}
+
+document.getElementById('arrow-right').addEventListener('click', () => switchModel(modelIdx === 0 ? 1 : 0));
+document.getElementById('arrow-left').addEventListener('click',  () => switchModel(modelIdx === 0 ? 1 : 0));
 </script>
-
 </body>
 </html>
