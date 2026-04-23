@@ -621,14 +621,9 @@ CHAPTERS.forEach((_, i) => {
 /* ── Caméra mobile : zoom arrière + décalage droite ── */
 const isMobile = window.innerWidth <= 768;
 
-function mobilizeOrbit(orbit) {
-    /* Multiplie le rayon ×2 pour zoomer en arrière → modèle plus petit */
-    return orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.0).toFixed(1) + 'm');
-}
-
 function applyMobileCamera(orbit) {
     if (!isMobile) return;
-    mv.setAttribute('camera-orbit', mobilizeOrbit(orbit));
+    mv.setAttribute('camera-orbit', orbit);
     /* Décale le point de vue vers la gauche → modèle apparaît à droite dans le canvas */
     mv.setAttribute('camera-target', '-0.85m 0.05m 0m');
 }
