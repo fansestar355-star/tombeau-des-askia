@@ -120,7 +120,8 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 /* ─── CONFIG ─── */
 const WALK_SPEED   = 2.2;
@@ -202,7 +203,10 @@ let fadeProgress = 1;      // 0 → 1, interpolation idle ↔ walk
 const badge = document.getElementById('anim-badge');
 
 /* ─── CHARGEMENT ─── */
+const draco = new DRACOLoader();
+draco.setDecoderPath('assets/draco/');   // fichiers locaux, pas de CDN externe
 const loader = new GLTFLoader();
+loader.setDRACOLoader(draco);
 
 loader.load(
   'assets/3d/char1_walking.glb',
