@@ -502,16 +502,16 @@ const clock = new THREE.Clock();
 
   const moving = keys.up || keys.down || keys.left || keys.right;
 
-  /* déplacement */
-  if (keys.left)  model.rotation.y += 2.2 * dt;
-  if (keys.right) model.rotation.y -= 2.2 * dt;
+  /* déplacement — modèle face +Z (Blender), inverser les signes */
+  if (keys.left)  model.rotation.y -= 2.2 * dt;
+  if (keys.right) model.rotation.y += 2.2 * dt;
   if (keys.up) {
-    model.position.x -= Math.sin(model.rotation.y) * 2.3 * dt;
-    model.position.z -= Math.cos(model.rotation.y) * 2.3 * dt;
-  }
-  if (keys.down) {
     model.position.x += Math.sin(model.rotation.y) * 2.3 * dt;
     model.position.z += Math.cos(model.rotation.y) * 2.3 * dt;
+  }
+  if (keys.down) {
+    model.position.x -= Math.sin(model.rotation.y) * 2.3 * dt;
+    model.position.z -= Math.cos(model.rotation.y) * 2.3 * dt;
   }
 
   /* transition walk ↔ idle */
