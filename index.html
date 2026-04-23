@@ -623,16 +623,9 @@ const isMobile = window.innerWidth <= 768;
 
 function applyMobileCamera(orbit) {
     if (!isMobile) return;
-    if (modelIdx === 0) {
-        /* draw : même caméra que desktop, model-viewer auto-ajuste */
-        mv.setAttribute('camera-orbit', orbit);
-        mv.setAttribute('camera-target', '0m 0m 0m');
-        return;
-    }
-    /* real : zoom arrière ×2.0 */
     const zoomedOut = orbit.replace(/([\d.]+)m/, (_, r) => (parseFloat(r) * 2.0).toFixed(1) + 'm');
     mv.setAttribute('camera-orbit', zoomedOut);
-    mv.setAttribute('camera-target', '0m 0m 0m');
+    mv.setAttribute('camera-target', 'auto');
 }
 
 /* ── Chargement modèle ── */
