@@ -179,18 +179,21 @@ function rng() {
 }
 
 /* Helpers géométrie */
-function addBox(w, h, d, x, z, mat) {
+const colliders = [];   // boîtes AABB pour la collision
+
+function addBox(w, h, d, x, z, mat, solid = true) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, h / 2, z);
   m.castShadow = true;
   m.receiveShadow = true;
   scene.add(m);
+  if (solid) colliders.push({ minX: x - w/2, maxX: x + w/2, minZ: z - d/2, maxZ: z + d/2 });
 }
 
 function addTree(x, z) {
   const th = 2.0 + rng() * 2.5;
   const cr = 1.0 + rng() * 1.8;
-  addBox(0.28, th, 0.28, x, z, mTronc);
+  addBox(0.28, th, 0.28, x, z, mTronc, false);  // pas de collision
   const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 8, 6), mFeuil);
   crown.position.set(x, th + cr * 0.6, z);
   crown.castShadow = true;
@@ -480,12 +483,12 @@ function updateCamera() {
   if (!model) return;
   const ry = model.rotation.y;
   camOff.set(
-    model.position.x - Math.sin(ry) * 3.8,
-    model.position.y + 2.0,
-    model.position.z - Math.cos(ry) * 3.8
+    model.position.x - Math.sin(ry) * 9.0,
+    model.position.y + 5.5,
+    model.position.z - Math.cos(ry) * 9.0
   );
-  camera.position.lerp(camOff, 0.08);
-  camTgt.set(model.position.x, model.position.y + 1.0, model.position.z);
+  camera.position.lerp(camOff, 0.07);
+  camTgt.set(model.position.x, model.position.y + 1.2, model.position.z);
   camera.lookAt(camTgt);
   sun.target.position.copy(model.position);
   sun.target.updateMatrixWorld();
@@ -502,16 +505,36 @@ const clock = new THREE.Clock();
 
   const moving = keys.up || keys.down || keys.left || keys.right;
 
-  /* déplacement — modèle face +Z (Blender), inverser les signes */
-  if (keys.left)  model.rotation.y -= 2.2 * dt;
-  if (keys.right) model.rotation.y += 2.2 * dt;
-  if (keys.up) {
-    model.position.x += Math.sin(model.rotation.y) * 2.3 * dt;
-    model.position.z += Math.cos(model.rotation.y) * 2.3 * dt;
+  /* rotation — droite = sens horaire (rotation.y décroît) */
+  if (keys.left)  model.rotation.y += 2.2 * dt;
+  if (keys.right) model.rotation.y -= 2.2 * dt;
+
+  /* déplacement avec collision (glissement le long des murs) */
+  const spd = 2.3 * dt;
+  const ry  = model.rotation.y;
+  let dx = 0, dz = 0;
+  if (keys.up)   { dx =  Math.sin(ry) * spd; dz =  Math.cos(ry) * spd; }
+  if (keys.down) { dx = -Math.sin(ry) * spd; dz = -Math.cos(ry) * spd; }
+
+  const R  = 0.45;   // rayon du personnage
+  const px = model.position.x;
+  const pz = model.position.z;
+
+  function blocked(nx, nz) {
+    for (const c of colliders) {
+      if (nx + R > c.minX && nx - R < c.maxX &&
+          nz + R > c.minZ && nz - R < c.maxZ) return true;
+    }
+    return false;
   }
-  if (keys.down) {
-    model.position.x -= Math.sin(model.rotation.y) * 2.3 * dt;
-    model.position.z -= Math.cos(model.rotation.y) * 2.3 * dt;
+
+  if (!blocked(px + dx, pz + dz)) {
+    model.position.x += dx;
+    model.position.z += dz;
+  } else if (!blocked(px + dx, pz)) {
+    model.position.x += dx;         // glisse en X seulement
+  } else if (!blocked(px, pz + dz)) {
+    model.position.z += dz;         // glisse en Z seulement
   }
 
   /* transition walk ↔ idle */
