@@ -7,63 +7,58 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0b0f1a; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; color: #e2e8f0; }
-    #canvas-wrap { width: 100vw; height: 100vh; position: relative; }
+    #canvas-wrap { width: 100vw; height: 100vh; }
     canvas { display: block; }
 
     #btn-back {
-      position: fixed; top: 24px; left: 24px;
+      position: fixed; top: 24px; left: 24px; z-index: 10;
       display: inline-flex; align-items: center; gap: 8px;
       padding: 10px 20px; border-radius: 50px;
       border: 1.5px solid rgba(167,139,250,0.45);
-      background: rgba(11,15,26,0.7); color: #a78bfa;
+      background: rgba(11,15,26,0.75); color: #a78bfa;
       font-size: 0.7rem; font-weight: 600; letter-spacing: 0.18em;
       text-transform: uppercase; text-decoration: none;
-      backdrop-filter: blur(12px); transition: all 0.3s ease; z-index: 10;
+      backdrop-filter: blur(12px); transition: all 0.3s ease;
     }
-    #btn-back:hover { background: rgba(108,99,255,0.25); border-color: #a78bfa; color: #fff; }
+    #btn-back:hover { background: rgba(108,99,255,0.25); color: #fff; }
 
     #title-hud {
-      position: fixed; top: 28px; left: 50%; transform: translateX(-50%);
+      position: fixed; top: 28px; left: 50%; transform: translateX(-50%); z-index: 10;
       font-size: 0.65rem; letter-spacing: 0.42em; text-transform: uppercase;
-      color: #f9d58b; text-shadow: 0 0 18px rgba(249,213,139,0.35); z-index: 10;
-      pointer-events: none;
+      color: #f9d58b; pointer-events: none;
     }
 
     #controls-hud {
-      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 10;
-      pointer-events: none;
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 10;
+      display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none;
     }
     .row { display: flex; gap: 6px; }
     .key {
       width: 40px; height: 40px; border-radius: 8px;
-      border: 1.5px solid rgba(167,139,250,0.35);
-      background: rgba(11,15,26,0.65); backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(167,139,250,0.3);
+      background: rgba(11,15,26,0.6); backdrop-filter: blur(10px);
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.7rem; color: rgba(167,139,250,0.7); transition: all 0.15s ease;
+      color: rgba(167,139,250,0.6); transition: all 0.12s ease;
     }
     .key.active {
-      border-color: #a78bfa; background: rgba(108,99,255,0.3);
-      color: #fff; box-shadow: 0 0 14px rgba(108,99,255,0.4);
+      border-color: #a78bfa; background: rgba(108,99,255,0.28);
+      color: #fff; box-shadow: 0 0 14px rgba(108,99,255,0.35);
     }
     .key svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-    #info-hud {
-      position: fixed; bottom: 130px; right: 28px; text-align: right;
-      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: rgba(148,163,184,0.5); line-height: 2; z-index: 10; pointer-events: none;
-    }
     #anim-badge {
-      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      position: fixed; bottom: 130px; right: 28px; z-index: 10;
+      padding: 4px 12px; border-radius: 20px;
       border: 1px solid rgba(167,139,250,0.3); background: rgba(108,99,255,0.1);
-      font-size: 0.58rem; letter-spacing: 0.15em; color: #a78bfa; transition: all 0.4s ease;
+      font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #a78bfa; transition: all 0.4s ease;
     }
     #anim-badge.walk { border-color: rgba(249,213,139,0.4); background: rgba(249,213,139,0.08); color: #f9d58b; }
 
     #loading {
       position: fixed; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: #0b0f1a; z-index: 100; gap: 20px; transition: opacity 0.6s ease;
+      align-items: center; justify-content: center; background: #0b0f1a; z-index: 100; gap: 20px;
+      transition: opacity 0.6s ease;
     }
     #loading.hidden { opacity: 0; pointer-events: none; }
     #loading-bar-wrap { width: 200px; height: 2px; background: rgba(167,139,250,0.15); border-radius: 2px; overflow: hidden; }
@@ -79,7 +74,6 @@
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
   Retour
 </a>
-
 <div id="title-hud">Askia Mohamed — Expérience interactive</div>
 
 <div id="controls-hud">
@@ -91,18 +85,15 @@
     <div class="key" id="key-down"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
     <div class="key" id="key-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
   </div>
-  <div style="font-size:0.55rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(148,163,184,0.3);margin-top:6px;text-align:center;">
-    Flèches ou WASD pour se déplacer
+  <div style="font-size:0.55rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(148,163,184,0.28);margin-top:5px;">
+    Flèches ou WASD
   </div>
 </div>
 
-<div id="info-hud">
-  <div id="info-pos">0.0, 0.0</div>
-  <div id="anim-badge">IDLE</div>
-</div>
+<div id="anim-badge">IDLE</div>
 
 <div id="loading">
-  <div id="loading-text">Chargement…</div>
+  <div id="loading-text">Chargement du personnage…</div>
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
@@ -125,7 +116,7 @@ const WALK_SPEED   = 2.2;
 const TURN_SPEED   = 2.0;
 const CAM_DISTANCE = 3.5;
 const CAM_HEIGHT   = 1.8;
-const FADE_TIME    = 0.35;   // secondes pour la transition entre animations
+const FADE_TIME    = 0.3;
 const DRACO_PATH   = 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/libs/draco/';
 
 /* ─── RENDERER ─── */
@@ -141,25 +132,21 @@ document.getElementById('canvas-wrap').appendChild(renderer.domElement);
 /* ─── SCÈNE ─── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b0f1a);
-scene.fog        = new THREE.FogExp2(0x0b0f1a, 0.04);
+scene.fog        = new THREE.FogExp2(0x0b0f1a, 0.038);
 
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 200);
 camera.position.set(0, CAM_HEIGHT, CAM_DISTANCE);
 
 /* ─── LUMIÈRES ─── */
-scene.add(new THREE.AmbientLight(0x6c63ff, 0.6));
-
-const dirLight = new THREE.DirectionalLight(0xffd699, 2.2);
+scene.add(new THREE.AmbientLight(0x6c63ff, 0.55));
+const dirLight = new THREE.DirectionalLight(0xffd699, 2.0);
 dirLight.position.set(5, 10, 5);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.setScalar(2048);
 dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -15;
 dirLight.shadow.camera.right = dirLight.shadow.camera.top  =  15;
 scene.add(dirLight);
-
-const rimLight = new THREE.DirectionalLight(0xa78bfa, 0.8);
-rimLight.position.set(-4, 6, -4);
-scene.add(rimLight);
+scene.add(Object.assign(new THREE.DirectionalLight(0xa78bfa, 0.75), { position: new THREE.Vector3(-4, 6, -4) }));
 
 /* ─── SOL ─── */
 const ground = new THREE.Mesh(
@@ -171,179 +158,208 @@ ground.receiveShadow = true;
 scene.add(ground);
 
 const grid = new THREE.GridHelper(80, 40, 0x6c63ff, 0x1a1030);
-grid.material.opacity = 0.15;
+grid.material.opacity = 0.13;
 grid.material.transparent = true;
 scene.add(grid);
 
-/* ─── LOADERS ─── */
+/* ─── CLAVIER ─── */
+const keys   = { up: false, down: false, left: false, right: false };
+const keyMap = {
+  ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down',
+  ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right',
+};
+const keyEls = {
+  up: document.getElementById('key-up'), down: document.getElementById('key-down'),
+  left: document.getElementById('key-left'), right: document.getElementById('key-right'),
+};
+window.addEventListener('keydown', e => {
+  const k = keyMap[e.code]; if (!k) return; e.preventDefault();
+  keys[k] = true; keyEls[k].classList.add('active');
+});
+window.addEventListener('keyup', e => {
+  const k = keyMap[e.code]; if (!k) return;
+  keys[k] = false; keyEls[k].classList.remove('active');
+});
+
+/* ─── ÉTAT PERSONNAGE ─── */
+let character  = null;
+let mixer      = null;
+let walkAction = null;
+let bones      = {};       // { boneName: THREE.Bone }
+let idleTime   = 0;        // chrono pour l'animation idle procédurale
+let currentAnim = 'idle';
+let fadeProgress = 1;      // 0 → 1, interpolation idle ↔ walk
+const badge = document.getElementById('anim-badge');
+
+/* ─── CHARGEMENT ─── */
 const draco = new DRACOLoader();
 draco.setDecoderPath(DRACO_PATH);
 const loader = new GLTFLoader();
 loader.setDRACOLoader(draco);
 
-/* ─── ÉTAT ─── */
-let character  = null;
-let mixer      = null;
-let walkAction = null;
-let idleAction = null;
-let currentAnim = 'idle';   // 'idle' | 'walk'
-
-/* ─── CHARGEMENT PARALLÈLE des deux GLB ─── */
-const loadingBar  = document.getElementById('loading-bar');
-const loadingText = document.getElementById('loading-text');
-
-let charLoaded = false;
-let idleLoaded = false;
-let charGltf   = null;
-let idleClip   = null;
-
-function tryStart() {
-  if (!charLoaded || !idleLoaded) return;
-
-  /* ── Ajouter le personnage ── */
-  character = charGltf.scene;
-  character.traverse(obj => {
-    if (obj.isMesh) { obj.castShadow = true; obj.receiveShadow = true; }
-  });
-  scene.add(character);
-
-  /* ── AnimationMixer sur le personnage ── */
-  mixer = new THREE.AnimationMixer(character);
-
-  /* ── Action marche (depuis char1_walking.glb) ── */
-  if (charGltf.animations.length > 0) {
-    walkAction = mixer.clipAction(charGltf.animations[0]);
-    walkAction.setLoop(THREE.LoopRepeat);
-    walkAction.clampWhenFinished = false;
-  }
-
-  /* ── Action idle (depuis idle.glb, retargetée sur le mixer du personnage) ── */
-  if (idleClip) {
-    // Retargeter le clip idle sur la hiérarchie du personnage
-    const retargeted = retargetClip(character, idleClip);
-    idleAction = mixer.clipAction(retargeted);
-    idleAction.setLoop(THREE.LoopRepeat);
-    idleAction.clampWhenFinished = false;
-    idleAction.play();   // Démarrer en idle
-  }
-
-  document.getElementById('loading').classList.add('hidden');
-}
-
-/* Chargement char1_walking.glb */
 loader.load(
   'assets/3d/char1_walking.glb',
   (gltf) => {
-    charGltf   = gltf;
-    charLoaded = true;
-    loadingText.textContent = idleLoaded ? 'Prêt !' : 'Chargement animation idle…';
-    tryStart();
+    character = gltf.scene;
+    character.traverse(obj => {
+      if (obj.isMesh)  { obj.castShadow = true; obj.receiveShadow = true; }
+      if (obj.isBone || obj.type === 'Bone') bones[obj.name] = obj;
+    });
+
+    scene.add(character);
+
+    /* Walk animation via AnimationMixer */
+    mixer = new THREE.AnimationMixer(character);
+    if (gltf.animations.length > 0) {
+      walkAction = mixer.clipAction(gltf.animations[0]);
+      walkAction.setLoop(THREE.LoopRepeat);
+    }
+
+    /* Stocker la rotation de repos de chaque os */
+    character.traverse(obj => {
+      if (obj.isBone || (obj.name && bones[obj.name])) {
+        obj.userData.restQuat = obj.quaternion.clone();
+      }
+    });
+
+    document.getElementById('loading').classList.add('hidden');
   },
   (xhr) => {
-    if (xhr.total) loadingBar.style.width = Math.round(xhr.loaded / xhr.total * 60) + '%';
+    if (xhr.total) document.getElementById('loading-bar').style.width =
+      Math.round(xhr.loaded / xhr.total * 100) + '%';
   },
-  (err) => console.error('Erreur char1:', err)
+  err => console.error(err)
 );
 
-/* Chargement idle.glb */
-loader.load(
-  'assets/3d/idle.glb',
-  (gltf) => {
-    idleClip   = gltf.animations[0] || null;
-    idleLoaded = true;
-    loadingText.textContent = charLoaded ? 'Prêt !' : 'Chargement personnage…';
-    loadingBar.style.width = '100%';
-    tryStart();
-  },
-  null,
-  (err) => {
-    console.warn('idle.glb non chargé, pas d\'animation idle:', err);
-    idleLoaded = true;
-    tryStart();
-  }
-);
+/* ═══════════════════════════════════════════════════
+   ANIMATION IDLE PROCÉDURALE
+   Reproduit un "Standing Idle" : respiration, balancement,
+   bras naturellement pendants avec micro-sway
+═══════════════════════════════════════════════════ */
+const Q = new THREE.Quaternion();
+const E = new THREE.Euler();
 
-/* ─── RETARGETING : applique un clip sur une nouvelle hiérarchie par nom d'os ─── */
-function retargetClip(targetRoot, sourceClip) {
-  // Construire un index { nomOs → Object3D } depuis le personnage cible
-  const boneMap = {};
-  targetRoot.traverse(obj => { boneMap[obj.name] = obj; });
+function applyIdlePose(t, weight) {
+  if (!character || weight <= 0) return;
 
-  const newTracks = [];
-  for (const track of sourceClip.tracks) {
-    // Format GLB track name : "NomOs.propriété" ou "path/NomOs.propriété"
-    const dotIdx  = track.name.lastIndexOf('.');
-    const prop    = track.name.slice(dotIdx);            // ".quaternion", ".position", ...
-    const rawName = track.name.slice(0, dotIdx);
-    const boneName = rawName.split('/').pop();            // garder seulement le dernier segment
+  const sin  = Math.sin;
+  const cos  = Math.cos;
+  const PI2  = Math.PI * 2;
 
-    const targetBone = boneMap[boneName];
-    if (!targetBone) continue;                            // os inconnu → ignorer
+  /* Fréquences */
+  const breath = PI2 * t / 3.5;     // respiration : 3.5s par cycle
+  const sway   = PI2 * t / 5.0;     // balancement : 5.0s
+  const micro  = PI2 * t / 2.2;     // micro-mouvements : 2.2s
 
-    // Recréer le track en ciblant l'os dans la hiérarchie cible
-    const TrackType = track.constructor;
-    const newTrack  = new TrackType(
-      targetBone.uuid + prop,
-      track.times,
-      track.values.slice()
-    );
-    newTracks.push(newTrack);
+  /* Amplitudes (radians) */
+  const A = (deg) => deg * Math.PI / 180;
+
+  function applyRot(boneName, rx, ry, rz) {
+    const bone = bones[boneName];
+    if (!bone) return;
+    const rest = bone.userData.restQuat;
+    if (!rest) return;
+    E.set(rx * weight, ry * weight, rz * weight, 'XYZ');
+    Q.setFromEuler(E);
+    bone.quaternion.copy(rest).multiply(Q);
   }
 
-  return new THREE.AnimationClip('idle', sourceClip.duration, newTracks);
+  /* ── HIPS : balancement gauche/droite + micro avant/arrière ── */
+  applyRot('Hips',
+    A(0.6)  * sin(breath),           // avant/arrière (respiration)
+    0,
+    A(1.5)  * sin(sway)              // gauche/droite
+  );
+
+  /* ── COLONNE : contre-rotation douce, expansion poitrine ── */
+  applyRot('Spine',
+    A(2.0) + A(0.8) * sin(breath),   // légère avancée + respiration
+    0,
+    A(0.8) * -sin(sway)
+  );
+  applyRot('Spine1',
+    A(1.5) + A(0.5) * sin(breath),
+    0,
+    A(0.5) * -sin(sway + 0.3)
+  );
+  applyRot('Spine2',
+    A(1.0) + A(0.6) * sin(breath + 0.2),
+    0,
+    A(0.4) * -sin(sway + 0.6)
+  );
+
+  /* ── COU : léger hochement, regard légèrement baissé ── */
+  applyRot('Neck',
+    A(3.0) + A(0.4) * sin(breath + 0.5),
+    A(0.3) * sin(micro * 0.5),
+    0
+  );
+  applyRot('Head',
+    A(-4.0) + A(0.6) * sin(breath + 0.4),
+    A(0.5) * sin(micro * 0.4),
+    A(0.3) * sin(sway * 0.6)
+  );
+
+  /* ── BRAS GAUCHE : pendant naturel, léger balancement ── */
+  applyRot('LeftShoulder',
+    A(5.0),
+    A(-3.0) + A(1.2) * sin(micro),
+    A(-2.0)
+  );
+  applyRot('LeftArm',
+    A(28.0) + A(2.5) * sin(micro + 0.5),
+    A(5.0)  + A(1.0) * sin(sway),
+    A(-10.0)
+  );
+  applyRot('LeftForeArm',
+    A(18.0) + A(1.5) * sin(micro + 1.0),
+    0,
+    A(4.0)
+  );
+  applyRot('LeftHand',
+    A(5.0)  + A(1.0) * sin(micro * 1.2),
+    0,
+    A(-2.0)
+  );
+
+  /* ── BRAS DROIT : légèrement différent (tenu comme si porte objet) ── */
+  applyRot('RightShoulder',
+    A(5.0),
+    A(3.0)  + A(1.2) * sin(micro + Math.PI),
+    A(2.0)
+  );
+  applyRot('RightArm',
+    A(32.0) + A(2.5) * sin(micro + Math.PI + 0.5),
+    A(-5.0) + A(1.0) * sin(sway + Math.PI),
+    A(10.0)
+  );
+  applyRot('RightForeArm',
+    A(42.0) + A(2.0) * sin(micro + Math.PI + 1.0),
+    0,
+    A(-4.0)
+  );
+  applyRot('RightHand',
+    A(8.0)  + A(1.0) * sin(micro * 1.2 + Math.PI),
+    0,
+    A(2.0)
+  );
+
+  /* ── JAMBES : micro-transfert de poids ── */
+  applyRot('LeftUpLeg',
+    A(0.5),
+    0,
+    A(-0.8) * sin(sway)
+  );
+  applyRot('RightUpLeg',
+    A(0.5),
+    0,
+    A(0.8)  * sin(sway)
+  );
 }
 
-/* ─── TRANSITION ANIMATIONS ─── */
-function playIdle() {
-  if (currentAnim === 'idle' || !idleAction) return;
-  currentAnim = 'idle';
-  walkAction?.fadeOut(FADE_TIME);
-  idleAction.reset().fadeIn(FADE_TIME).play();
-  document.getElementById('anim-badge').textContent = 'IDLE';
-  document.getElementById('anim-badge').classList.remove('walk');
-}
-
-function playWalk() {
-  if (currentAnim === 'walk' || !walkAction) return;
-  currentAnim = 'walk';
-  idleAction?.fadeOut(FADE_TIME);
-  walkAction.reset().fadeIn(FADE_TIME).play();
-  document.getElementById('anim-badge').textContent = 'MARCHE';
-  document.getElementById('anim-badge').classList.add('walk');
-}
-
-/* ─── CLAVIER ─── */
-const keys   = { up: false, down: false, left: false, right: false };
-const keyMap = {
-  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
-  ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-};
-const keyEls = {
-  up:    document.getElementById('key-up'),
-  down:  document.getElementById('key-down'),
-  left:  document.getElementById('key-left'),
-  right: document.getElementById('key-right'),
-};
-
-window.addEventListener('keydown', e => {
-  const k = keyMap[e.code];
-  if (!k) return;
-  e.preventDefault();
-  keys[k] = true;
-  keyEls[k].classList.add('active');
-});
-
-window.addEventListener('keyup', e => {
-  const k = keyMap[e.code];
-  if (!k) return;
-  keys[k] = false;
-  keyEls[k].classList.remove('active');
-});
-
-/* ─── CAMÉRA 3ÈME PERSONNE ─── */
+/* ─── CAMÉRA ─── */
 const camPos = new THREE.Vector3();
 const camTgt = new THREE.Vector3();
-
 function updateCamera() {
   if (!character) return;
   const a = character.rotation.y;
@@ -353,25 +369,24 @@ function updateCamera() {
     character.position.z - Math.cos(a) * CAM_DISTANCE
   );
   camera.position.lerp(camPos, 0.08);
-  camTgt.copy(character.position);
-  camTgt.y += 0.9;
+  camTgt.copy(character.position); camTgt.y += 0.9;
   camera.lookAt(camTgt);
 }
 
 /* ─── BOUCLE ─── */
-const clock   = new THREE.Clock();
-const infoPos = document.getElementById('info-pos');
+const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.getDelta();
+  const dt   = clock.getDelta();
+  const time = clock.elapsedTime;
 
   if (character) {
     const moving = keys.up || keys.down || keys.left || keys.right;
 
+    /* Mouvement */
     if (keys.left)  character.rotation.y += TURN_SPEED * dt;
     if (keys.right) character.rotation.y -= TURN_SPEED * dt;
-
     if (keys.up) {
       character.position.x -= Math.sin(character.rotation.y) * WALK_SPEED * dt;
       character.position.z -= Math.cos(character.rotation.y) * WALK_SPEED * dt;
@@ -381,14 +396,30 @@ function animate() {
       character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
     }
 
-    /* Changement d'animation */
-    if (moving) playWalk(); else playIdle();
+    /* Transition fluide idle ↔ walk */
+    const targetFade = moving ? 1 : 0;   // 1 = walk, 0 = idle
+    fadeProgress += (targetFade - fadeProgress) * Math.min(dt / FADE_TIME, 1);
 
+    if (moving && currentAnim !== 'walk') {
+      currentAnim = 'walk';
+      walkAction?.reset().fadeIn(FADE_TIME).play();
+      badge.textContent = 'MARCHE';
+      badge.classList.add('walk');
+    } else if (!moving && currentAnim !== 'idle') {
+      currentAnim = 'idle';
+      walkAction?.fadeOut(FADE_TIME);
+      badge.textContent = 'IDLE';
+      badge.classList.remove('walk');
+    }
+
+    /* Animation walk via mixer */
     if (mixer) mixer.update(dt);
-    updateCamera();
 
-    infoPos.textContent =
-      `${character.position.x.toFixed(1)}, ${character.position.z.toFixed(1)}`;
+    /* Animation idle procédurale (poids inverse du fade walk) */
+    idleTime += dt;
+    applyIdlePose(idleTime, 1 - fadeProgress);
+
+    updateCamera();
   }
 
   renderer.render(scene, camera);
@@ -396,7 +427,6 @@ function animate() {
 
 animate();
 
-/* ─── RESIZE ─── */
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
