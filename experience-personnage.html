@@ -289,76 +289,73 @@ const Q = new THREE.Quaternion();
 const E = new THREE.Euler();
 const A = (deg) => deg * Math.PI / 180;
 
-function applyIdlePose(t, weight) {
-  if (!character || weight <= 0) return;
+function applyIdlePose(t) {
+  if (!character) return;
 
-  const breath = (Math.PI * 2) * t / 3.5;
-  const sway   = (Math.PI * 2) * t / 5.0;
-  const micro  = (Math.PI * 2) * t / 2.2;
+  const breath = (Math.PI * 2) * t / 4.0;   // respiration lente 4s
+  const sway   = (Math.PI * 2) * t / 7.0;   // balancement très doux 7s
+  const look   = (Math.PI * 2) * t / 9.0;   // regard qui dérive 9s
 
   function applyRot(name, rx, ry, rz) {
     const bone = bones[name];
     if (!bone || !bone.userData.restQuat) return;
-    E.set(rx * weight, ry * weight, rz * weight, 'XYZ');
+    E.set(rx, ry, rz, 'XYZ');
     Q.setFromEuler(E);
     bone.quaternion.copy(bone.userData.restQuat).multiply(Q);
   }
 
+  /* Bassin : micro-transfert de poids, très subtil */
   applyRot('Hips',
-    A(0.6)  * Math.sin(breath), 0,
-    A(1.5)  * Math.sin(sway)
+    A(0.3) * Math.sin(breath),
+    0,
+    A(0.8) * Math.sin(sway)
   );
+
+  /* Colonne : légère expansion poitrine à chaque inspiration */
   applyRot('Spine',
-    A(2.0) + A(0.8) * Math.sin(breath), 0,
-    A(0.8) * -Math.sin(sway)
+    A(1.0) + A(0.5) * Math.sin(breath), 0,
+    A(0.4) * -Math.sin(sway)
   );
   applyRot('Spine1',
-    A(1.5) + A(0.5) * Math.sin(breath), 0,
-    A(0.5) * -Math.sin(sway + 0.3)
+    A(0.8) + A(0.4) * Math.sin(breath), 0,
+    A(0.3) * -Math.sin(sway + 0.2)
   );
   applyRot('Spine2',
-    A(1.0) + A(0.6) * Math.sin(breath + 0.2), 0,
-    A(0.4) * -Math.sin(sway + 0.6)
+    A(0.5) + A(0.4) * Math.sin(breath + 0.1), 0,
+    A(0.2) * -Math.sin(sway + 0.4)
   );
+
+  /* Tête : regard naturel qui dérive lentement */
   applyRot('Neck',
-    A(3.0) + A(0.4) * Math.sin(breath + 0.5),
-    A(0.3) * Math.sin(micro * 0.5), 0
+    A(2.0) + A(0.3) * Math.sin(breath + 0.3),
+    A(1.5) * Math.sin(look),
+    0
   );
   applyRot('Head',
-    A(-4.0) + A(0.6) * Math.sin(breath + 0.4),
-    A(0.5)  * Math.sin(micro * 0.4),
-    A(0.3)  * Math.sin(sway * 0.6)
+    A(-2.0) + A(0.4) * Math.sin(breath + 0.2),
+    A(2.0)  * Math.sin(look + 0.5),
+    A(0.5)  * Math.sin(sway)
   );
-  applyRot('LeftShoulder',
-    A(5.0), A(-3.0) + A(1.2) * Math.sin(micro), A(-2.0)
-  );
+
+  /* Bras : pendant naturel le long du corps, quasi immobiles */
   applyRot('LeftArm',
-    A(28.0) + A(2.5) * Math.sin(micro + 0.5),
-    A(5.0)  + A(1.0) * Math.sin(sway),
-    A(-10.0)
+    A(4.0) + A(1.0) * Math.sin(breath),
+    A(2.0),
+    A(-5.0)
   );
   applyRot('LeftForeArm',
-    A(18.0) + A(1.5) * Math.sin(micro + 1.0), 0, A(4.0)
-  );
-  applyRot('LeftHand',
-    A(5.0) + A(1.0) * Math.sin(micro * 1.2), 0, A(-2.0)
-  );
-  applyRot('RightShoulder',
-    A(5.0), A(3.0) + A(1.2) * Math.sin(micro + Math.PI), A(2.0)
+    A(8.0) + A(0.8) * Math.sin(breath + 0.3),
+    0, A(2.0)
   );
   applyRot('RightArm',
-    A(32.0) + A(2.5) * Math.sin(micro + Math.PI + 0.5),
-    A(-5.0) + A(1.0) * Math.sin(sway + Math.PI),
-    A(10.0)
+    A(4.0) + A(1.0) * Math.sin(breath + Math.PI),
+    A(-2.0),
+    A(5.0)
   );
   applyRot('RightForeArm',
-    A(42.0) + A(2.0) * Math.sin(micro + Math.PI + 1.0), 0, A(-4.0)
+    A(8.0) + A(0.8) * Math.sin(breath + Math.PI + 0.3),
+    0, A(-2.0)
   );
-  applyRot('RightHand',
-    A(8.0) + A(1.0) * Math.sin(micro * 1.2 + Math.PI), 0, A(2.0)
-  );
-  applyRot('LeftUpLeg',  A(0.5), 0, A(-0.8) * Math.sin(sway));
-  applyRot('RightUpLeg', A(0.5), 0,  A(0.8) * Math.sin(sway));
 }
 
 /* ─── CAMÉRA ─── */
@@ -400,25 +397,26 @@ function animate() {
       character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
     }
 
-    const targetFade = moving ? 1 : 0;
-    fadeProgress += (targetFade - fadeProgress) * Math.min(dt / FADE_TIME, 1);
-
     if (moving && currentAnim !== 'walk') {
       currentAnim = 'walk';
-      if (walkAction) walkAction.reset().fadeIn(FADE_TIME).play();
+      if (walkAction) walkAction.reset().play();
       badge.textContent = 'MARCHE';
       badge.classList.add('walk');
     } else if (!moving && currentAnim !== 'idle') {
       currentAnim = 'idle';
-      if (walkAction) walkAction.fadeOut(FADE_TIME);
+      if (walkAction) { walkAction.stop(); }
       badge.textContent = 'IDLE';
       badge.classList.remove('walk');
     }
 
-    if (mixer) mixer.update(dt);
+    /* Walk : le mixer contrôle les bones */
+    if (currentAnim === 'walk' && mixer) mixer.update(dt);
 
-    idleTime += dt;
-    applyIdlePose(idleTime, 1 - fadeProgress);
+    /* Idle : procédural contrôle les bones (jamais en même temps que walk) */
+    if (currentAnim === 'idle') {
+      idleTime += dt;
+      applyIdlePose(idleTime);
+    }
 
     updateCamera();
   }
