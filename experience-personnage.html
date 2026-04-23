@@ -254,6 +254,9 @@ let walkClip  = null;
 let bones     = {};
 let idleTimer = 0;
 let isWalking = false;
+let fadeOut   = false;   // vrai pendant le fondu walk→idle
+let fadeTimer = 0;
+const FADE_DUR = 0.5;   // durée du fondu en secondes
 const status  = document.getElementById('ui-status');
 
 /* ── Chargement ── */
@@ -389,20 +392,35 @@ const clock = new THREE.Clock();
 
   /* transition walk ↔ idle */
   if (moving && !isWalking) {
+    /* démarrage marche : annule le fondu si en cours */
     isWalking = true;
+    fadeOut   = false;
     idleTimer = 0;
     if (walkClip) walkClip.reset().play();
     status.textContent = 'MARCHE';
   } else if (!moving && isWalking) {
+    /* arrêt marche : lance le fondu, ne stop pas abruptement */
     isWalking = false;
-    if (walkClip) walkClip.stop();
+    fadeOut   = true;
+    fadeTimer = 0;
+    if (walkClip) walkClip.fadeOut(FADE_DUR);
     status.textContent = 'IDLE';
   }
 
-  /* animation — walk OU idle, jamais les deux en même temps */
+  /* animation */
   if (isWalking) {
+    /* marche : le mixer contrôle les bones */
     if (mixer) mixer.update(dt);
+  } else if (fadeOut) {
+    /* fondu : le mixer continue jusqu'à la fin du fadeOut */
+    fadeTimer += dt;
+    if (mixer) mixer.update(dt);
+    if (fadeTimer >= FADE_DUR) {
+      fadeOut = false;
+      if (walkClip) walkClip.stop();
+    }
   } else {
+    /* idle : procédural contrôle les bones */
     idleTimer += dt;
     applyIdle(idleTimer);
   }
