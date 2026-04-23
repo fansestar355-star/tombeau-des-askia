@@ -17,32 +17,31 @@
       text-decoration:none; backdrop-filter:blur(10px);
     }
 
-    /* ── Joystick tactile ── */
-    #controls {
-      position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
-      display:flex; flex-direction:column; align-items:center; gap:6px;
-      z-index:10; user-select:none;
+    /* ── Joystick ── */
+    #joystick-zone {
+      position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+      width:130px; height:130px; z-index:10;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.35);
+      backdrop-filter:blur(10px);
+      touch-action:none; user-select:none;
     }
-    .crow { display:flex; gap:6px; }
-    .btn-key {
-      width:54px; height:54px; border-radius:10px;
-      border:1.5px solid rgba(255,255,255,0.18);
-      background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);
-      display:flex; align-items:center; justify-content:center;
-      color:rgba(255,255,255,0.45); font-size:18px;
-      cursor:pointer; touch-action:none;
-      transition:background 0.1s, border-color 0.1s, color 0.1s;
-      -webkit-user-select:none; user-select:none;
-    }
-    .btn-key.on {
-      border-color:rgba(255,210,80,0.7);
-      background:rgba(255,190,0,0.18);
-      color:#ffe;
-      box-shadow:0 0 16px rgba(255,200,0,0.2);
+    #joystick-handle {
+      position:absolute; top:50%; left:50%;
+      width:52px; height:52px; border-radius:50%;
+      background:radial-gradient(circle at 38% 38%, rgba(255,220,100,0.9), rgba(200,140,0,0.7));
+      border:2px solid rgba(255,220,100,0.5);
+      box-shadow:0 0 18px rgba(255,200,0,0.3);
+      transform:translate(-50%,-50%);
+      transition:transform 0.08s ease;
+      pointer-events:none;
     }
     #hint {
-      font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase;
-      color:rgba(255,255,255,0.2); margin-top:4px; text-align:center;
+      position:fixed; bottom:12px; left:50%; transform:translateX(-50%);
+      font-size:0.5rem; letter-spacing:0.2em; text-transform:uppercase;
+      color:rgba(255,255,255,0.18); z-index:10; pointer-events:none;
+      white-space:nowrap;
     }
 
     #ui-status {
@@ -77,18 +76,10 @@
 <a id="ui-back" href="index.html">← Retour</a>
 <div id="ui-status">IDLE</div>
 
-<!-- Boutons directionnels tactiles + clavier -->
-<div id="controls">
-  <div class="crow">
-    <div class="btn-key" id="k-up">▲</div>
-  </div>
-  <div class="crow">
-    <div class="btn-key" id="k-left">◀</div>
-    <div class="btn-key" id="k-down">▼</div>
-    <div class="btn-key" id="k-right">▶</div>
-  </div>
-  <div id="hint">Flèches · WASD · Tactile</div>
+<div id="joystick-zone">
+  <div id="joystick-handle"></div>
 </div>
+<div id="hint">Joystick · Flèches · WASD</div>
 
 <div id="screen-load">
   <div id="load-label">Chargement du personnage…</div>
@@ -177,43 +168,84 @@ grid.material.transparent = true;
 scene.add(grid);
 
 /* ══════════════════════════════════════════
-   CONTRÔLES — clavier + tactile
+   CONTRÔLES — joystick tactile + clavier
 ══════════════════════════════════════════ */
 const keys = { up:false, down:false, left:false, right:false };
 
-/* Clavier */
-const KMAP = {
-  ArrowUp:'up', KeyW:'up',
-  ArrowDown:'down', KeyS:'down',
-  ArrowLeft:'left', KeyA:'left',
-  ArrowRight:'right', KeyD:'right',
-};
-window.addEventListener('keydown', e => { const k=KMAP[e.code]; if(k){ e.preventDefault(); setKey(k,true);  } });
-window.addEventListener('keyup',   e => { const k=KMAP[e.code]; if(k){ setKey(k,false); } });
+/* ── Clavier ── */
+const KMAP = { ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down', ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right' };
+window.addEventListener('keydown', e => { const k=KMAP[e.code]; if(k){ e.preventDefault(); keys[k]=true;  } });
+window.addEventListener('keyup',   e => { const k=KMAP[e.code]; if(k){ keys[k]=false; } });
 
-/* Tactile — chaque bouton répond au touch */
-const BTN = {
-  up:    document.getElementById('k-up'),
-  down:  document.getElementById('k-down'),
-  left:  document.getElementById('k-left'),
-  right: document.getElementById('k-right'),
-};
+/* ── Joystick tactile ── */
+const jZone   = document.getElementById('joystick-zone');
+const jHandle = document.getElementById('joystick-handle');
+const J_RADIUS = 38;   // débattement max du handle en px
+const J_DEAD   = 0.25; // zone morte (25 % du rayon)
 
-function setKey(k, val) {
-  keys[k] = val;
-  if (val) BTN[k].classList.add('on');
-  else     BTN[k].classList.remove('on');
+let jActive = false;
+let jId     = null;
+let jCx     = 0, jCy = 0;  // centre de la zone
+let jDx     = 0, jDy = 0;  // direction normalisée [-1, 1]
+
+function jStart(cx, cy, tx, ty) {
+  jActive = true;
+  jCx = cx; jCy = cy;
+  jMove(tx, ty);
 }
 
-Object.entries(BTN).forEach(([dir, el]) => {
-  el.addEventListener('touchstart', e => { e.preventDefault(); setKey(dir, true);  }, { passive:false });
-  el.addEventListener('touchend',   e => { e.preventDefault(); setKey(dir, false); }, { passive:false });
-  el.addEventListener('touchcancel',e => { e.preventDefault(); setKey(dir, false); }, { passive:false });
-  /* souris aussi (desktop) */
-  el.addEventListener('mousedown', e => { e.preventDefault(); setKey(dir, true);  });
-  el.addEventListener('mouseup',   e => { setKey(dir, false); });
-  el.addEventListener('mouseleave',e => { setKey(dir, false); });
+function jMove(tx, ty) {
+  if (!jActive) return;
+  let dx = tx - jCx;
+  let dy = ty - jCy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const clamped = Math.min(dist, J_RADIUS);
+  const nx = dist > 0 ? dx/dist : 0;
+  const ny = dist > 0 ? dy/dist : 0;
+
+  /* déplacer le handle visuellement */
+  jHandle.style.transform = `translate(calc(-50% + ${nx*clamped}px), calc(-50% + ${ny*clamped}px))`;
+
+  /* convertir en directions */
+  jDx = Math.abs(nx) > J_DEAD ? nx : 0;
+  jDy = Math.abs(ny) > J_DEAD ? ny : 0;
+  keys.up    = jDy < -J_DEAD;
+  keys.down  = jDy >  J_DEAD;
+  keys.left  = jDx < -J_DEAD;
+  keys.right = jDx >  J_DEAD;
+}
+
+function jEnd() {
+  jActive = false;
+  jHandle.style.transform = 'translate(-50%, -50%)';
+  keys.up = keys.down = keys.left = keys.right = false;
+}
+
+/* Touch */
+jZone.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const r = jZone.getBoundingClientRect();
+  const t = e.changedTouches[0];
+  jId = t.identifier;
+  jStart(r.left + r.width/2, r.top + r.height/2, t.clientX, t.clientY);
+}, { passive:false });
+
+window.addEventListener('touchmove', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === jId) { e.preventDefault(); jMove(t.clientX, t.clientY); break; }
+  }
+}, { passive:false });
+
+window.addEventListener('touchend',    e => { for (const t of e.changedTouches) if (t.identifier === jId) jEnd(); });
+window.addEventListener('touchcancel', e => { for (const t of e.changedTouches) if (t.identifier === jId) jEnd(); });
+
+/* Souris (desktop) */
+jZone.addEventListener('mousedown', e => {
+  const r = jZone.getBoundingClientRect();
+  jStart(r.left + r.width/2, r.top + r.height/2, e.clientX, e.clientY);
 });
+window.addEventListener('mousemove', e => { if (jActive) jMove(e.clientX, e.clientY); });
+window.addEventListener('mouseup',   () => { if (jActive) jEnd(); });
 
 /* ── État personnage ── */
 let model     = null;
