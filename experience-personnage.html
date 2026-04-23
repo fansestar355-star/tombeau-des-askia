@@ -196,14 +196,14 @@ function addBox(w, h, d, x, z, mat, solid = true) {
 
 /* Acacia sahélien — couronne aplatie horizontalement, typique du Sahel */
 function addAcacia(x, z) {
-  const th = 1.6 + rng() * 2.2;
-  const cr = 1.1 + rng() * 1.4;
+  const th = 0.8 + rng() * 1.0;
+  const cr = 0.55 + rng() * 0.7;
   const fl = 0.28 + rng() * 0.22;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, th, 7), mTronc);
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, th, 7), mTronc);
   trunk.position.set(x, th/2, z);
   trunk.castShadow = true;
   scene.add(trunk);
-  colliders.push({ minX:x-0.18, maxX:x+0.18, minZ:z-0.18, maxZ:z+0.18 });
+  colliders.push({ minX:x-0.10, maxX:x+0.10, minZ:z-0.10, maxZ:z+0.10 });
   const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 9, 6), rng()>0.45 ? mFeuil : mFeuil2);
   crown.scale.set(1, fl, 1);
   crown.position.set(x, th + cr*fl*0.65, z);
@@ -214,13 +214,13 @@ function addAcacia(x, z) {
 
 /* Palmier-doum élancé */
 function addPalm(x, z) {
-  const th = 3.5 + rng() * 2.5;
-  const cr = 0.65 + rng() * 0.55;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, th, 7), mTronc);
+  const th = 1.8 + rng() * 1.2;
+  const cr = 0.35 + rng() * 0.30;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, th, 7), mTronc);
   trunk.position.set(x, th/2, z);
   trunk.castShadow = true;
   scene.add(trunk);
-  colliders.push({ minX:x-0.15, maxX:x+0.15, minZ:z-0.15, maxZ:z+0.15 });
+  colliders.push({ minX:x-0.10, maxX:x+0.10, minZ:z-0.10, maxZ:z+0.10 });
   const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 8, 5), mFeuil2);
   crown.position.set(x, th + cr*0.45, z);
   crown.castShadow = true;
@@ -238,12 +238,12 @@ function bancMat() {
 }
 
 /* ── Grille de la ville ── */
-const BS   = 12;
-const RUE  = 4;
+const BS   = 7;     // largeur d'un bloc compound (m)
+const RUE  = 2.5;   // largeur de rue (m)
 const CELL = BS + RUE;
-const GRID = 10;
+const GRID = 12;
 const OFF  = -(GRID * CELL) / 2;
-const T0 = 4, T1 = 5;
+const T0 = 5, T1 = 6;
 
 for (let gx = 0; gx < GRID; gx++) {
   for (let gz = 0; gz < GRID; gz++) {
@@ -252,58 +252,58 @@ for (let gx = 0; gx < GRID; gx++) {
 
     if (gx >= T0 && gx <= T1 && gz >= T0 && gz <= T1) continue;
 
-    /* Sol de cour intérieure — légèrement plus ocre que la rue */
-    const court = new THREE.Mesh(new THREE.PlaneGeometry(BS - 0.76, BS - 0.76), mCour);
+    /* Sol de cour intérieure */
+    const court = new THREE.Mesh(new THREE.PlaneGeometry(BS - 0.50, BS - 0.50), mCour);
     court.rotation.x = -Math.PI / 2;
     court.position.set(cx, 0.01, cz);
     court.receiveShadow = true;
     scene.add(court);
 
-    /* Murs d'enceinte banco — 2.2 à 3.0 m de hauteur */
-    const wh  = 2.2 + rng() * 0.8;
-    const wt  = 0.38;
+    /* Murs d'enceinte banco — 1.2 à 1.8 m */
+    const wh  = 1.2 + rng() * 0.6;
+    const wt  = 0.22;
     const mat = bancMat();
     addBox(BS, wh, wt, cx, cz - BS/2, mat, true);
     addBox(BS, wh, wt, cx, cz + BS/2, mat, true);
     addBox(wt, wh, BS, cx - BS/2, cz, mat, true);
     addBox(wt, wh, BS, cx + BS/2, cz, mat, true);
 
-    /* Bâtiments intérieurs — disposition organique */
+    /* Bâtiments intérieurs */
     const nb = 1 + Math.floor(rng() * 3);
     for (let i = 0; i < nb; i++) {
-      const bw = 2.2 + rng() * 4.5;
-      const bd = 2.0 + rng() * 4.0;
-      const bh = 2.0 + rng() * 2.5;
-      const bx = cx + (rng() - 0.5) * (BS - bw - 1.4);
-      const bz = cz + (rng() - 0.5) * (BS - bd - 1.4);
+      const bw = 1.2 + rng() * 2.5;
+      const bd = 1.0 + rng() * 2.2;
+      const bh = 1.1 + rng() * 1.2;
+      const bx = cx + (rng() - 0.5) * (BS - bw - 0.8);
+      const bz = cz + (rng() - 0.5) * (BS - bd - 0.8);
       const bm = bancMat();
       addBox(bw, bh, bd, bx, bz, bm);
       /* Toit plat */
       const tm = rng() > 0.48 ? mToit : mToit2;
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.28, 0.22, bd + 0.28), tm);
-      roof.position.set(bx, bh + 0.11, bz);
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.15, 0.12, bd + 0.15), tm);
+      roof.position.set(bx, bh + 0.06, bz);
       roof.receiveShadow = true;
       scene.add(roof);
       /* Parapet sur les toits (50 % des bâtiments) */
       if (rng() > 0.50) {
-        const ph = 0.30 + rng() * 0.20;
+        const ph = 0.16 + rng() * 0.12;
         const pm = bancMat();
-        const py = bh + 0.22 + ph / 2;
-        const hw = bw / 2 + 0.14, hd = bd / 2 + 0.14;
-        const p1 = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.28, ph, 0.18), pm);
+        const py = bh + 0.12 + ph / 2;
+        const hw = bw / 2 + 0.08, hd = bd / 2 + 0.08;
+        const p1 = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.15, ph, 0.10), pm);
         p1.position.set(bx, py, bz - hd); p1.castShadow = true; scene.add(p1);
-        const p2 = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.28, ph, 0.18), pm);
+        const p2 = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.15, ph, 0.10), pm);
         p2.position.set(bx, py, bz + hd); p2.castShadow = true; scene.add(p2);
-        const p3 = new THREE.Mesh(new THREE.BoxGeometry(0.18, ph, bd + 0.28), pm);
+        const p3 = new THREE.Mesh(new THREE.BoxGeometry(0.10, ph, bd + 0.15), pm);
         p3.position.set(bx - hw, py, bz); p3.castShadow = true; scene.add(p3);
-        const p4 = new THREE.Mesh(new THREE.BoxGeometry(0.18, ph, bd + 0.28), pm);
+        const p4 = new THREE.Mesh(new THREE.BoxGeometry(0.10, ph, bd + 0.15), pm);
         p4.position.set(bx + hw, py, bz); p4.castShadow = true; scene.add(p4);
       }
     }
 
-    /* Arbre dans le compound (55 %) */
-    if (rng() > 0.45)
-      addTree(cx + (rng()-0.5)*(BS-3.5), cz + (rng()-0.5)*(BS-3.5));
+    /* Arbre dans le compound (50 %) */
+    if (rng() > 0.50)
+      addTree(cx + (rng()-0.5)*(BS-2.0), cz + (rng()-0.5)*(BS-2.0));
   }
 }
 
@@ -325,20 +325,20 @@ plaza.receiveShadow = true;
 scene.add(plaza);
 
 const pSize = CELL * 2;
-const pwh = 1.8, pwt = 0.42;
+const pwh = 1.2, pwt = 0.25;
 addBox(pSize, pwh, pwt, tombX, tombZ - pSize/2, mTomb, false);
 addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb, false);
 addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb, false);
 addBox(pwt, pwh, pSize, tombX + pSize/2, tombZ, mTomb, false);
 
-const socle = new THREE.Mesh(new THREE.BoxGeometry(10, 0.6, 10), mTomb);
-socle.position.set(tombX, 0.3, tombZ);
+const socle = new THREE.Mesh(new THREE.BoxGeometry(4, 0.3, 4), mTomb);
+socle.position.set(tombX, 0.15, tombZ);
 socle.receiveShadow = true;
 scene.add(socle);
 
 const panMat = new THREE.MeshStandardMaterial({ color:0x8b5e20 });
-const panneau = new THREE.Mesh(new THREE.BoxGeometry(6, 1.2, 0.1), panMat);
-panneau.position.set(tombX, 2.8, tombZ - 6);
+const panneau = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.6, 0.08), panMat);
+panneau.position.set(tombX, 1.2, tombZ - 3);
 scene.add(panneau);
 
 /* ══════════════════════════════════════════
