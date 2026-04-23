@@ -120,8 +120,7 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 /* ─── CONFIG ─── */
 const WALK_SPEED   = 2.2;
@@ -129,7 +128,6 @@ const TURN_SPEED   = 2.0;
 const CAM_DISTANCE = 3.5;
 const CAM_HEIGHT   = 1.8;
 const FADE_TIME    = 0.3;
-const DRACO_PATH   = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
 
 /* ─── RENDERER ─── */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -204,10 +202,7 @@ let fadeProgress = 1;      // 0 → 1, interpolation idle ↔ walk
 const badge = document.getElementById('anim-badge');
 
 /* ─── CHARGEMENT ─── */
-const draco = new DRACOLoader();
-draco.setDecoderPath(DRACO_PATH);
 const loader = new GLTFLoader();
-loader.setDRACOLoader(draco);
 
 loader.load(
   'assets/3d/char1_walking.glb',
