@@ -331,15 +331,25 @@ addBox(pSize, pwh, pwt, tombX, tombZ + pSize/2, mTomb, false);
 addBox(pwt, pwh, pSize, tombX - pSize/2, tombZ, mTomb, false);
 addBox(pwt, pwh, pSize, tombX + pSize/2, tombZ, mTomb, false);
 
-const socle = new THREE.Mesh(new THREE.BoxGeometry(4, 0.3, 4), mTomb);
-socle.position.set(tombX, 0.15, tombZ);
-socle.receiveShadow = true;
-scene.add(socle);
-
-const panMat = new THREE.MeshStandardMaterial({ color:0x8b5e20 });
-const panneau = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.6, 0.08), panMat);
-panneau.position.set(tombX, 1.2, tombZ - 3);
-scene.add(panneau);
+/* ── Modèle 3D du Tombeau des Askia ── */
+const tombLoader = new GLTFLoader();
+tombLoader.load(
+  BASE + 'assets/3d/Tombeaux_des_Askia.glb',
+  (gltf) => {
+    const tomb = gltf.scene;
+    tomb.traverse(o => {
+      if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
+    });
+    tomb.position.set(tombX, 0, tombZ);
+    /* ajustement d'échelle — à modifier si trop grand/petit */
+    tomb.scale.setScalar(1);
+    scene.add(tomb);
+    /* collider autour du tombeau */
+    colliders.push({ minX: tombX - 5, maxX: tombX + 5, minZ: tombZ - 5, maxZ: tombZ + 5 });
+  },
+  null,
+  (err) => console.warn('Tombeau GLB non chargé :', err)
+);
 
 /* ══════════════════════════════════════════
    CONTRÔLES — joystick tactile + clavier
