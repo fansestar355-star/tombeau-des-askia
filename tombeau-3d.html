@@ -455,7 +455,7 @@ function updateAnnotations() {
 /* ═══════════════════════════════════════════════════════════
    ILLUSTRATIONS 3D — plans canvas dans la scène
 ═══════════════════════════════════════════════════════════ */
-const G = 'rgba(249,213,139,';   /* couleur or */
+const G = 'rgba(255,255,255,';   /* blanc */
 
 function cvTex(w, h, drawFn) {
     const cv = document.createElement('canvas');
@@ -593,9 +593,9 @@ function addIllustrations3D(scene) {
     const meshes = [];
 
     /* === PALMIERS === */
-    meshes.push(illusPlane(scene, cvTex(256,512,drawPalm), 22,44, cx-58,22,cz+10,  0.18));
-    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.55)), 16,32, cx-72,16,cz-8, 0.25));
-    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.4)),  12,24, cx-48,12,cz-22, 0.1));
+    meshes.push(illusPlane(scene, cvTex(256,512,drawPalm), 13,26, cx-58,13,cz+10,  0.18));
+    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.55)), 10,20, cx-72,10,cz-8, 0.25));
+    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.4)),   8,16, cx-48, 8,cz-22, 0.1));
 
     /* === ACACIA === */
     meshes.push(illusPlane(scene, cvTex(256,256,drawAcacia), 24,24, cx+45,12,cz+42, -0.3));
@@ -626,7 +626,7 @@ function fadeInIllustrations() {
     const start = performance.now();
     (function tick(now) {
         const t = Math.min((now - start) / 2000, 1);
-        window._illusMeshes.forEach(m => { m.material.opacity = t * 0.92; });
+        window._illusMeshes.forEach(m => { m.material.opacity = t * 1.0; });
         if (t < 1) requestAnimationFrame(tick);
     })(start);
 }
