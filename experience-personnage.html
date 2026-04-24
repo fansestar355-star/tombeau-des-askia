@@ -242,7 +242,7 @@
 
 <!-- Joystick -->
 <div id="joystick-zone"><div id="joystick-handle"></div></div>
-<div id="hint">Joystick · Flèches · WASD</div>
+<div id="hint">Joystick · déplacer — Glisser écran · tourner caméra</div>
 
 <!-- Loading -->
 <div id="loading">
@@ -488,27 +488,73 @@ jZone.addEventListener('mousedown', e=>{
   const r=jZone.getBoundingClientRect();
   jStart(r.left+r.width/2, r.top+r.height/2, e.clientX, e.clientY);
 });
-window.addEventListener('mousemove', e=>{if(jActive)jMove(e.clientX,e.clientY);});
-window.addEventListener('mouseup',   ()=>{if(jActive)jEnd();});
+window.addEventListener('mousemove', e => { if (jActive) jMove(e.clientX, e.clientY); });
+window.addEventListener('mouseup',   () => { if (jActive) jEnd(); });
 
 /* ═══════════════════════════════════════════
-   CAMÉRA — suit le personnage en douceur
+   ORBITE CAMÉRA — glisser pour faire tourner
+   La caméra reste à l'angle choisi au lâcher
 ═══════════════════════════════════════════ */
+let camYaw    = 0;        // angle horizontal caméra (indépendant du personnage)
+let camDrag   = false;
+let camDragId = null;
+let camDragX  = 0;
+const CAM_SENS = 0.006;  // sensibilité rotation
+
+function inJoystickZone(cx, cy) {
+  const r = jZone.getBoundingClientRect();
+  return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
+}
+
+/* Souris */
+renderer.domElement.addEventListener('mousedown', e => {
+  if (inJoystickZone(e.clientX, e.clientY)) return;
+  camDrag  = true;
+  camDragX = e.clientX;
+});
+window.addEventListener('mousemove', e => {
+  if (!camDrag) return;
+  camYaw  -= (e.clientX - camDragX) * CAM_SENS;
+  camDragX = e.clientX;
+});
+window.addEventListener('mouseup', () => { camDrag = false; });
+
+/* Toucher (doigt différent du joystick) */
+window.addEventListener('touchstart', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier !== jId && !inJoystickZone(t.clientX, t.clientY)) {
+      camDragId = t.identifier;
+      camDragX  = t.clientX;
+      break;
+    }
+  }
+}, { passive: true });
+window.addEventListener('touchmove', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === camDragId) {
+      camYaw  -= (t.clientX - camDragX) * CAM_SENS;
+      camDragX = t.clientX;
+      break;
+    }
+  }
+}, { passive: true });
+window.addEventListener('touchend', e => {
+  for (const t of e.changedTouches)
+    if (t.identifier === camDragId) { camDragId = null; break; }
+});
+
+/* ── Mise à jour position caméra ── */
 const camTarget   = new THREE.Vector3();
 const camPosition = new THREE.Vector3();
 
 function updateCamera() {
   if (!character) return;
-
-  const angle = character.rotation.y;
-  const idealX = character.position.x - Math.sin(angle) * CAM_DISTANCE;
+  const idealX = character.position.x - Math.sin(camYaw) * CAM_DISTANCE;
   const idealY = character.position.y + CAM_HEIGHT;
-  const idealZ = character.position.z - Math.cos(angle) * CAM_DISTANCE;
-
+  const idealZ = character.position.z - Math.cos(camYaw) * CAM_DISTANCE;
   camPosition.set(idealX, idealY, idealZ);
   camera.position.lerp(camPosition, 0.08);
-
-  camTarget.copy(character.position).y += 0.9;
+  camTarget.set(character.position.x, character.position.y + 0.9, character.position.z);
   camera.lookAt(camTarget);
 }
 
