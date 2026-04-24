@@ -495,7 +495,7 @@ function initScene() {
                 float br=luma(texture2D(tDiffuse,uv+vec2( px.x,-px.y)).rgb);
                 float gx = -tl -2.0*ml -bl +tr +2.0*mr +br;
                 float gy =  tl +2.0*tm +tr -bl -2.0*bm -br;
-                return clamp(sqrt(gx*gx+gy*gy)*2.2, 0.0, 1.0);
+                return clamp(sqrt(gx*gx+gy*gy)*1.2, 0.0, 1.0);
             }
 
             float hatch(vec2 uv, float angle, float freq){
@@ -513,9 +513,9 @@ function initScene() {
                 float h1 = step(0.6, hatch(huv, 0.785, 1.0));
                 float h2 = step(0.6, hatch(huv, 2.356, 1.0));
                 float hatching = 0.0;
-                if(lum < 0.40) hatching += h1 * (0.40-lum) * 0.5;
-                if(lum < 0.20) hatching += h2 * (0.20-lum) * 0.5;
-                hatching = clamp(hatching, 0.0, 0.30);
+                if(lum < 0.25) hatching += h1 * (0.25-lum) * 0.35;
+                if(lum < 0.12) hatching += h2 * (0.12-lum) * 0.35;
+                hatching = clamp(hatching, 0.0, 0.18);
 
                 /* Bruit papier discret */
                 float noise = fract(sin(dot(vUv, vec2(127.1,311.7))) * 43758.5) * 0.02;
