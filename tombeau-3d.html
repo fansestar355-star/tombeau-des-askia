@@ -105,55 +105,115 @@
         }
         #start-btn:hover { background:rgba(249,213,139,0.14); transform:scale(1.03); }
 
-        /* ── Annotations 3D ── */
+        /* ── Annotations HUD ── */
         #annotations { position:fixed; inset:0; pointer-events:none; z-index:40; }
 
         .ann {
             position:absolute; top:0; left:0;
-            transform:translate(-50%, -50%);
-            opacity:0; transition:opacity 0.6s ease;
-            pointer-events:none;
+            opacity:0; transition:opacity 0.5s ease;
+            pointer-events:none; font-family:'Courier New',monospace;
         }
         .ann.visible { pointer-events:auto; }
 
+        /* Dot blanc sur le modèle */
         .ann-dot {
-            width:8px; height:8px; border-radius:50%;
-            background:var(--gold); box-shadow:0 0 8px rgba(249,213,139,0.8);
-            position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-            transition:transform 0.2s;
+            position:absolute; top:0; left:0;
+            width:7px; height:7px; border-radius:50%;
+            background:#fff;
+            box-shadow:0 0 0 2px rgba(255,255,255,0.25), 0 0 10px rgba(255,255,255,0.5);
+            transform:translate(-50%,-50%);
+            transition:box-shadow 0.2s;
         }
-        .ann:hover .ann-dot { transform:translate(-50%,-50%) scale(1.6); }
+        .ann:hover .ann-dot { box-shadow:0 0 0 3px rgba(255,255,255,0.4), 0 0 16px #fff; }
 
-        .ann-line {
-            position:absolute; bottom:calc(50% + 4px); left:50%;
-            width:1px; background:linear-gradient(to top, rgba(249,213,139,0.6), transparent);
-            transform-origin:bottom center;
-            height:28px;
+        /* Ligne de connexion SVG */
+        .ann-svg { position:absolute; top:0; left:0; overflow:visible; pointer-events:none; }
+        .ann-svg line { stroke:#fff; stroke-width:0.8; opacity:0.55; }
+
+        /* Panel HUD */
+        .ann-panel {
+            position:absolute;
+            background:rgba(4,8,16,0.82);
+            border:1px solid rgba(255,255,255,0.22);
+            backdrop-filter:blur(6px);
+            width:200px;
+            padding:0;
+            white-space:nowrap;
+        }
+        .ann-panel::before {
+            content:''; position:absolute; inset:0;
+            border:1px solid rgba(255,255,255,0.06);
+            pointer-events:none;
         }
 
-        .ann-box {
-            position:absolute; bottom:calc(50% + 34px); left:50%;
-            transform:translateX(-50%);
-            background:rgba(7,5,15,0.78); border:1px solid rgba(249,213,139,0.3);
-            backdrop-filter:blur(8px);
-            padding:6px 12px; border-radius:4px; white-space:nowrap;
-            text-align:center;
+        /* Header */
+        .ann-header {
+            padding:6px 9px 5px;
+            border-bottom:1px solid rgba(255,255,255,0.15);
+            display:flex; align-items:baseline; gap:8px;
         }
-        .ann-name {
-            font-size:0.58rem; letter-spacing:0.18em; text-transform:uppercase;
-            color:var(--gold); font-weight:500;
+        .ann-id {
+            font-size:0.62rem; font-weight:700; letter-spacing:0.08em;
+            color:#fff; text-transform:uppercase;
         }
-        .ann-sub {
-            font-size:0.5rem; color:rgba(240,234,248,0.5);
-            letter-spacing:0.1em; margin-top:2px;
+        .ann-type {
+            font-size:0.42rem; letter-spacing:0.18em;
+            color:rgba(255,255,255,0.45); text-transform:uppercase; margin-left:auto;
         }
-        .ann:hover .ann-box { border-color:rgba(249,213,139,0.7); }
+
+        /* Corps */
+        .ann-body { padding:5px 9px 6px; border-bottom:1px solid rgba(255,255,255,0.1); }
+        .ann-stat-big {
+            font-size:1.4rem; font-weight:700; color:#fff;
+            line-height:1; letter-spacing:-0.02em;
+        }
+        .ann-stat-label {
+            font-size:0.4rem; letter-spacing:0.22em; color:rgba(255,255,255,0.4);
+            text-transform:uppercase; margin-top:1px;
+        }
+
+        /* Rows de données */
+        .ann-rows { padding:4px 9px 5px; }
+        .ann-row {
+            display:flex; justify-content:space-between; align-items:center;
+            font-size:0.42rem; letter-spacing:0.1em; line-height:1.9;
+            border-bottom:1px solid rgba(255,255,255,0.06);
+            text-transform:uppercase;
+        }
+        .ann-row:last-child { border-bottom:none; }
+        .ann-row-k { color:rgba(255,255,255,0.38); }
+        .ann-row-v { color:#fff; text-align:right; }
+
+        /* Barre de progression */
+        .ann-bar-wrap {
+            padding:4px 9px 6px;
+            border-top:1px solid rgba(255,255,255,0.1);
+        }
+        .ann-bar-bg {
+            height:3px; background:rgba(255,255,255,0.1); position:relative; overflow:hidden;
+        }
+        .ann-bar-fill {
+            position:absolute; top:0; left:0; height:100%; background:#fff; opacity:0.7;
+        }
+        .ann-bar-label {
+            display:flex; justify-content:space-between;
+            font-size:0.38rem; letter-spacing:0.14em; color:rgba(255,255,255,0.3);
+            margin-top:3px; text-transform:uppercase;
+        }
+
+        /* Coins du panel */
+        .ann-panel::after {
+            content:''; position:absolute;
+            bottom:-1px; right:-1px;
+            width:8px; height:8px;
+            border-right:1px solid rgba(255,255,255,0.5);
+            border-bottom:1px solid rgba(255,255,255,0.5);
+        }
 
         @media (max-width:768px) {
             #hud-data { display:none; }
             #info-panel { padding:40px 20px 24px; }
-            .panel-desc { font-size:0.74rem; }
-            .ann-box { display:none; }
+            .ann-panel { display:none; }
         }
     </style>
 </head>
@@ -337,49 +397,117 @@ function initScene() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ANNOTATIONS 3D → 2D
+   ANNOTATIONS HUD 3D → 2D
 ═══════════════════════════════════════════════════════════ */
 const ANN_DATA = [
-    { mesh:'Tombeaux',           name:'La Tour Pyramidale', sub:'~17 m · banco' },
-    { mesh:'La_base ',           name:'Enceinte Principale', sub:'Cour intérieure' },
-    { mesh:'Espace_des_femmes',  name:'Espace des Femmes',  sub:'Salle de prière' },
-    { mesh:'Espace_des_hommes',  name:'Espace des Hommes',  sub:'Salle de prière' },
-    { mesh:'Branche',            name:'Les Piquets',         sub:'Bois de rônier' },
-    { mesh:'Haute_parleur',      name:'Minaret',             sub:'Haut-parleur' },
-    { mesh:'cimtière',           name:'Cimetière',           sub:'Askia Mohamed I' },
+    {
+        mesh:'Tombeaux', id:'TDA# 01', type:'Monument',
+        stat:'17', statLabel:'Hauteur (m)',
+        rows:[['Matériau','Banco / Paille'],['Période','~1495 AD'],['Statut','UNESCO 2004']],
+        bar:85, barLabel:['Intégrité','85%'], side:'right'
+    },
+    {
+        mesh:'La_base ', id:'TDA# 02', type:'Enceinte',
+        stat:'2400', statLabel:'Surface (m²)',
+        rows:[['Structure','Argile + Bois'],['Usage','Cour centrale'],['Accès','Public']],
+        bar:70, barLabel:['Restauration','70%'], side:'left'
+    },
+    {
+        mesh:'Espace_des_femmes', id:'TDA# 03', type:'Salle de prière',
+        stat:'F', statLabel:'Espace réservé',
+        rows:[['Accès','Entrée dédiée'],['Orientation','Qibla Nord'],['Capacité','~80 pers.']],
+        bar:60, barLabel:['Conservation','60%'], side:'left'
+    },
+    {
+        mesh:'Espace_des_hommes', id:'TDA# 04', type:'Mosquée',
+        stat:'H', statLabel:'Espace réservé',
+        rows:[['Accès','Entrée principale'],['Orientation','Qibla Nord'],['Capacité','~200 pers.']],
+        bar:75, barLabel:['Conservation','75%'], side:'right'
+    },
+    {
+        mesh:'Branche', id:'TDA# 05', type:'Éléments structurels',
+        stat:'96', statLabel:'Piquets (bois rônier)',
+        rows:[['Matériau','Bois de rônier'],['Usage','Échafaudage'],['Cycle','Annuel']],
+        bar:90, barLabel:['Authenticité','90%'], side:'right'
+    },
+    {
+        mesh:'Haute_parleur', id:'TDA# 06', type:'Minaret',
+        stat:'12', statLabel:'Hauteur (m)',
+        rows:[['Fonction','Appel à la prière'],['Matériau','Banco renforcé'],['Orientation','Nord']],
+        bar:80, barLabel:['État','80%'], side:'left'
+    },
+    {
+        mesh:'cimtière', id:'TDA# 07', type:'Nécropole royale',
+        stat:'XVe', statLabel:'Siècle',
+        rows:[['Défunt','Askia Mohamed I'],['Sépultures','Royales'],['Accès','Restreint']],
+        bar:50, barLabel:['Préservation','50%'], side:'right'
+    },
 ];
 
 let _annotations = [];
+
+function makePanel({ id, type, stat, statLabel, rows, bar, barLabel }) {
+    const rowsHTML = rows.map(([k,v]) =>
+        `<div class="ann-row"><span class="ann-row-k">${k}</span><span class="ann-row-v">${v}</span></div>`
+    ).join('');
+    return `
+        <div class="ann-header">
+            <span class="ann-id">${id}</span>
+            <span class="ann-type">${type}</span>
+        </div>
+        <div class="ann-body">
+            <div class="ann-stat-big">${stat}</div>
+            <div class="ann-stat-label">${statLabel}</div>
+        </div>
+        <div class="ann-rows">${rowsHTML}</div>
+        <div class="ann-bar-wrap">
+            <div class="ann-bar-bg"><div class="ann-bar-fill" style="width:${bar}%"></div></div>
+            <div class="ann-bar-label"><span>${barLabel[0]}</span><span>${barLabel[1]}</span></div>
+        </div>`;
+}
 
 function buildAnnotations(scene3d, camera, renderer) {
     const container = document.getElementById('annotations');
     container.innerHTML = '';
     _annotations = [];
 
-    ANN_DATA.forEach(({ mesh, name, sub }) => {
+    ANN_DATA.forEach(data => {
         let found = null;
-        scene3d.traverse(obj => { if (obj.name.trim() === mesh.trim()) found = obj; });
+        scene3d.traverse(obj => { if (obj.name.trim() === data.mesh.trim()) found = obj; });
         if (!found) return;
 
-        /* Position monde = centre du bounding box du mesh */
         const box3 = new THREE.Box3().setFromObject(found);
         const pos  = new THREE.Vector3();
         box3.getCenter(pos);
-        pos.y = box3.max.y; /* accroche au sommet du mesh */
+        pos.y = box3.max.y;
 
-        /* Élément DOM */
-        const el = document.createElement('div');
-        el.className = 'ann';
-        el.innerHTML = `
-            <div class="ann-box">
-                <div class="ann-name">${name}</div>
-                <div class="ann-sub">${sub}</div>
-            </div>
-            <div class="ann-line"></div>
-            <div class="ann-dot"></div>`;
-        container.appendChild(el);
+        /* Wrapper positionné sur le dot */
+        const wrap = document.createElement('div');
+        wrap.className = 'ann';
+        wrap.style.cssText = 'position:absolute;top:0;left:0;';
 
-        _annotations.push({ el, pos, camera, renderer });
+        /* Dot */
+        const dot = document.createElement('div');
+        dot.className = 'ann-dot';
+        wrap.appendChild(dot);
+
+        /* SVG ligne */
+        const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('class','ann-svg');
+        svg.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;';
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1','0'); line.setAttribute('y1','0');
+        svg.appendChild(line);
+        wrap.appendChild(svg);
+
+        /* Panel */
+        const panel = document.createElement('div');
+        panel.className = 'ann-panel';
+        panel.innerHTML = makePanel(data);
+        wrap.appendChild(panel);
+
+        container.appendChild(wrap);
+        _annotations.push({ wrap, dot, svg, line, panel, pos, side: data.side });
     });
 
     window._annotations = _annotations;
@@ -394,21 +522,35 @@ function updateAnnotations() {
     const W   = rdr.domElement.clientWidth;
     const H   = rdr.domElement.clientHeight;
 
-    window._annotations.forEach(({ el, pos }) => {
+    window._annotations.forEach(({ wrap, line, panel, pos, side }) => {
         const v = pos.clone().project(cam);
-        const x = ( v.x * 0.5 + 0.5) * W;
-        const y = (-v.y * 0.5 + 0.5) * H;
-        const inFront = v.z < 1.0;
+        const sx = ( v.x * 0.5 + 0.5) * W;
+        const sy = (-v.y * 0.5 + 0.5) * H;
 
-        el.style.left = x + 'px';
-        el.style.top  = y + 'px';
+        /* Position du wrapper sur le dot */
+        wrap.style.left = sx + 'px';
+        wrap.style.top  = sy + 'px';
 
-        /* Distance caméra → annotation */
-        const dist = cam.position.distanceTo(pos);
-        const fade = inFront && dist > 30 && dist < 400;
-        el.style.opacity = fade ? Math.min(1, (dist - 30) / 60) : '0';
-        if (fade) el.classList.add('visible');
-        else      el.classList.remove('visible');
+        /* Panel décalé selon le côté */
+        const panW = 200, panH = 130;
+        const offX = side === 'right' ? 18 : -(panW + 18);
+        const offY = -panH - 28;
+        panel.style.left = offX + 'px';
+        panel.style.top  = offY + 'px';
+
+        /* Ligne SVG du dot au coin du panel */
+        const endX = offX + (side === 'right' ? 0 : panW);
+        const endY = offY + panH;
+        line.setAttribute('x2', endX);
+        line.setAttribute('y2', endY);
+
+        /* Visibilité selon distance et frustum */
+        const dist  = cam.position.distanceTo(pos);
+        const front = v.z < 1.0;
+        const alpha = front && dist > 40 && dist < 420
+            ? Math.min(1, (dist - 40) / 70) : 0;
+        wrap.style.opacity = alpha;
+        wrap.style.pointerEvents = alpha > 0.1 ? 'auto' : 'none';
     });
 }
 
