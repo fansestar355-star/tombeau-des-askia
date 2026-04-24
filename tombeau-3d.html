@@ -299,7 +299,7 @@ function initScene() {
         buildAnnotations(scene3d, camera, renderer);
 
         /* Illustrations 3D dans la scène */
-        addIllustrations3D(scene);
+        addIllustrations3D(scene, scene3d);
 
         window._modelLoaded = true;
     }, undefined, err => console.warn('GLB:', err));
@@ -542,7 +542,7 @@ function drawCompass(ctx, w, h) {
     ctx.fillText('N', cx, cy-h*.5);
 }
 
-function addIllustrations3D(scene) {
+function addIllustrations3D(scene, scene3d) {
     const cx=52.82, cz=-26.69;
     const meshes = [];
 
@@ -552,10 +552,42 @@ function addIllustrations3D(scene) {
     /* === VENT / SABLE === */
     meshes.push(illusPlane(scene, cvTex(512,192,drawWind), 55,20, cx+65,28,cz-70, -0.15));
 
-    /* === NOTE : Tour 17m === */
-    meshes.push(illusPlane(scene,
-        cvTex(512,256,(c,w,h)=>drawNote(c,w,h,'Tour · 17 m','~1495 · Askia I')),
-        65,32, cx-20,32,cz+10, 0.12));
+    /* === NOTE : Tour 17m — pointe sur la base de la tour === */
+    {
+        /* Taille responsive */
+        const isMobile = window.innerWidth < 768;
+        const pw = isMobile ? 32 : 55;
+        const ph = isMobile ? 16 : 28;
+
+        /* Position réelle du mesh Tombeaux */
+        let towerBase = new THREE.Vector3(cx, 2, cz);
+        if (scene3d) {
+            scene3d.traverse(obj => {
+                if (obj.isMesh && obj.name.trim() === 'Tombeaux') {
+                    const box = new THREE.Box3().setFromObject(obj);
+                    towerBase.set(
+                        (box.min.x + box.max.x) / 2,
+                        box.min.y + 1,
+                        (box.min.z + box.max.z) / 2
+                    );
+                }
+            });
+        }
+
+        /* La pointe de la flèche est au coin bas-droite du canvas :
+           en local plan → (+0.4*pw, -0.32*ph, 0)
+           On calcule le centre du plan pour que ce point coïncide avec towerBase */
+        const ry = 0;
+        const tipLX =  0.4 * pw;
+        const tipLY = -0.32 * ph;
+        const px = towerBase.x - tipLX * Math.cos(ry);
+        const py = towerBase.y - tipLY;
+        const pz = towerBase.z - tipLX * Math.sin(ry);
+
+        meshes.push(illusPlane(scene,
+            cvTex(512,256,(c,w,h)=>drawNote(c,w,h,'Tour · 17 m','~1495 · Askia I')),
+            pw, ph, px, py, pz, ry));
+    }
 
     /* === ROSE DES VENTS === */
     meshes.push(illusPlane(scene, cvTex(192,192,drawCompass), 18,18, cx+80,9,cz+55, -0.4));
