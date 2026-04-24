@@ -292,9 +292,7 @@ function initScene() {
         scene.add(scene3d);
 
         /* Caméra centrée sur l'origine de la carte satellite = (0,0,0) Blender */
-        const center = new THREE.Vector3(0, 0, 0);
-        controls.target.copy(center);
-        window._modelCenter = center.clone();
+        controls.target.set(0, 0, 0);
         controls.update();
 
         /* Annotations sur les parties du modèle */
@@ -305,7 +303,7 @@ function initScene() {
 
     /* OrbitControls — identique à saydnaya.amnesty.org */
     const controls = new THREE.OrbitControls(camera, canvas);
-    controls.target.set(25, 0, -13);
+    controls.target.set(0, 0, 0);
     controls.minPolarAngle   = 0.7;   /* ~40° — pas trop haut */
     controls.maxPolarAngle   = 1.1;   /* ~63° — pas de vue rasante */
     controls.enablePan       = false;
@@ -437,18 +435,18 @@ function flyIn() {
     const ctrl = window._controls;
     if (!cam || !ctrl) return;
 
-    /* Centre réel du modèle (calculé après chargement GLB) */
-    const c = window._modelCenter || new THREE.Vector3(25, 0, -13);
+    /* Origine de la carte satellite = (0,0,0) Blender */
+    const c = new THREE.Vector3(0, 0, 0);
 
-    /* Position de départ : vue haute (avant fly-in) */
-    cam.position.set(c.x, 280, c.z + 280);
-    ctrl.target.copy(c);
-    ctrl.autoRotate = false; /* stop pendant l'animation */
+    /* Position de départ : vue haute */
+    cam.position.set(0, 280, 280);
+    ctrl.target.set(0, 0, 0);
+    ctrl.autoRotate = false;
     ctrl.update();
 
-    /* Arrive à la distance de croisière Saydnaya (~150u, angle 0.85rad) */
+    /* Arrive en vue rapprochée centrée sur l'origine */
     const startPos = cam.position.clone();
-    const endPos   = new THREE.Vector3(c.x, 95, c.z + 115);
+    const endPos   = new THREE.Vector3(0, 95, 115);
     const startTgt = ctrl.target.clone();
     const endTgt   = c.clone();
     const duration = 4000;
