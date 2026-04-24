@@ -160,6 +160,41 @@
       text-transform: uppercase;
       color: rgba(167,139,250,0.6);
     }
+
+    /* ── Joystick ── */
+    #joystick-zone {
+      position: fixed;
+      bottom: 30px; left: 50%;
+      transform: translateX(-50%);
+      width: 130px; height: 130px;
+      z-index: 10;
+      border-radius: 50%;
+      border: 2px solid rgba(167,139,250,0.2);
+      background: rgba(11,15,26,0.45);
+      backdrop-filter: blur(10px);
+      touch-action: none; user-select: none;
+      pointer-events: all;
+    }
+    #joystick-handle {
+      position: absolute; top: 50%; left: 50%;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 38%, rgba(255,220,100,0.9), rgba(200,140,0,0.7));
+      border: 2px solid rgba(255,220,100,0.5);
+      box-shadow: 0 0 18px rgba(255,200,0,0.3);
+      transform: translate(-50%,-50%);
+      transition: transform 0.08s ease;
+      pointer-events: none;
+    }
+    #hint {
+      position: fixed; bottom: 12px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(167,139,250,0.25); z-index: 10; pointer-events: none;
+      white-space: nowrap;
+    }
+    /* Cacher les touches flèches sur mobile */
+    @media (max-width: 768px) { #controls-hud { display: none; } }
   </style>
 </head>
 <body>
@@ -205,6 +240,10 @@
   </div>
 </div>
 
+<!-- Joystick -->
+<div id="joystick-zone"><div id="joystick-handle"></div></div>
+<div id="hint">Joystick · Flèches · WASD</div>
+
 <!-- Loading -->
 <div id="loading">
   <div id="loading-text">Chargement du personnage…</div>
@@ -233,7 +272,7 @@ const TURN_SPEED   = 2.0;   // rad/s
 const CAM_DISTANCE = 3.5;
 const CAM_HEIGHT   = 1.8;
 const MODEL_PATH   = 'assets/3d/char1_walking.glb';
-const DRACO_PATH   = 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/libs/draco/';
+const DRACO_PATH   = new URL('.', document.baseURI).href + 'assets/draco/';
 
 /* ═══════════════════════════════════════════
    SCÈNE
@@ -299,10 +338,46 @@ dracoLoader.setDecoderPath(DRACO_PATH);
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
-let mixer  = null;
+let mixer      = null;
 let walkAction = null;
 let character  = null;
+let bones      = {};
 let isWalking  = false;
+let fadeOut    = false;
+let fadeTimer  = 0;
+let idleTimer  = 0;
+const FADE_DUR = 0.5;
+
+/* Idle procédural */
+const _Q = new THREE.Quaternion();
+const _E = new THREE.Euler();
+const D  = g => g * Math.PI / 180;
+
+function applyIdle(t) {
+  const br = Math.PI*2 * t / 5.0;
+  const lk = Math.PI*2 * t / 6.0;
+  function rot(name, rx, ry, rz) {
+    const b = bones[name];
+    if (!b || !b.userData.rest) return;
+    _E.set(rx, ry, rz, 'XYZ');
+    _Q.setFromEuler(_E);
+    b.quaternion.copy(b.userData.rest).multiply(_Q);
+  }
+  rot('Hips',          D(0.2)*Math.sin(br), 0, 0);
+  rot('Spine',         D(0.5)*Math.sin(br), 0, 0);
+  rot('Spine1',        D(0.4)*Math.sin(br), 0, 0);
+  rot('Spine2',        D(0.3)*Math.sin(br), 0, 0);
+  rot('Neck',          0, D(10)*Math.sin(lk)*0.3, 0);
+  rot('Head',          0, D(30)*Math.sin(lk), 0);
+  rot('LeftShoulder',  0, 0, 0);
+  rot('LeftArm',       D(1)*Math.sin(br), 0, 0);
+  rot('LeftForeArm',   D(2), 0, 0);
+  rot('LeftHand',      0, 0, 0);
+  rot('RightShoulder', 0, 0, 0);
+  rot('RightArm',      D(1)*Math.sin(br + Math.PI), 0, 0);
+  rot('RightForeArm',  D(2), 0, 0);
+  rot('RightHand',     0, 0, 0);
+}
 
 gltfLoader.load(
   MODEL_PATH,
@@ -320,13 +395,17 @@ gltfLoader.load(
     character.position.set(0, 0, 0);
     scene.add(character);
 
+    // Collecter les bones + pose de repos pour l'idle
+    character.traverse(o => {
+      if (o.isBone) { bones[o.name] = o; o.userData.rest = o.quaternion.clone(); }
+    });
+
     // Animation mixer
     mixer = new THREE.AnimationMixer(character);
     if (gltf.animations.length > 0) {
       walkAction = mixer.clipAction(gltf.animations[0]);
       walkAction.setLoop(THREE.LoopRepeat);
       walkAction.clampWhenFinished = false;
-      // Ne pas jouer tout de suite
     }
 
     // Masquer le loading
@@ -370,6 +449,47 @@ window.addEventListener('keyup', e => {
   const k = keyMap[e.code];
   if (k) { keys[k] = false; keyEls[k].classList.remove('active'); }
 });
+
+/* ═══════════════════════════════════════════
+   JOYSTICK TACTILE
+═══════════════════════════════════════════ */
+const jZone   = document.getElementById('joystick-zone');
+const jHandle = document.getElementById('joystick-handle');
+const J_RADIUS = 38, J_DEAD = 0.25;
+let jActive = false, jId = null, jCx = 0, jCy = 0;
+
+function jStart(cx, cy, tx, ty) { jActive=true; jCx=cx; jCy=cy; jMove(tx,ty); }
+function jMove(tx, ty) {
+  if (!jActive) return;
+  const dx=tx-jCx, dy=ty-jCy, dist=Math.sqrt(dx*dx+dy*dy), cl=Math.min(dist,J_RADIUS);
+  const nx=dist>0?dx/dist:0, ny=dist>0?dy/dist:0;
+  jHandle.style.transform=`translate(calc(-50% + ${nx*cl}px), calc(-50% + ${ny*cl}px))`;
+  keys.up    = ny < -J_DEAD;
+  keys.down  = ny >  J_DEAD;
+  keys.left  = nx < -J_DEAD;
+  keys.right = nx >  J_DEAD;
+}
+function jEnd() {
+  jActive=false;
+  jHandle.style.transform='translate(-50%,-50%)';
+  keys.up=keys.down=keys.left=keys.right=false;
+}
+jZone.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  const r=jZone.getBoundingClientRect(), t=e.changedTouches[0];
+  jId=t.identifier; jStart(r.left+r.width/2, r.top+r.height/2, t.clientX, t.clientY);
+},{passive:false});
+window.addEventListener('touchmove', e=>{
+  for(const t of e.changedTouches) if(t.identifier===jId){e.preventDefault();jMove(t.clientX,t.clientY);break;}
+},{passive:false});
+window.addEventListener('touchend',    e=>{for(const t of e.changedTouches)if(t.identifier===jId)jEnd();});
+window.addEventListener('touchcancel', e=>{for(const t of e.changedTouches)if(t.identifier===jId)jEnd();});
+jZone.addEventListener('mousedown', e=>{
+  const r=jZone.getBoundingClientRect();
+  jStart(r.left+r.width/2, r.top+r.height/2, e.clientX, e.clientY);
+});
+window.addEventListener('mousemove', e=>{if(jActive)jMove(e.clientX,e.clientY);});
+window.addEventListener('mouseup',   ()=>{if(jActive)jEnd();});
 
 /* ═══════════════════════════════════════════
    CAMÉRA — suit le personnage en douceur
@@ -422,21 +542,28 @@ function animate() {
       moving = true;
     }
 
-    // Gestion animation marche
-    if (walkAction) {
-      if (moving && !isWalking) {
-        walkAction.play();
-        isWalking = true;
-        infoAnim.textContent = 'Animation : marche';
-      } else if (!moving && isWalking) {
-        walkAction.stop();
-        isWalking = false;
-        infoAnim.textContent = 'Animation : idle';
-      }
+    // Transition walk ↔ idle avec fondu 0.5s
+    if (moving && !isWalking) {
+      isWalking = true; fadeOut = false; idleTimer = 0;
+      if (walkAction) walkAction.reset().play();
+      infoAnim.textContent = 'Animation : marche';
+    } else if (!moving && isWalking) {
+      isWalking = false; fadeOut = true; fadeTimer = 0;
+      if (walkAction) walkAction.fadeOut(FADE_DUR);
+      infoAnim.textContent = 'Animation : idle';
     }
 
-    // Mixer
-    if (mixer) mixer.update(dt);
+    // Animation
+    if (isWalking) {
+      if (mixer) mixer.update(dt);
+    } else if (fadeOut) {
+      fadeTimer += dt;
+      if (mixer) mixer.update(dt);
+      if (fadeTimer >= FADE_DUR) { fadeOut = false; if (walkAction) walkAction.stop(); }
+    } else {
+      idleTimer += dt;
+      applyIdle(idleTimer);
+    }
 
     // Info position
     infoPos.textContent = `Position : ${character.position.x.toFixed(1)}, ${character.position.z.toFixed(1)}`;
