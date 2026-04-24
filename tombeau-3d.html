@@ -193,26 +193,29 @@ function initScene() {
     const camera = new THREE.PerspectiveCamera(52, W / H, 1, 3000);
     camera.position.set(52, 280, 320);
 
-    /* Éclairage Sahel naturel */
-    scene.add(new THREE.AmbientLight(0xffecd0, 1.4));
-    const sun = new THREE.DirectionalLight(0xfff0c0, 2.8);
-    sun.position.set(100, 300, 150);
-    sun.castShadow              = true;
-    sun.shadow.mapSize.width    = 2048;
-    sun.shadow.mapSize.height   = 2048;
-    sun.shadow.camera.near      = 1;
-    sun.shadow.camera.far       = 1000;
-    sun.shadow.camera.left      = -200;
-    sun.shadow.camera.right     = 200;
-    sun.shadow.camera.top       = 200;
-    sun.shadow.camera.bottom    = -200;
+    /* Éclairage identique au Material Preview de Blender
+       HemisphereLight = simulation HDRI (ciel + sol)
+       DirectionalLight = soleil principal */
+    const hemi = new THREE.HemisphereLight(0xddeeff, 0xffe0b0, 0.9);
+    scene.add(hemi);
+
+    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+    sun.position.set(80, 200, 100);
+    sun.castShadow           = true;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height= 2048;
+    sun.shadow.camera.near   = 1;
+    sun.shadow.camera.far    = 800;
+    sun.shadow.camera.left   = -200;
+    sun.shadow.camera.right  = 200;
+    sun.shadow.camera.top    = 200;
+    sun.shadow.camera.bottom = -200;
+    sun.shadow.bias          = -0.001;
     scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xb8d0ff, 0.6);
-    fill.position.set(-80, 100, -100);
+
+    const fill = new THREE.DirectionalLight(0xc8d8ff, 0.4);
+    fill.position.set(-60, 80, -80);
     scene.add(fill);
-    const bounce = new THREE.DirectionalLight(0xffe8b0, 0.4);
-    bounce.position.set(0, -50, 0);
-    scene.add(bounce);
 
     /* Carte satellite 4K (plan horizontal 1172×1172 m — zoom 19, 16×16 tuiles) */
     new THREE.TextureLoader().load('assets/images/satellite_gao.jpg', tex => {
@@ -235,14 +238,18 @@ function initScene() {
 
     loader.load('assets/3d/Tombeaux_des_Askia.glb', gltf => {
         const model = gltf.scene;
-        /* Ombres + qualité texture sur chaque mesh */
+        /* Ombres + fidélité couleur Blender sur chaque mesh */
         model.traverse(obj => {
             if (obj.isMesh) {
                 obj.castShadow    = true;
                 obj.receiveShadow = true;
                 if (obj.material) {
-                    obj.material.needsUpdate = true;
-                    if (obj.material.map) obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                    obj.material.envMapIntensity = 0;   /* pas de reflet env */
+                    obj.material.needsUpdate     = true;
+                    if (obj.material.map) {
+                        obj.material.map.encoding  = THREE.sRGBEncoding;
+                        obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                    }
                 }
             }
         });
