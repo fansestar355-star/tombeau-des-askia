@@ -609,6 +609,15 @@
             color: rgba(249,213,139,0.35);
             text-transform: uppercase; text-align: right;
         }
+        /* Surcharge opacity du model-viewer global (le #mv-tombeau n'a pas de classe .loaded) */
+        #mv-tombeau {
+            opacity: 1 !important;
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
         /* Bouton AR */
         #ch6-ar-btn {
             position: absolute; bottom: 44px; left: 50%;
