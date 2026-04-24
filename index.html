@@ -495,6 +495,37 @@
             .ch4-line { display: none; }
         }
 
+        /* ══ CHAPITRE 5 — Le Monument ══ */
+        #ch5-overlay {
+            position: fixed; inset: 0; z-index: 4; pointer-events: none;
+            opacity: 0; transition: opacity 1s ease;
+        }
+        #ch5-overlay.visible { opacity: 1; }
+        .ch5-tombeau {
+            position: absolute;
+            bottom: 0; right: -2%;
+            width: 72%; max-width: 920px;
+            opacity: 0.88;
+            filter: sepia(0.15) saturate(1.05) brightness(0.88);
+            transform-origin: bottom right;
+        }
+        .ch5-glow {
+            position: absolute;
+            right: 0; bottom: 0;
+            width: 76%; height: 72%;
+            background: radial-gradient(ellipse 70% 55% at 60% 80%,
+                rgba(180,110,30,0.22) 0%,
+                rgba(249,213,139,0.08) 45%,
+                transparent 70%);
+            filter: blur(55px);
+        }
+        body.ch5 .model-toggle { opacity: 0; pointer-events: none; }
+        body.ch5 .hero-gao { font-size: clamp(5rem, 14vw, 14rem); letter-spacing: -0.03em; }
+        @media (max-width: 768px) {
+            .ch5-tombeau { width: 105%; right: -3%; bottom: 18%; opacity: 0.55; }
+            body.ch5 .hero-gao { font-size: clamp(2.8rem, 10vw, 5rem); letter-spacing: -0.02em; }
+        }
+
         /* ── Taille hero-gao adaptée au chapitre 4 (mot long) ── */
         body.ch4 .hero-gao {
             font-size: clamp(5rem, 14vw, 14rem);
@@ -809,6 +840,11 @@
     <img class="ch4-pyramid" src="assets/images/pyramide.png" alt="Pyramides de Gizeh" />
 </div>
 
+<div id="ch5-overlay">
+    <div class="ch5-glow"></div>
+    <img class="ch5-tombeau" src="assets/images/tombeaux.png" alt="Tombeau des Askia" />
+</div>
+
 <!-- Scroll progress bar droite -->
 <div class="scroll-hint" id="scroll-hint">
     <div class="scroll-chevrons">
@@ -862,6 +898,15 @@ const CHAPTERS = [
         btn:    false,
         year:   "1496–1498 · La Mecque → Gao"
     },
+    {
+        gao:    "BANCO",
+        tag:    "Patrimoine Mondial",
+        camera: "60deg 84deg 2.3m",
+        lines:  ["17 Mètres", "de Banco"],
+        desc:   "Construit en banco — argile, paille et bois de rônier — le Tombeau des Askia s'élève à 17 mètres à Gao. Chaque année après les pluies, la communauté replâtre le monument à mains nues. Ce rituel millénaire est classé Patrimoine Mondial UNESCO depuis 2004.",
+        btn:    false,
+        year:   "1495 · Gao · Mali · UNESCO 2004"
+    },
 ];
 
 /* ══════════════════════════════════════════════
@@ -883,6 +928,7 @@ const modelToggle = document.querySelector('.model-toggle');
 const sbProgress  = document.getElementById('sb-progress');
 const sbDot       = document.getElementById('sb-dot');
 const ch4Overlay  = document.getElementById('ch4-overlay');
+const ch5Overlay  = document.getElementById('ch5-overlay');
 
 function setCh4(active) {
     ch4Overlay.classList.toggle('visible', active);
@@ -901,6 +947,22 @@ function setCh4(active) {
         gsap.to('.ch4-line',    { scaleY: 1, opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1.1 });
     }
 }
+function setCh5(active) {
+    ch5Overlay.classList.toggle('visible', active);
+    document.body.classList.toggle('ch5', active);
+    mv.style.transition = 'opacity 0.9s ease';
+    mv.style.opacity    = active ? '0' : '';
+    document.querySelector('.bg-glow').style.opacity = active ? '0' : '';
+
+    if (active) {
+        gsap.set('.ch5-tombeau', { x: 80, opacity: 0 });
+        gsap.set('.ch5-glow',   { opacity: 0 });
+
+        gsap.to('.ch5-glow',    { opacity: 1,    duration: 2.0, ease: 'power2.out',  delay: 0.2 });
+        gsap.to('.ch5-tombeau', { x: 0, opacity: 0.88, duration: 2.2, ease: 'power3.out', delay: 0.5 });
+    }
+}
+
 const sbChevrons  = document.querySelector('.scroll-chevrons');
 
 function updateScrollBar(idx) {
@@ -981,6 +1043,7 @@ function goTo(index) {
         current = index;
         updateScrollBar(index);
         setCh4(index === 3);
+        setCh5(index === 4);
     });
 
     /* ─── ENTRÉE ─── */
