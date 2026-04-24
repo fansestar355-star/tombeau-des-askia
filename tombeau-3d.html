@@ -105,27 +105,6 @@
         }
         #start-btn:hover { background:rgba(249,213,139,0.14); transform:scale(1.03); }
 
-        /* ── Illustrations sketch ── */
-        #illustrations {
-            position:fixed; inset:0; z-index:20; pointer-events:none;
-            opacity:0; transition:opacity 1.8s ease 0.5s;
-        }
-        #illustrations.on { opacity:1; }
-        #illustrations svg {
-            width:100%; height:100%;
-        }
-        .illus {
-            stroke:rgba(249,213,139,0.38); fill:none;
-            stroke-linecap:round; stroke-linejoin:round;
-        }
-        .illus-thin  { stroke-width:0.9; }
-        .illus-med   { stroke-width:1.3; }
-        .illus-label {
-            font-family:'Caveat',cursive; font-size:13px;
-            fill:rgba(249,213,139,0.5); stroke:none;
-        }
-        .illus-arrow { marker-end:url(#arrowhead); }
-
         /* ── Annotations simples ── */
         #annotations { position:fixed; inset:0; pointer-events:none; z-index:40; }
 
@@ -176,129 +155,6 @@
 
 <canvas id="c"></canvas>
 <div class="vignette"></div>
-
-<!-- Illustrations architecturales dessinées -->
-<div id="illustrations">
-<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L6,3 Z" fill="rgba(249,213,139,0.45)"/>
-    </marker>
-  </defs>
-
-  <!-- ═══ PALMIERS GAUCHE ═══ -->
-  <!-- Palmier 1 -->
-  <g class="illus illus-thin">
-    <path d="M118,820 Q112,740 120,660 Q122,640 118,620"/>
-    <path d="M118,622 Q90,590 58,575"/>
-    <path d="M118,622 Q100,585 85,558"/>
-    <path d="M118,622 Q118,580 112,550"/>
-    <path d="M118,622 Q136,580 148,552"/>
-    <path d="M118,622 Q145,590 168,578"/>
-    <path d="M118,622 Q150,600 178,598"/>
-  </g>
-  <!-- Palmier 2 (plus petit, décalé) -->
-  <g class="illus illus-thin">
-    <path d="M68,820 Q62,760 72,700 Q74,682 70,665"/>
-    <path d="M70,667 Q48,640 28,630"/>
-    <path d="M70,667 Q55,638 44,615"/>
-    <path d="M70,667 Q70,635 66,610"/>
-    <path d="M70,667 Q84,637 92,614"/>
-    <path d="M70,667 Q88,645 104,640"/>
-  </g>
-  <!-- Palmier 3 (arrière plan, plus léger) -->
-  <g class="illus" style="stroke:rgba(249,213,139,0.18); stroke-width:0.8;">
-    <path d="M175,820 Q170,775 178,730 Q179,718 176,708"/>
-    <path d="M176,710 Q158,690 142,683"/>
-    <path d="M176,710 Q164,686 156,668"/>
-    <path d="M176,710 Q178,685 174,665"/>
-    <path d="M176,710 Q188,686 196,668"/>
-    <path d="M176,710 Q194,692 210,688"/>
-  </g>
-
-  <!-- ═══ DUNES / TERRAIN BAS-GAUCHE ═══ -->
-  <g class="illus illus-thin" style="stroke:rgba(249,213,139,0.22);">
-    <path d="M0,840 Q80,810 180,830 Q280,850 380,820 Q460,800 520,815"/>
-    <path d="M0,870 Q100,845 220,862 Q340,878 440,855 Q510,840 560,852"/>
-    <path d="M30,858 Q60,840 100,850 Q140,860 170,845"/>
-  </g>
-
-  <!-- ═══ SOLEIL HAUT-DROIT ═══ -->
-  <g class="illus illus-thin" transform="translate(1280,110)">
-    <!-- cercle -->
-    <circle cx="0" cy="0" r="22" stroke-dasharray="4 3"/>
-    <!-- rayons -->
-    <line x1="0" y1="-32" x2="0" y2="-48"/>
-    <line x1="32" y1="0" x2="48" y2="0"/>
-    <line x1="0" y1="32" x2="0" y2="48"/>
-    <line x1="-32" y1="0" x2="-48" y2="0"/>
-    <line x1="23" y1="-23" x2="34" y2="-34"/>
-    <line x1="23" y1="23" x2="34" y2="34"/>
-    <line x1="-23" y1="-23" x2="-34" y2="-34"/>
-    <line x1="-23" y1="23" x2="-34" y2="34"/>
-  </g>
-  <!-- label soleil -->
-  <text class="illus-label" x="1210" y="88" text-anchor="middle">Climat aride · 40°C</text>
-
-  <!-- ═══ LIGNES DE VENT / SABLE HAUT-DROIT ═══ -->
-  <g class="illus" style="stroke:rgba(249,213,139,0.2); stroke-width:0.8;">
-    <path d="M1050,180 Q1100,170 1150,178 Q1200,186 1240,175"/>
-    <path d="M1080,200 Q1120,192 1165,198 Q1210,205 1245,196"/>
-    <path d="M1060,220 Q1110,213 1155,218"/>
-  </g>
-
-  <!-- ═══ FLÈCHE + NOTE : BANCO ═══ -->
-  <g class="illus illus-med illus-arrow" style="stroke:rgba(249,213,139,0.45);">
-    <path d="M245,340 Q290,380 340,430"/>
-  </g>
-  <text class="illus-label" x="200" y="330" text-anchor="middle">Banco · argile</text>
-  <text class="illus-label" x="200" y="348" text-anchor="middle" style="font-size:11px; fill:rgba(249,213,139,0.32);">+ paille + bois rônier</text>
-
-  <!-- ═══ FLÈCHE + NOTE : TOUR ═══ -->
-  <g class="illus illus-med illus-arrow" style="stroke:rgba(249,213,139,0.4);">
-    <path d="M1180,320 Q1120,350 1060,390"/>
-  </g>
-  <text class="illus-label" x="1210" y="310" text-anchor="start">Tour · 17 m</text>
-  <text class="illus-label" x="1210" y="328" text-anchor="start" style="font-size:11px; fill:rgba(249,213,139,0.32);">~1495 · Askia Mohamed</text>
-
-  <!-- ═══ FLÈCHE + NOTE : COUR ═══ -->
-  <g class="illus illus-thin illus-arrow" style="stroke:rgba(249,213,139,0.35);">
-    <path d="M220,580 Q300,560 380,540"/>
-  </g>
-  <text class="illus-label" x="185" y="577" text-anchor="end">Cour intérieure</text>
-
-  <!-- ═══ LIGNE NORD ═══ -->
-  <g class="illus illus-thin" transform="translate(1350,780)">
-    <line x1="0" y1="30" x2="0" y2="-30"/>
-    <line x1="-12" y1="0" x2="12" y2="0"/>
-    <polygon points="0,-30 -5,-18 5,-18" fill="rgba(249,213,139,0.4)" stroke="none"/>
-    <text class="illus-label" x="0" y="-36" text-anchor="middle" style="font-size:12px;">N</text>
-  </g>
-
-  <!-- ═══ PETIT PLAN / SCHÉMA BAS-DROIT ═══ -->
-  <g class="illus illus-thin" style="stroke:rgba(249,213,139,0.28);">
-    <!-- rectangle enceinte -->
-    <rect x="1160" y="720" width="90" height="70" rx="1"/>
-    <!-- tour centrale -->
-    <rect x="1195" y="735" width="20" height="20" rx="1"/>
-    <!-- cour -->
-    <line x1="1185" y1="755" x2="1185" y2="785"/>
-    <line x1="1215" y1="755" x2="1215" y2="785"/>
-  </g>
-  <text class="illus-label" x="1205" y="808" text-anchor="middle" style="font-size:10px;">Plan schématique</text>
-
-  <!-- ═══ POINTS DECORATIFS ═══ -->
-  <g fill="rgba(249,213,139,0.25)" stroke="none">
-    <circle cx="310" cy="260" r="1.5"/>
-    <circle cx="320" cy="260" r="1.5"/>
-    <circle cx="330" cy="260" r="1.5"/>
-    <circle cx="1100" cy="460" r="1.5"/>
-    <circle cx="1110" cy="460" r="1.5"/>
-    <circle cx="1120" cy="460" r="1.5"/>
-  </g>
-
-</svg>
-</div>
 
 <div class="hud-corner hud-tl"></div>
 <div class="hud-corner hud-tr"></div>
@@ -438,8 +294,11 @@ function initScene() {
         window._modelCenter = tgt.clone();
         controls.update();
 
-        /* Annotations sur les parties du modèle */
+        /* Annotations */
         buildAnnotations(scene3d, camera, renderer);
+
+        /* Illustrations 3D dans la scène */
+        addIllustrations3D(scene);
 
         window._modelLoaded = true;
     }, undefined, err => console.warn('GLB:', err));
@@ -587,6 +446,185 @@ function updateAnnotations() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   ILLUSTRATIONS 3D — plans canvas dans la scène
+═══════════════════════════════════════════════════════════ */
+const G = 'rgba(249,213,139,';   /* couleur or */
+
+function cvTex(w, h, drawFn) {
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    drawFn(ctx, w, h);
+    const t = new THREE.CanvasTexture(cv);
+    t.premultiplyAlpha = true;
+    return t;
+}
+
+function illusPlane(scene, tex, pw, ph, x, y, z, ry = 0) {
+    const mat = new THREE.MeshBasicMaterial({
+        map: tex, transparent: true, alphaTest: 0.02,
+        side: THREE.DoubleSide, depthWrite: false, opacity: 0
+    });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), mat);
+    mesh.position.set(x, y, z);
+    mesh.rotation.y = ry;
+    scene.add(mesh);
+    return mesh;
+}
+
+/* ─── Palmier doum ─── */
+function drawPalm(ctx, w, h, alpha = 0.75) {
+    ctx.strokeStyle = G + alpha + ')';
+    ctx.lineWidth = w * 0.015;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    /* tronc courbé */
+    ctx.beginPath();
+    ctx.moveTo(w * .5, h * .98);
+    ctx.bezierCurveTo(w * .47, h * .7, w * .53, h * .42, w * .5, h * .1);
+    ctx.stroke();
+    /* palmes */
+    const tip = [w * .5, h * .1];
+    const fronds = [
+        [-.6, -.05], [-.45, -.28], [-.2, -.4], [0, -.44],
+        [.2, -.4], [.45, -.28], [.6, -.05],
+        [-.5, .14], [.5, .14]
+    ];
+    ctx.lineWidth = w * 0.01;
+    fronds.forEach(([dx, dy]) => {
+        ctx.beginPath();
+        ctx.moveTo(tip[0], tip[1]);
+        ctx.bezierCurveTo(
+            tip[0] + dx * w * .35, tip[1] + dy * h * .35,
+            tip[0] + dx * w * .55, tip[1] + dy * h * .45,
+            tip[0] + dx * w * .65, tip[1] + dy * h * .5
+        );
+        ctx.stroke();
+    });
+}
+
+/* ─── Acacia (tête plate) ─── */
+function drawAcacia(ctx, w, h) {
+    ctx.strokeStyle = G + '.65)';
+    ctx.lineWidth = w * 0.016; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(w*.5,h*.98); ctx.lineTo(w*.5,h*.52); ctx.stroke();
+    [[w*.2,h*.38],[w*.8,h*.38],[w*.15,h*.48],[w*.85,h*.48]].forEach(([ex,ey])=>{
+        ctx.beginPath(); ctx.moveTo(w*.5,h*.52); ctx.lineTo(ex,ey); ctx.stroke();
+    });
+    ctx.lineWidth = w * 0.012;
+    ctx.beginPath();
+    ctx.moveTo(w*.1,h*.34);
+    ctx.bezierCurveTo(w*.22,h*.18, w*.4,h*.15, w*.5,h*.17);
+    ctx.bezierCurveTo(w*.6,h*.15, w*.78,h*.18, w*.9,h*.34);
+    ctx.bezierCurveTo(w*.9,h*.42, w*.5,h*.44, w*.1,h*.42);
+    ctx.closePath(); ctx.stroke();
+}
+
+/* ─── Soleil ─── */
+function drawSun(ctx, w, h) {
+    const cx=w/2, cy=h/2, r=w*.2;
+    ctx.strokeStyle = G + '.55)'; ctx.lineWidth=1.8; ctx.lineCap='round';
+    ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    for(let i=0;i<12;i++){
+        const a=(i/12)*Math.PI*2;
+        ctx.beginPath();
+        ctx.moveTo(cx+Math.cos(a)*r*1.35, cy+Math.sin(a)*r*1.35);
+        ctx.lineTo(cx+Math.cos(a)*r*1.85, cy+Math.sin(a)*r*1.85);
+        ctx.stroke();
+    }
+}
+
+/* ─── Lignes de sable / vent ─── */
+function drawWind(ctx, w, h) {
+    ctx.strokeStyle = G + '.3)'; ctx.lineWidth=1.2; ctx.lineCap='round';
+    [.2,.42,.64,.82].forEach((yf,i)=>{
+        const len = w*(.45+i*.12);
+        ctx.beginPath();
+        ctx.moveTo(0, h*yf);
+        ctx.bezierCurveTo(len*.3,h*yf-h*.06, len*.7,h*yf+h*.06, len,h*yf);
+        ctx.stroke();
+    });
+}
+
+/* ─── Flèche avec note ─── */
+function drawNote(ctx, w, h, line1, line2) {
+    ctx.strokeStyle = G + '.55)'; ctx.lineWidth=1.6; ctx.lineCap='round';
+    /* trait courbé */
+    ctx.beginPath();
+    ctx.moveTo(w*.05, h*.35);
+    ctx.bezierCurveTo(w*.3,h*.3, w*.65,h*.5, w*.9,h*.75);
+    ctx.stroke();
+    /* pointe */
+    const ex=w*.9, ey=h*.75;
+    ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(ex-14,ey-5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(ex-5,ey-14); ctx.stroke();
+    /* texte */
+    ctx.fillStyle = G + '.8)'; ctx.font=`bold ${w*.11}px 'Caveat',cursive`;
+    ctx.fillText(line1, w*.04, h*.22);
+    if(line2){ ctx.font=`${w*.09}px 'Caveat',cursive`; ctx.fillStyle=G+'.45)'; ctx.fillText(line2,w*.04,h*.38); }
+}
+
+/* ─── Rose des vents ─── */
+function drawCompass(ctx, w, h) {
+    const cx=w/2, cy=h/2;
+    ctx.strokeStyle = G + '.5)'; ctx.lineWidth=1.4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(cx,cy-h*.42); ctx.lineTo(cx,cy+h*.42); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-w*.42,cy); ctx.lineTo(cx+w*.42,cy); ctx.stroke();
+    /* nord plein */
+    ctx.fillStyle=G+'.6)';
+    ctx.beginPath(); ctx.moveTo(cx,cy-h*.42); ctx.lineTo(cx-w*.06,cy); ctx.lineTo(cx+w*.06,cy); ctx.closePath(); ctx.fill();
+    /* N */
+    ctx.font=`bold ${w*.22}px Inter,sans-serif`; ctx.fillStyle=G+'.75)'; ctx.textAlign='center';
+    ctx.fillText('N', cx, cy-h*.5);
+}
+
+function addIllustrations3D(scene) {
+    /* Centre du tombeau en Three.js */
+    const cx=52.82, cz=-26.69;
+    const meshes = [];
+
+    /* === PALMIERS === */
+    meshes.push(illusPlane(scene, cvTex(256,512,drawPalm), 22,44, cx-58,22,cz+10,  0.18));
+    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.55)), 16,32, cx-72,16,cz-8, 0.25));
+    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.4)),  12,24, cx-48,12,cz-22, 0.1));
+
+    /* === ACACIA === */
+    meshes.push(illusPlane(scene, cvTex(256,256,drawAcacia), 24,24, cx+45,12,cz+42, -0.3));
+
+    /* === SOLEIL (haut dans le ciel) === */
+    meshes.push(illusPlane(scene, cvTex(256,256,drawSun), 38,38, cx+110,95,cz-90));
+
+    /* === VENT / SABLE === */
+    meshes.push(illusPlane(scene, cvTex(512,192,drawWind), 55,20, cx+65,28,cz-70, -0.15));
+
+    /* === FLÈCHES + NOTES === */
+    meshes.push(illusPlane(scene,
+        cvTex(384,192,(c,w,h)=>drawNote(c,w,h,'Banco · argile','+paille · bois')),
+        38,18, cx-28,28,cz-5, 0.12));
+    meshes.push(illusPlane(scene,
+        cvTex(384,192,(c,w,h)=>drawNote(c,w,h,'Tour · 17 m','~1495 · Askia I')),
+        38,18, cx+30,32,cz-42, -0.25));
+
+    /* === ROSE DES VENTS === */
+    meshes.push(illusPlane(scene, cvTex(192,192,drawCompass), 18,18, cx+80,9,cz+55, -0.4));
+
+    /* Retourne les meshes pour le fade-in */
+    window._illusMeshes = meshes;
+}
+
+function fadeInIllustrations() {
+    if (!window._illusMeshes) return;
+    const start = performance.now();
+    (function tick(now) {
+        const t = Math.min((now - start) / 2000, 1);
+        window._illusMeshes.forEach(m => { m.material.opacity = t * 0.92; });
+        if (t < 1) requestAnimationFrame(tick);
+    })(start);
+}
+
+/* ═══════════════════════════════════════════════════════════
    DÉMARRAGE — intro → fly-in → HUD
 ═══════════════════════════════════════════════════════════ */
 function startExperience() {
@@ -643,7 +681,7 @@ function flyIn() {
 }
 
 function revealHUD() {
-    document.getElementById('illustrations').classList.add('on');
+    fadeInIllustrations();
     document.querySelectorAll('.hud-corner').forEach(el => el.classList.add('on'));
     document.getElementById('hud-data').classList.add('on');
     document.getElementById('info-panel').classList.add('on');
