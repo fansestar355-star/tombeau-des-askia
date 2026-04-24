@@ -490,6 +490,65 @@
                 transparent);
         }
 
+        /* ── Effet contour supérieur des pyramides ── */
+        .ch4-peak-glow {
+            position: absolute;
+            right: -4%;
+            bottom: 0;
+            width: 68%;
+            max-width: 820px;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* Ligne dorée qui pulse sur la crête des pyramides */
+        .ch4-peak-glow::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 8%;
+            right: 8%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(249,213,139,0.5) 20%,
+                rgba(255,248,200,0.95) 50%,
+                rgba(249,213,139,0.5) 80%,
+                transparent);
+            filter: blur(1.5px);
+            border-radius: 2px;
+            animation: peakPulse 3.5s ease-in-out infinite;
+        }
+
+        /* Faisceau lumineux qui balaie les sommets */
+        .ch4-peak-glow::after {
+            content: '';
+            position: absolute;
+            top: 0%;
+            left: -55%;
+            width: 55%;
+            height: 65%;
+            background: linear-gradient(120deg,
+                transparent 0%,
+                rgba(249,213,139,0.06) 35%,
+                rgba(249,213,139,0.18) 50%,
+                rgba(249,213,139,0.06) 65%,
+                transparent 100%);
+            animation: peakScan 5s ease-in-out infinite 0.5s;
+        }
+
+        @keyframes peakPulse {
+            0%,100% { opacity: 0.25; transform: scaleX(0.85); }
+            50%     { opacity: 1;    transform: scaleX(1); }
+        }
+        @keyframes peakScan {
+            0%   { left: -55%; opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 0.7; }
+            100% { left: 115%; opacity: 0; }
+        }
+
         /* Mobile */
         @media (max-width: 768px) {
             .ch4-pyramid {
@@ -497,6 +556,11 @@
                 right: -5%;
                 bottom: 22%;
                 opacity: 0.55;
+            }
+            .ch4-peak-glow {
+                width: 110%;
+                right: -5%;
+                bottom: 22%;
             }
             .ch4-line { display: none; }
         }
@@ -813,6 +877,7 @@
     <div class="ch4-glow"></div>
     <div class="ch4-line"></div>
     <img class="ch4-pyramid" src="assets/images/pyramide.png" alt="Pyramides de Gizeh" />
+    <div class="ch4-peak-glow"></div>
 </div>
 
 <!-- Scroll progress bar droite -->
@@ -899,13 +964,16 @@ function setCh4(active) {
 
     if (active) {
         /* Positions de départ */
-        gsap.set('.ch4-pyramid', { x: 80,  opacity: 0 });
-        gsap.set('.ch4-glow',    { opacity: 0 });
-        gsap.set('.ch4-line',    { scaleY: 0, opacity: 0, transformOrigin: 'top center' });
-        /* Animations d'entrée */
-        gsap.to('.ch4-glow',    { opacity: 1,    duration: 1.1, ease: 'power2.out', delay: 0.2 });
-        gsap.to('.ch4-pyramid', { x: 0, opacity: 0.82, duration: 1.2, ease: 'power3.out', delay: 0.35 });
-        gsap.to('.ch4-line',    { scaleY: 1, opacity: 1, duration: 1.0, ease: 'power2.out', delay: 0.6 });
+        gsap.set('.ch4-pyramid',   { x: 100, opacity: 0 });
+        gsap.set('.ch4-glow',      { opacity: 0 });
+        gsap.set('.ch4-line',      { scaleY: 0, opacity: 0, transformOrigin: 'top center' });
+        gsap.set('.ch4-peak-glow', { opacity: 0 });
+        /* Animations d'entrée — séquencées et lentes */
+        gsap.to('.ch4-glow',      { opacity: 1,    duration: 1.8, ease: 'power2.out',  delay: 0.2 });
+        gsap.to('.ch4-pyramid',   { x: 0, opacity: 0.82, duration: 2.0, ease: 'power3.out', delay: 0.5 });
+        gsap.to('.ch4-line',      { scaleY: 1, opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1.1 });
+        /* Effet contour — apparaît après la fin de l'entrée de l'image */
+        gsap.to('.ch4-peak-glow', { opacity: 1, duration: 1.2, ease: 'power2.out', delay: 2.0 });
     }
 }
 const sbChevrons  = document.querySelector('.scroll-chevrons');
