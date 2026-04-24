@@ -835,14 +835,13 @@
     <div class="ch4-line"></div>
     <img class="ch4-pyramid" src="assets/images/pyramide.png" alt="Pyramides de Gizeh" />
 
-    <!-- SVG néon — tracé du contour des pyramides -->
+    <!-- SVG néon — contour complet des pyramides -->
     <svg class="ch4-svg-outline" viewBox="0 0 100 100" preserveAspectRatio="none">
       <defs>
-        <!-- Filtre néon fort -->
-        <filter id="neon" x="-30%" y="-80%" width="160%" height="260%">
-          <feGaussianBlur stdDeviation="0.6" result="b1"/>
-          <feGaussianBlur stdDeviation="1.8" result="b2"/>
-          <feGaussianBlur stdDeviation="4"   result="b3"/>
+        <filter id="neon" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="0.5" result="b1"/>
+          <feGaussianBlur stdDeviation="1.5" result="b2"/>
+          <feGaussianBlur stdDeviation="3.5" result="b3"/>
           <feMerge>
             <feMergeNode in="b3"/>
             <feMergeNode in="b2"/>
@@ -850,9 +849,8 @@
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
-        <!-- Filtre néon léger pour la ligne de base -->
-        <filter id="softNeon" x="-20%" y="-60%" width="140%" height="220%">
-          <feGaussianBlur stdDeviation="1.2" result="blur"/>
+        <filter id="softNeon" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1" result="blur"/>
           <feMerge>
             <feMergeNode in="blur"/>
             <feMergeNode in="SourceGraphic"/>
@@ -860,32 +858,37 @@
         </filter>
       </defs>
 
-      <!-- Ligne ambiante permanente (très subtile) -->
-      <polyline id="ch4-base"
-        points="0,76 37,13 51,31 57,18 66,31 73,25 87,41 100,52"
-        fill="none" stroke="rgba(249,213,139,0.12)" stroke-width="1.2"
+      <!-- Guide de fond permanent (très subtil) -->
+      <path id="ch4-base-guide"
+        d="M 0,76 L 37,13 L 51,31 L 57,18 L 66,31 L 73,25 L 87,41 L 100,52 L 100,91 L 82,87 L 65,84 L 48,85 L 30,85 L 12,83 Z"
+        fill="none" stroke="rgba(249,213,139,0.08)" stroke-width="1.2"
         filter="url(#softNeon)" stroke-linejoin="round"/>
 
-      <!-- Ligne principale animée — se trace elle-même -->
-      <polyline id="ch4-trace"
-        points="0,76 37,13 51,31 57,18 66,31 73,25 87,41 100,52"
+      <!-- Tracé animé — périmètre complet (skyline + base) -->
+      <path id="ch4-trace"
+        d="M 0,76 L 37,13 L 51,31 L 57,18 L 66,31 L 73,25 L 87,41 L 100,52 L 100,91 L 82,87 L 65,84 L 48,85 L 30,85 L 12,83 Z"
         fill="none" stroke="#f9d58b" stroke-width="0.9"
         stroke-linejoin="round" stroke-linecap="round"
         filter="url(#neon)"
-        stroke-dasharray="300" stroke-dashoffset="300"/>
+        stroke-dasharray="500" stroke-dashoffset="500"/>
 
-      <!-- Particule lumineuse qui court sur le tracé -->
-      <circle id="ch4-tracer" r="1.4" fill="#fffbe6" filter="url(#neon)" opacity="0"/>
+      <!-- Particule lumineuse -->
+      <circle id="ch4-tracer" r="1.3" fill="#fffbe6" filter="url(#neon)" opacity="0"/>
 
-      <!-- Sommets — dots lumineux -->
+      <!-- Pics principaux — gros dots -->
       <circle id="ch4-pk1" cx="37" cy="13" r="1.6" fill="#fff7cc" filter="url(#neon)" opacity="0"/>
       <circle id="ch4-pk2" cx="57" cy="18" r="1.3" fill="#fff7cc" filter="url(#neon)" opacity="0"/>
       <circle id="ch4-pk3" cx="73" cy="25" r="1.1" fill="#fff7cc" filter="url(#neon)" opacity="0"/>
 
-      <!-- Anneaux radar qui se propagent depuis chaque sommet -->
-      <circle id="ch4-r1a" cx="37" cy="13" r="1.6" fill="none" stroke="#f9d58b" stroke-width="0.5" opacity="0" filter="url(#softNeon)"/>
-      <circle id="ch4-r2a" cx="57" cy="18" r="1.3" fill="none" stroke="#f9d58b" stroke-width="0.5" opacity="0" filter="url(#softNeon)"/>
-      <circle id="ch4-r3a" cx="73" cy="25" r="1.1" fill="none" stroke="#f9d58b" stroke-width="0.5" opacity="0" filter="url(#softNeon)"/>
+      <!-- Vallées — petits dots -->
+      <circle id="ch4-v1" cx="51" cy="31" r="0.7" fill="#fff7cc" filter="url(#softNeon)" opacity="0"/>
+      <circle id="ch4-v2" cx="66" cy="31" r="0.7" fill="#fff7cc" filter="url(#softNeon)" opacity="0"/>
+      <circle id="ch4-v3" cx="87" cy="41" r="0.7" fill="#fff7cc" filter="url(#softNeon)" opacity="0"/>
+
+      <!-- Anneaux radar (pics uniquement) -->
+      <circle id="ch4-r1" cx="37" cy="13" r="1.6" fill="none" stroke="#f9d58b" stroke-width="0.4" opacity="0" filter="url(#softNeon)"/>
+      <circle id="ch4-r2" cx="57" cy="18" r="1.3" fill="none" stroke="#f9d58b" stroke-width="0.4" opacity="0" filter="url(#softNeon)"/>
+      <circle id="ch4-r3" cx="73" cy="25" r="1.1" fill="none" stroke="#f9d58b" stroke-width="0.4" opacity="0" filter="url(#softNeon)"/>
     </svg>
 </div>
 
@@ -972,7 +975,6 @@ function setCh4(active) {
     document.querySelector('.bg-glow').style.opacity = active ? '0' : '';
 
     if (active) {
-        /* ── Reset ── */
         gsap.set('.ch4-pyramid',    { x: 100, opacity: 0 });
         gsap.set('.ch4-glow',       { opacity: 0 });
         gsap.set('.ch4-line',       { scaleY: 0, opacity: 0, transformOrigin: 'top center' });
@@ -980,76 +982,59 @@ function setCh4(active) {
 
         const trace  = document.getElementById('ch4-trace');
         const tracer = document.getElementById('ch4-tracer');
-        const peaks  = ['ch4-pk1','ch4-pk2','ch4-pk3'];
-        const rings  = ['ch4-r1a','ch4-r2a','ch4-r3a'];
-        const pkCoords = [{x:37,y:13},{x:57,y:18},{x:73,y:25}];
+        gsap.set(tracer, { opacity: 0 });
+        ['ch4-pk1','ch4-pk2','ch4-pk3','ch4-v1','ch4-v2','ch4-v3','ch4-r1','ch4-r2','ch4-r3']
+            .forEach(id => gsap.set('#'+id, { opacity: 0 }));
 
-        if (trace) {
-            gsap.set(trace,  { strokeDashoffset: 300 });
-            gsap.set(tracer, { opacity: 0 });
-            peaks.forEach(id => gsap.set('#'+id, { opacity: 0, attr:{ r: id==='ch4-pk1'?1.6:id==='ch4-pk2'?1.3:1.1 } }));
-            rings.forEach(id => gsap.set('#'+id, { opacity: 0 }));
-        }
-
-        /* ── Entrée image ── */
-        gsap.to('.ch4-glow',    { opacity: 1,    duration: 1.8, ease: 'power2.out', delay: 0.2 });
-        gsap.to('.ch4-pyramid', { x: 0, opacity: 0.82, duration: 2.0, ease: 'power3.out', delay: 0.5 });
-        gsap.to('.ch4-line',    { scaleY: 1, opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1.1 });
-
-        /* ── SVG néon — apparaît puis se trace ── */
+        gsap.to('.ch4-glow',        { opacity: 1,    duration: 1.8, ease: 'power2.out',  delay: 0.2 });
+        gsap.to('.ch4-pyramid',     { x: 0, opacity: 0.82, duration: 2.0, ease: 'power3.out', delay: 0.5 });
+        gsap.to('.ch4-line',        { scaleY: 1, opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1.1 });
         gsap.to('.ch4-svg-outline', { opacity: 1, duration: 0.6, delay: 2.3 });
 
         if (trace) {
-            /* Tracé de la ligne */
+            const totalLen = trace.getTotalLength();
+            const DUR = 3.5, START = 2.6;
+            gsap.set(trace, { strokeDashoffset: totalLen });
+
+            /* Tracé du contour complet */
             gsap.to(trace, {
-                strokeDashoffset: 0,
-                duration: 2.8,
-                ease: 'power2.inOut',
-                delay: 2.6,
+                strokeDashoffset: 0, duration: DUR, ease: 'power2.inOut', delay: START,
                 onComplete() {
-                    /* Sommets s'allument un à un */
-                    peaks.forEach((id, i) => {
-                        gsap.to('#'+id, { opacity: 1, duration: 0.5, delay: i * 0.25 });
-                        /* Puis pulsent doucement */
+                    /* Pics s'allument et pulsent */
+                    ['ch4-pk1','ch4-pk2','ch4-pk3'].forEach((id, i) => {
+                        gsap.to('#'+id, { opacity: 1,    duration: 0.5, delay: i * 0.25 });
                         gsap.to('#'+id, { opacity: 0.55, duration: 1.8, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.25 + 0.5 });
                     });
-
-                    /* Anneaux radar — se propagent en boucle */
-                    const pingRing = (id, baseR, delay) => {
-                        const loop = () => {
-                            gsap.fromTo('#'+id,
-                                { attr:{ r: baseR }, opacity: 0.9, strokeWidth: 0.6 },
-                                { attr:{ r: baseR + 8 }, opacity: 0, strokeWidth: 0.1,
-                                  duration: 2.2, ease: 'power2.out',
-                                  onComplete: () => setTimeout(loop, 1200) }
-                            );
-                        };
-                        setTimeout(loop, delay);
+                    /* Vallées — subtils */
+                    ['ch4-v1','ch4-v2','ch4-v3'].forEach((id, i) => {
+                        gsap.to('#'+id, { opacity: 0.6, duration: 0.4, delay: i * 0.12 });
+                        gsap.to('#'+id, { opacity: 0.2, duration: 2.5, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12 + 0.4 });
+                    });
+                    /* Anneaux radar en boucle */
+                    const pingRing = (id, baseR, d) => {
+                        const loop = () => gsap.fromTo('#'+id,
+                            { attr:{ r: baseR }, opacity: 0.9 },
+                            { attr:{ r: baseR + 8 }, opacity: 0, duration: 2.2, ease: 'power2.out',
+                              onComplete: () => setTimeout(loop, 1500) });
+                        setTimeout(loop, d);
                     };
-                    pingRing('ch4-r1a', 1.6, 100);
-                    pingRing('ch4-r2a', 1.3, 550);
-                    pingRing('ch4-r3a', 1.1, 950);
+                    pingRing('ch4-r1', 1.6, 100);
+                    pingRing('ch4-r2', 1.3, 600);
+                    pingRing('ch4-r3', 1.1, 1000);
                 }
             });
 
-            /* Particule lumineuse qui court le long du tracé */
-            const pts = [{x:0,y:76},{x:37,y:13},{x:51,y:31},{x:57,y:18},{x:66,y:31},{x:73,y:25},{x:87,y:41},{x:100,y:52}];
-            const totalDist = pts.reduce((acc,p,i) => {
-                if (!i) return 0;
-                const dx = p.x-pts[i-1].x, dy = p.y-pts[i-1].y;
-                return acc + Math.sqrt(dx*dx+dy*dy);
-            }, 0);
-
-            let elapsed = 0;
-            const tracerTl = gsap.timeline({ delay: 2.6 });
-            tracerTl.set(tracer, { opacity: 1 });
-            pts.forEach((p, i) => {
-                if (!i) { tracerTl.set(tracer, { attr:{ cx:0, cy:76 } }); return; }
-                const dx = p.x-pts[i-1].x, dy = p.y-pts[i-1].y;
-                const seg = Math.sqrt(dx*dx+dy*dy);
-                tracerTl.to(tracer, { attr:{ cx: p.x, cy: p.y }, duration: (seg/totalDist)*2.8, ease:'none' });
+            /* Particule lumineuse suit le path via getPointAtLength */
+            const proxy = { t: 0 };
+            gsap.to(tracer, { opacity: 1, duration: 0.01, delay: START });
+            gsap.to(proxy, {
+                t: totalLen, duration: DUR, ease: 'power2.inOut', delay: START,
+                onUpdate() {
+                    const pt = trace.getPointAtLength(proxy.t);
+                    gsap.set(tracer, { attr: { cx: pt.x, cy: pt.y } });
+                },
+                onComplete() { gsap.to(tracer, { opacity: 0, duration: 0.4 }); }
             });
-            tracerTl.to(tracer, { opacity: 0, duration: 0.4 });
         }
     }
 }
