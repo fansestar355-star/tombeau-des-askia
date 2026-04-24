@@ -697,6 +697,10 @@ function zoomToAnnotation(pos) {
     if (!cam || !ctrl) return;
     ctrl.autoRotate = false;
 
+    /* Mémorise position + cible avant le zoom pour le retour */
+    window._savedCamPos = cam.position.clone();
+    window._savedCamTgt = ctrl.target.clone();
+
     const startPos = cam.position.clone();
     const startTgt = ctrl.target.clone();
     const endTgt   = pos.clone();
@@ -743,15 +747,20 @@ function closeDetail() {
     const cam  = window._camera;
     if (!ctrl || !cam) return;
 
-    /* Retour doux vers le centre du modèle */
-    const center = window._modelCenter || new THREE.Vector3(52.82, 0, -26.69);
-    const startTgt = ctrl.target.clone();
     ctrl.autoRotate = false;
-    const dur = 1200, t0 = performance.now();
+
+    /* Retour à la position et cible sauvegardées avant le zoom */
+    const endPos = window._savedCamPos || new THREE.Vector3(cam.position.x, 95, cam.position.z);
+    const endTgt = window._savedCamTgt || window._modelCenter || new THREE.Vector3(52.82, 0, -26.69);
+    const startPos = cam.position.clone();
+    const startTgt = ctrl.target.clone();
+
+    const dur = 1400, t0 = performance.now();
     function ease(t) { return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
     (function tick(now) {
         const e = ease(Math.min((now-t0)/dur, 1));
-        ctrl.target.lerpVectors(startTgt, center, e);
+        cam.position.lerpVectors(startPos, endPos, e);
+        ctrl.target.lerpVectors(startTgt, endTgt, e);
         ctrl.update();
         if (e < 1) requestAnimationFrame(tick);
         else {
