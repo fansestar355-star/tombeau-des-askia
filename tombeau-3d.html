@@ -185,6 +185,18 @@
             color:#f0eaf8; border-radius:5px; padding:4px 8px; font-size:0.7rem;
             cursor:pointer;
         }
+        .ed-slider-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .ed-val { color:#fff; font-size:0.78rem; font-weight:600; font-family:'Courier New',monospace; }
+        #ed-scale, #ed-z {
+            width:100%; -webkit-appearance:none; appearance:none;
+            height:4px; border-radius:2px;
+            background:linear-gradient(90deg, rgba(249,213,139,0.5) 0%, rgba(249,213,139,0.15) 100%);
+            outline:none; cursor:pointer; margin-bottom:2px;
+        }
+        #ed-scale::-webkit-slider-thumb, #ed-z::-webkit-slider-thumb {
+            -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+            background:var(--gold); cursor:pointer; border:2px solid rgba(7,5,15,0.8);
+        }
         #ed-copy {
             width:100%; padding:9px; background:rgba(249,213,139,0.1);
             border:1px solid rgba(249,213,139,0.4); color:var(--gold);
@@ -264,7 +276,24 @@
         <div class="ed-row"><span class="ed-label">ALT</span><span id="ed-alt">–</span></div>
     </div>
     <div class="ed-sep"></div>
-    <div class="ed-hint">🖱 <b>Clic carte</b> → place le modèle<br>⬆⬇⬅➡ <b>Flèches</b> → ajustement fin<br>🖱 <b>Molette</b> → altitude (±1m)</div>
+    <div class="ed-hint">🖱 <b>Clic carte</b> → place le modèle<br>⬆⬇⬅➡ <b>Flèches</b> → position fine<br><b>[</b> / <b>]</b> → taille  &nbsp;·&nbsp; <b>Q</b> / <b>E</b> → hauteur Z<br>Alt+🖱 <b>Molette</b> → altitude GPS</div>
+    <div class="ed-sep"></div>
+
+    <div class="ed-slider-row">
+        <span class="ed-label">TAILLE</span>
+        <span id="ed-scale-val" class="ed-val">1.00×</span>
+    </div>
+    <input id="ed-scale" type="range" min="0.05" max="50" step="0.05" value="1"
+        oninput="window._edSetScale && window._edSetScale(parseFloat(this.value))">
+
+    <div class="ed-slider-row" style="margin-top:10px">
+        <span class="ed-label">HAUTEUR Z</span>
+        <span id="ed-z-val" class="ed-val">+0.0</span>
+    </div>
+    <input id="ed-z" type="range" min="-100" max="100" step="0.5" value="0"
+        oninput="window._edSetZ && window._edSetZ(parseFloat(this.value))">
+
+    <div class="ed-sep"></div>
     <div class="ed-step-row">
         <span class="ed-label">Pas flèches</span>
         <select id="ed-step">
@@ -274,7 +303,7 @@
             <option value="0.00045">50 m</option>
         </select>
     </div>
-    <button id="ed-copy" onclick="editorCopy()">📋 Copier les coordonnées</button>
+    <button id="ed-copy" onclick="editorCopy()">📋 Copier les valeurs</button>
     <div id="ed-copied">✅ Copié dans le presse-papier !</div>
 </div>
 
@@ -398,6 +427,7 @@ function createMap() {
 
     /* ── Transform mercator du modèle (mutable pour l'éditeur) ── */
     let editLng = GPS_LNG, editLat = GPS_LAT, editAlt = GPS_ALT;
+    let editScale = 1.0, editZOffset = 0;
     let origin = maplibregl.MercatorCoordinate.fromLngLat([editLng, editLat], editAlt);
     let mScale = origin.meterInMercatorCoordinateUnits();
 
@@ -409,6 +439,22 @@ function createMap() {
         document.getElementById('ed-lng').textContent = editLng.toFixed(6);
         document.getElementById('ed-alt').textContent = Math.round(editAlt) + ' m';
     }
+
+    function updateModelTransform() {
+        const m = window._editModel;
+        if (!m) return;
+        m.scale.set(editScale, editScale, editScale);
+        m.position.z = (window._editBaseZ || 0) + editZOffset;
+        if (window._tombeau_map) window._tombeau_map.triggerRepaint();
+        const sv = document.getElementById('ed-scale-val');
+        const zv = document.getElementById('ed-z-val');
+        if (sv) sv.textContent = editScale.toFixed(2) + '×';
+        if (zv) zv.textContent = (editZOffset >= 0 ? '+' : '') + editZOffset.toFixed(1);
+    }
+    /* Setters globaux pour les sliders HTML */
+    window._edSetScale = v => { editScale = v; updateModelTransform(); };
+    window._edSetZ     = v => { editZOffset = v; updateModelTransform(); };
+
     updateOrigin();
 
     /* Rotation Blender → WebGL (Z-up → Y-up) */
@@ -445,9 +491,11 @@ function createMap() {
                 'assets/3d/Tombeaux_des_Askia.glb',
                 gltf => {
                     const model = gltf.scene;
-                    /* Ajustement vertical : place la base du modèle au niveau du sol */
                     const box = new THREE.Box3().setFromObject(model);
-                    model.position.z -= box.min.z; /* En Blender Z = vertical */
+                    const baseZ = -box.min.z;
+                    model.position.z = baseZ;
+                    window._editModel  = model;
+                    window._editBaseZ  = baseZ;
                     tScene.add(model);
                 },
                 undefined,
@@ -492,18 +540,27 @@ function createMap() {
                 updateOrigin();
             });
 
-            /* Touches fléchées → ajustement fin */
+            /* Touches → position / scale / Z */
             document.addEventListener('keydown', e => {
+                const tag = e.target.tagName;
+                if (tag === 'INPUT' || tag === 'SELECT') return;
                 const step = parseFloat(document.getElementById('ed-step').value);
+                /* Position */
                 if (e.key === 'ArrowUp')    { editLat += step; updateOrigin(); e.preventDefault(); }
                 if (e.key === 'ArrowDown')  { editLat -= step; updateOrigin(); e.preventDefault(); }
                 if (e.key === 'ArrowRight') { editLng += step; updateOrigin(); e.preventDefault(); }
                 if (e.key === 'ArrowLeft')  { editLng -= step; updateOrigin(); e.preventDefault(); }
+                /* Scale : [ diminue, ] augmente */
+                if (e.key === '[') { editScale = Math.max(0.05, +(editScale - 0.1).toFixed(2)); document.getElementById('ed-scale').value = editScale; updateModelTransform(); e.preventDefault(); }
+                if (e.key === ']') { editScale = Math.min(50,   +(editScale + 0.1).toFixed(2)); document.getElementById('ed-scale').value = editScale; updateModelTransform(); e.preventDefault(); }
+                /* Axe Z : Q monte, E descend */
+                if (e.key === 'q' || e.key === 'Q') { editZOffset = +(editZOffset + 1).toFixed(1); document.getElementById('ed-z').value = editZOffset; updateModelTransform(); e.preventDefault(); }
+                if (e.key === 'e' || e.key === 'E') { editZOffset = +(editZOffset - 1).toFixed(1); document.getElementById('ed-z').value = editZOffset; updateModelTransform(); e.preventDefault(); }
             });
 
-            /* Molette → altitude */
+            /* Molette → altitude de la carte */
             document.getElementById('map').addEventListener('wheel', e => {
-                if (!e.altKey) return; /* Alt + molette pour altitude, molette seule = zoom map */
+                if (!e.altKey) return;
                 editAlt += e.deltaY > 0 ? -1 : 1;
                 updateOrigin();
                 e.preventDefault();
@@ -515,12 +572,21 @@ function createMap() {
     window._tombeau_map = map;
 }
 
-/* ── Copier les coordonnées dans le presse-papier ── */
+/* ── Copier toutes les valeurs dans le presse-papier ── */
 function editorCopy() {
+    const lng   = document.getElementById('ed-lng').textContent;
+    const lat   = document.getElementById('ed-lat').textContent;
+    const alt   = document.getElementById('ed-alt').textContent.replace(' m','');
+    const scale = document.getElementById('ed-scale').value;
+    const zOff  = document.getElementById('ed-z').value;
     const txt =
-        `const GPS_LNG = ${document.getElementById('ed-lng').textContent};\n` +
-        `const GPS_LAT =  ${document.getElementById('ed-lat').textContent};\n` +
-        `const GPS_ALT =  ${document.getElementById('ed-alt').textContent.replace(' m','')};`;
+        `// GPS\n` +
+        `const GPS_LNG = ${lng};\n` +
+        `const GPS_LAT =  ${lat};\n` +
+        `const GPS_ALT =  ${alt};\n\n` +
+        `// Modèle\n` +
+        `const MODEL_SCALE   = ${parseFloat(scale).toFixed(2)};   // taille\n` +
+        `const MODEL_Z_OFFSET = ${parseFloat(zOff).toFixed(1)};  // hauteur Z`;
     navigator.clipboard.writeText(txt).then(() => {
         const el = document.getElementById('ed-copied');
         el.style.display = 'block';
