@@ -264,6 +264,7 @@ import * as THREE from 'three';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Sky }           from 'three/addons/objects/Sky.js';
 
 /* ═══════════════════════════════════════════
    CONFIGURATION
@@ -281,54 +282,137 @@ const DRACO_PATH   = new URL('.', document.baseURI).href + 'assets/draco/';
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
-renderer.toneMapping       = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.shadowMap.enabled   = true;
+renderer.shadowMap.type      = THREE.PCFSoftShadowMap;
+renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 document.getElementById('canvas-wrap').appendChild(renderer.domElement);
 
-const scene  = new THREE.Scene();
-scene.background = new THREE.Color(0x0b0f1a);
-scene.fog        = new THREE.FogExp2(0x0b0f1a, 0.04);
+const scene = new THREE.Scene();
+scene.fog   = new THREE.Fog(0xd4b87a, 120, 380);
 
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 200);
-camera.position.set(0, CAM_HEIGHT, CAM_DISTANCE);
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.05, 500);
+camera.position.set(0, 2.5, 5);
 
-/* ── LUMIÈRES ── */
-const ambLight = new THREE.AmbientLight(0x6c63ff, 0.6);
-scene.add(ambLight);
+/* ══════════════════════════════════════════
+   CIEL PHYSIQUE — Sky shader
+══════════════════════════════════════════ */
+const sky = new Sky();
+sky.scale.setScalar(10000);
+scene.add(sky);
+const skyU = sky.material.uniforms;
+skyU['turbidity'].value       = 2.5;
+skyU['rayleigh'].value        = 1.2;
+skyU['mieCoefficient'].value  = 0.003;
+skyU['mieDirectionalG'].value = 0.82;
+const sunVec = new THREE.Vector3();
+sunVec.setFromSphericalCoords(1,
+  THREE.MathUtils.degToRad(90 - 50),  // élévation 50°
+  THREE.MathUtils.degToRad(195)       // azimut
+);
+skyU['sunPosition'].value.copy(sunVec);
 
-const dirLight = new THREE.DirectionalLight(0xffd699, 2.2);
-dirLight.position.set(5, 10, 5);
-dirLight.castShadow = true;
-dirLight.shadow.mapSize.setScalar(2048);
-dirLight.shadow.camera.near = 0.1;
-dirLight.shadow.camera.far  = 50;
-dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -15;
-dirLight.shadow.camera.right = dirLight.shadow.camera.top   =  15;
-scene.add(dirLight);
+/* ══════════════════════════════════════════
+   LUMIÈRES DÉSERT
+══════════════════════════════════════════ */
+scene.add(new THREE.HemisphereLight(0x87ceeb, 0xc8943a, 0.55));
 
-const rimLight = new THREE.DirectionalLight(0xa78bfa, 0.8);
-rimLight.position.set(-4, 6, -4);
-scene.add(rimLight);
+const sun = new THREE.DirectionalLight(0xfff0cc, 3.8);
+sun.position.set(-45, 80, 35);
+sun.castShadow = true;
+sun.shadow.mapSize.setScalar(4096);
+sun.shadow.camera.near   =  1;
+sun.shadow.camera.far    = 250;
+sun.shadow.camera.left   = sun.shadow.camera.bottom = -60;
+sun.shadow.camera.right  = sun.shadow.camera.top    =  60;
+scene.add(sun);
 
-/* ── SOL ── */
-const groundGeo = new THREE.PlaneGeometry(60, 60, 30, 30);
-const groundMat = new THREE.MeshStandardMaterial({
-  color: 0x2a1f0e,
-  roughness: 0.95,
-  metalness: 0.0,
+/* ══════════════════════════════════════════
+   TERRAIN DUNAIRE PROCÉDURAL
+   Vertex colors : crêtes claires / creux dorés
+══════════════════════════════════════════ */
+const T_SIZE = 300, T_SEGS = 160;
+const terrGeo = new THREE.PlaneGeometry(T_SIZE, T_SIZE, T_SEGS, T_SEGS);
+terrGeo.rotateX(-Math.PI / 2);
+
+/* Fonction hauteur dune réutilisable pour la végétation */
+function duneH(x, z) {
+  const r = Math.sqrt(x*x + z*z);
+  const flat = Math.max(0, 1.0 - r / 28);
+  let h = 0;
+  h += 9.5 * Math.sin(x*0.026 + 0.40) * Math.cos(z*0.021 + 1.10);
+  h += 7.0 * Math.cos(x*0.017 + 2.30) * Math.sin(z*0.029 + 0.70);
+  h += 4.5 * Math.sin(x*0.043 + 1.80) * Math.cos(z*0.038 + 2.50);
+  h += 2.5 * Math.cos(x*0.068 + 0.90) * Math.sin(z*0.052 + 1.40);
+  h += 1.2 * Math.sin(x*0.110 + 3.10) * Math.cos(z*0.090 + 0.60);
+  h = Math.max(0, h) * 0.78;
+  h += 0.055 * Math.sin(x * 3.1 + z * 2.0);  // rides de sable
+  return h * (1.0 - flat * 0.93);
+}
+
+const tPos = terrGeo.attributes.position;
+const vertColors = new Float32Array(tPos.count * 3);
+
+for (let i = 0; i < tPos.count; i++) {
+  const x = tPos.getX(i), z = tPos.getZ(i);
+  const h = duneH(x, z);
+  tPos.setY(i, h);
+
+  /* Gradient couleur : crête = sable clair, creux = ocre chaud */
+  const t = Math.min(1.0, h / 7.0);
+  vertColors[i*3]   = 0.68 + t * 0.18;   // R
+  vertColors[i*3+1] = 0.50 + t * 0.14;   // G
+  vertColors[i*3+2] = 0.18 + t * 0.10;   // B
+}
+terrGeo.setAttribute('color', new THREE.BufferAttribute(vertColors, 3));
+terrGeo.computeVertexNormals();
+
+const terrMat = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  roughness: 0.97,
+  metalness: 0.00,
 });
-const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
+const terrain = new THREE.Mesh(terrGeo, terrMat);
+terrain.receiveShadow = true;
+scene.add(terrain);
 
-// Grille subtile sur le sol
-const gridHelper = new THREE.GridHelper(60, 30, 0x6c63ff, 0x1a1030);
-gridHelper.material.opacity = 0.18;
-gridHelper.material.transparent = true;
-scene.add(gridHelper);
+/* ══════════════════════════════════════════
+   VÉGÉTATION DÉSERTIQUE
+   Petits buissons épineux saharo-sahéliens
+══════════════════════════════════════════ */
+let _rs = 5391;
+const drng = () => { _rs=(_rs*1664525+1013904223)&0x7fffffff; return _rs/0x7fffffff; };
+
+const BUSH_COLS = [0x4a3a14, 0x3e3010, 0x58461a, 0x342a0c, 0x504018, 0x6a5420];
+
+function addBush(x, z) {
+  const ground0 = duneH(x, z);
+  const stems = 1 + Math.floor(drng() * 3);
+  for (let s = 0; s < stems; s++) {
+    const r  = 0.07 + drng() * 0.16;
+    const ox = (drng()-0.5) * 0.22, oz = (drng()-0.5) * 0.18;
+    const col = BUSH_COLS[Math.floor(drng() * BUSH_COLS.length)];
+    const mat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.98 });
+    const geo = new THREE.SphereGeometry(r, 5, 3);
+    const b = new THREE.Mesh(geo, mat);
+    b.scale.set(1.1 + drng()*0.5, 0.5 + drng()*0.35, 1.0 + drng()*0.4);
+    b.position.set(x+ox, ground0 + r*0.35, z+oz);
+    b.castShadow = true;
+    scene.add(b);
+  }
+  /* Tige centrale fine */
+  const sh = 0.18 + drng()*0.25;
+  const stMat = new THREE.MeshStandardMaterial({ color:0x3a2e0a, roughness:0.99 });
+  const stem  = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.018, sh, 5), stMat);
+  stem.position.set(x, ground0 + sh/2, z);
+  scene.add(stem);
+}
+
+for (let i = 0; i < 110; i++) {
+  const ang  = drng() * Math.PI * 2;
+  const dist = 8 + drng() * 120;
+  addBush(Math.cos(ang)*dist, Math.sin(ang)*dist);
+}
 
 /* ═══════════════════════════════════════════
    CHARGEMENT DU MODÈLE
@@ -497,13 +581,13 @@ window.addEventListener('mouseup',   () => { if (jActive) jEnd(); });
    Rotation · Zoom · Vertical · Tactile
 ═══════════════════════════════════════════ */
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping    = true;    // inertie douce
-controls.dampingFactor    = 0.08;
-controls.minDistance      = 1.0;     // zoom max vers le modèle
-controls.maxDistance      = 18;      // zoom arrière max
-controls.maxPolarAngle    = Math.PI / 2 - 0.02; // ne passe pas sous le sol
-controls.enablePan        = false;   // pas de translation latérale
-controls.rotateSpeed      = 0.9;
+controls.enableDamping    = true;
+controls.dampingFactor    = 0.07;
+controls.minDistance      = 1.0;
+controls.maxDistance      = 60;
+controls.maxPolarAngle    = Math.PI / 2 - 0.01;
+controls.enablePan        = false;
+controls.rotateSpeed      = 0.85;
 controls.zoomSpeed        = 1.2;
 
 /* La caméra suit le personnage en restant à l'angle choisi */
@@ -553,6 +637,9 @@ function animate() {
       character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
       moving = true;
     }
+
+    // Coller le personnage sur le terrain
+    character.position.y = duneH(character.position.x, character.position.z);
 
     // Transition walk ↔ idle avec fondu 0.5s
     if (moving && !isWalking) {
