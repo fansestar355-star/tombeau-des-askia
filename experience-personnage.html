@@ -1,710 +1,461 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>Askia Mohamed — Expérience</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personnage — Askia Mohamed</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    body { background:#111; overflow:hidden; font-family:system-ui,sans-serif; color:#fff; touch-action:none; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    #ui-back {
-      position:fixed; top:20px; left:20px; z-index:10;
-      padding:10px 20px; border-radius:40px;
-      border:1px solid rgba(255,255,255,0.15);
-      background:rgba(0,0,0,0.55); color:rgba(255,255,255,0.7);
-      font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase;
-      text-decoration:none; backdrop-filter:blur(10px);
+    body {
+      background: #0b0f1a;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #e2e8f0;
     }
 
-    /* ── Joystick ── */
-    #joystick-zone {
-      position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
-      width:130px; height:130px; z-index:10;
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,0.12);
-      background:rgba(0,0,0,0.35);
-      backdrop-filter:blur(10px);
-      touch-action:none; user-select:none;
-    }
-    #joystick-handle {
-      position:absolute; top:50%; left:50%;
-      width:52px; height:52px; border-radius:50%;
-      background:radial-gradient(circle at 38% 38%, rgba(255,220,100,0.9), rgba(200,140,0,0.7));
-      border:2px solid rgba(255,220,100,0.5);
-      box-shadow:0 0 18px rgba(255,200,0,0.3);
-      transform:translate(-50%,-50%);
-      transition:transform 0.08s ease;
-      pointer-events:none;
-    }
-    #hint {
-      position:fixed; bottom:12px; left:50%; transform:translateX(-50%);
-      font-size:0.5rem; letter-spacing:0.2em; text-transform:uppercase;
-      color:rgba(255,255,255,0.18); z-index:10; pointer-events:none;
-      white-space:nowrap;
+    #canvas-wrap {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
     }
 
-    #ui-status {
-      position:fixed; top:22px; right:22px; z-index:10;
-      font-size:0.55rem; letter-spacing:0.22em; text-transform:uppercase;
-      color:rgba(255,255,255,0.25);
+    canvas { display: block; }
+
+    /* ── HUD ── */
+    #hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
     }
 
-    #screen-load {
-      position:fixed; inset:0; z-index:100;
-      background:#111; display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:14px;
-      transition:opacity 0.5s;
+    /* Retour */
+    #btn-back {
+      position: fixed;
+      top: 24px; left: 24px;
+      pointer-events: all;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 1.5px solid rgba(167,139,250,0.45);
+      background: rgba(11,15,26,0.7);
+      color: #a78bfa;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      cursor: pointer;
     }
-    #screen-load.hide { opacity:0; pointer-events:none; }
-    #load-label { font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.38); }
-    #load-bar-bg { width:180px; height:2px; background:rgba(255,255,255,0.07); border-radius:2px; overflow:hidden; }
-    #load-bar    { height:100%; width:0%; background:#ffd; border-radius:2px; transition:width 0.25s; }
+    #btn-back:hover {
+      background: rgba(108,99,255,0.25);
+      border-color: #a78bfa;
+      color: #fff;
+    }
 
-    #screen-err {
-      display:none; position:fixed; inset:0; z-index:200;
-      background:#111; flex-direction:column;
-      align-items:center; justify-content:center; gap:12px;
+    /* Titre */
+    #title-hud {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: #f9d58b;
+      text-shadow: 0 0 18px rgba(249,213,139,0.35);
     }
-    #screen-err.show { display:flex; }
-    #screen-err h2  { color:#f66; font-size:0.88rem; letter-spacing:0.1em; }
-    #screen-err pre { color:rgba(255,255,255,0.38); font-size:0.6rem; max-width:440px; white-space:pre-wrap; text-align:center; line-height:1.7; }
+
+    /* Contrôles clavier */
+    #controls-hud {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    #controls-hud .row {
+      display: flex;
+      gap: 6px;
+    }
+    .key {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(167,139,250,0.35);
+      background: rgba(11,15,26,0.65);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: rgba(167,139,250,0.7);
+      transition: all 0.15s ease;
+    }
+    .key.active {
+      border-color: #a78bfa;
+      background: rgba(108,99,255,0.3);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(108,99,255,0.4);
+    }
+    .key svg {
+      width: 14px; height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Vitesse info */
+    #info-hud {
+      position: fixed;
+      bottom: 120px;
+      right: 28px;
+      text-align: right;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.5);
+      line-height: 1.8;
+    }
+
+    /* Loading */
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0b0f1a;
+      z-index: 100;
+      gap: 20px;
+      transition: opacity 0.6s ease;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading-bar-wrap {
+      width: 200px; height: 2px;
+      background: rgba(167,139,250,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #loading-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6c63ff, #a78bfa);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    #loading-text {
+      font-size: 0.62rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(167,139,250,0.6);
+    }
   </style>
 </head>
 <body>
 
-<a id="ui-back" href="index.html">← Retour</a>
-<div id="ui-status">IDLE</div>
+<div id="canvas-wrap"></div>
 
-<div id="joystick-zone">
-  <div id="joystick-handle"></div>
+<!-- HUD -->
+<div id="hud">
+  <a id="btn-back" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Retour
+  </a>
+
+  <div id="title-hud">Askia Mohamed — Expérience interactive</div>
+
+  <div id="controls-hud">
+    <div class="row">
+      <div class="key" id="key-up">
+        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+      </div>
+    </div>
+    <div class="row">
+      <div class="key" id="key-left">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="key" id="key-down">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="key" id="key-right">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div style="font-size:0.55rem; letter-spacing:0.25em; text-transform:uppercase; color:rgba(148,163,184,0.35); margin-top:6px; text-align:center;">
+      Flèches ou WASD pour se déplacer
+    </div>
+  </div>
+
+  <div id="info-hud">
+    <div id="info-pos">Position : 0, 0</div>
+    <div id="info-anim">Animation : idle</div>
+  </div>
 </div>
-<div id="hint">Joystick · Flèches · WASD</div>
 
-<div id="screen-load">
-  <div id="load-label">Chargement du personnage…</div>
-  <div id="load-bar-bg"><div id="load-bar"></div></div>
-</div>
-
-<div id="screen-err">
-  <h2>Erreur de chargement</h2>
-  <pre id="err-text"></pre>
+<!-- Loading -->
+<div id="loading">
+  <div id="loading-text">Chargement du personnage…</div>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
 <script type="importmap">
 {
   "imports": {
-    "three":         "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    "three":              "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/":      "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
   }
 }
 </script>
 
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader }  from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader }  from 'three/addons/loaders/DRACOLoader.js';
 
-/* ── Erreurs globales ── */
-function fatal(msg) {
-  document.getElementById('screen-load').style.display = 'none';
-  document.getElementById('err-text').textContent = msg;
-  document.getElementById('screen-err').classList.add('show');
-}
-window.addEventListener('error',             e => fatal(e.message));
-window.addEventListener('unhandledrejection', e => fatal(String(e.reason)));
+/* ═══════════════════════════════════════════
+   CONFIGURATION
+═══════════════════════════════════════════ */
+const WALK_SPEED   = 2.2;   // m/s
+const TURN_SPEED   = 2.0;   // rad/s
+const CAM_DISTANCE = 3.5;
+const CAM_HEIGHT   = 1.8;
+const MODEL_PATH   = 'assets/3d/char1_walking.glb';
+const DRACO_PATH   = 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/libs/draco/';
 
-const BASE = new URL('.', document.baseURI).href;
+/* ═══════════════════════════════════════════
+   SCÈNE
+═══════════════════════════════════════════ */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.toneMapping       = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.getElementById('canvas-wrap').appendChild(renderer.domElement);
 
-/* ── Renderer ── */
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled   = true;
-renderer.shadowMap.type      = THREE.PCFSoftShadowMap;
-renderer.toneMapping         = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-document.body.appendChild(renderer.domElement);
+const scene  = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0f1a);
+scene.fog        = new THREE.FogExp2(0x0b0f1a, 0.04);
 
-/* ── Scène ── */
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xd06828);
-scene.fog        = new THREE.Fog(0xc86020, 70, 200);
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 200);
+camera.position.set(0, CAM_HEIGHT, CAM_DISTANCE);
 
-/* ── Caméra ── */
-const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.05, 300);
+/* ── LUMIÈRES ── */
+const ambLight = new THREE.AmbientLight(0x6c63ff, 0.6);
+scene.add(ambLight);
 
-/* ── Lumières coucher de soleil ── */
-scene.add(new THREE.HemisphereLight(0xe07828, 0x905018, 0.7));
+const dirLight = new THREE.DirectionalLight(0xffd699, 2.2);
+dirLight.position.set(5, 10, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.setScalar(2048);
+dirLight.shadow.camera.near = 0.1;
+dirLight.shadow.camera.far  = 50;
+dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -15;
+dirLight.shadow.camera.right = dirLight.shadow.camera.top   =  15;
+scene.add(dirLight);
 
-const sun = new THREE.DirectionalLight(0xffaa44, 2.8);
-sun.position.set(-90, 18, 10);
-sun.castShadow = true;
-sun.shadow.mapSize.setScalar(4096);
-sun.shadow.camera.near   =   1;
-sun.shadow.camera.far    = 250;
-sun.shadow.camera.left   = -100;
-sun.shadow.camera.right  =  100;
-sun.shadow.camera.top    =  100;
-sun.shadow.camera.bottom = -100;
-scene.add(sun);
+const rimLight = new THREE.DirectionalLight(0xa78bfa, 0.8);
+rimLight.position.set(-4, 6, -4);
+scene.add(rimLight);
 
-/* ════════════════════════════════════════════
-   VILLE DE GAO — Vue aérienne
-   Fleuve Niger · Tombeau · Marché · Mosquée
-   Coucher de soleil sur le Sahel
-════════════════════════════════════════════ */
-
-/* ── Palette sunset banco ── */
-const mSol    = new THREE.MeshStandardMaterial({ color:0xb89050, roughness:0.98 });
-const mBanco  = new THREE.MeshStandardMaterial({ color:0xc8a060, roughness:0.95 });
-const mBanc2  = new THREE.MeshStandardMaterial({ color:0xb08848, roughness:0.94 });
-const mBanc3  = new THREE.MeshStandardMaterial({ color:0xcaaa6a, roughness:0.93 });
-const mToit   = new THREE.MeshStandardMaterial({ color:0xc09048, roughness:0.90 });
-const mToit2  = new THREE.MeshStandardMaterial({ color:0xd8b860, roughness:0.89 });
-const mCour   = new THREE.MeshStandardMaterial({ color:0xc8a850, roughness:0.99 });
-const mFeuil  = new THREE.MeshStandardMaterial({ color:0x2a5a18, roughness:0.85 });
-const mFeuil2 = new THREE.MeshStandardMaterial({ color:0x1e4a10, roughness:0.85 });
-const mTronc  = new THREE.MeshStandardMaterial({ color:0x4a3010, roughness:0.97 });
-const mPlaza  = new THREE.MeshStandardMaterial({ color:0xc8a050, roughness:0.97 });
-const mTomb   = new THREE.MeshStandardMaterial({ color:0xa86830, roughness:0.88 });
-const mWater  = new THREE.MeshStandardMaterial({ color:0x3a6a8a, roughness:0.05, metalness:0.4 });
-const mBank   = new THREE.MeshStandardMaterial({ color:0xc0a050, roughness:0.99 });
-const mMinaret= new THREE.MeshStandardMaterial({ color:0xd4aa60, roughness:0.88 });
-
-/* Sol sablonneux */
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), mSol);
+/* ── SOL ── */
+const groundGeo = new THREE.PlaneGeometry(60, 60, 30, 30);
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x2a1f0e,
+  roughness: 0.95,
+  metalness: 0.0,
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-/* Générateur pseudo-aléatoire déterministe */
-let _s = 2317;
-function rng() {
-  _s = (_s * 1664525 + 1013904223) & 0x7fffffff;
-  return _s / 0x7fffffff;
-}
+// Grille subtile sur le sol
+const gridHelper = new THREE.GridHelper(60, 30, 0x6c63ff, 0x1a1030);
+gridHelper.material.opacity = 0.18;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
 
-/* Colliders AABB */
-const colliders = [];
+/* ═══════════════════════════════════════════
+   CHARGEMENT DU MODÈLE
+═══════════════════════════════════════════ */
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath(DRACO_PATH);
 
-function addBox(w, h, d, x, z, mat, solid = true) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-  m.position.set(x, h / 2, z);
-  m.castShadow = true;
-  m.receiveShadow = true;
-  scene.add(m);
-  if (solid) colliders.push({ minX: x - w/2, maxX: x + w/2, minZ: z - d/2, maxZ: z + d/2 });
-}
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
 
-/* ── Acacia sahélien (couronne aplatie) ── */
-function addAcacia(x, z) {
-  const th = 0.8 + rng() * 1.0;
-  const cr = 0.55 + rng() * 0.7;
-  const fl = 0.28 + rng() * 0.22;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, th, 7), mTronc);
-  trunk.position.set(x, th/2, z); trunk.castShadow = true; scene.add(trunk);
-  colliders.push({ minX:x-0.10, maxX:x+0.10, minZ:z-0.10, maxZ:z+0.10 });
-  const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 9, 6), rng()>0.45 ? mFeuil : mFeuil2);
-  crown.scale.set(1, fl, 1);
-  crown.position.set(x, th + cr*fl*0.65, z); crown.castShadow = true; scene.add(crown);
-  colliders.push({ minX:x-cr, maxX:x+cr, minZ:z-cr, maxZ:z+cr });
-}
+let mixer  = null;
+let walkAction = null;
+let character  = null;
+let isWalking  = false;
 
-/* ── Palmier élancé ── */
-function addPalm(x, z) {
-  const th = 1.8 + rng() * 1.2;
-  const cr = 0.35 + rng() * 0.30;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, th, 7), mTronc);
-  trunk.position.set(x, th/2, z); trunk.castShadow = true; scene.add(trunk);
-  colliders.push({ minX:x-0.10, maxX:x+0.10, minZ:z-0.10, maxZ:z+0.10 });
-  const crown = new THREE.Mesh(new THREE.SphereGeometry(cr, 8, 5), mFeuil2);
-  crown.position.set(x, th + cr*0.45, z); crown.castShadow = true; scene.add(crown);
-  colliders.push({ minX:x-cr, maxX:x+cr, minZ:z-cr, maxZ:z+cr });
-}
-
-function addTree(x, z) { rng() > 0.32 ? addAcacia(x, z) : addPalm(x, z); }
-function bancMat() { const r=rng(); return r<0.45?mBanco:r<0.78?mBanc2:mBanc3; }
-
-/* ── Étal de marché coloré ── */
-const STALL_COLS = [0xe63946, 0x2979ff, 0xffb300, 0x43a047, 0x9c27b0, 0xff6f00, 0x00bcd4];
-function addStall(x, z) {
-  const sm = new THREE.MeshStandardMaterial({ color: STALL_COLS[Math.floor(rng()*STALL_COLS.length)], roughness:0.8 });
-  for (const [dx,dz] of [[-0.85,-0.85],[-0.85,0.85],[0.85,-0.85],[0.85,0.85]]) {
-    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.1,6), mTronc);
-    p.position.set(x+dx, 0.55, z+dz); scene.add(p);
-  }
-  const canopy = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 2.0), sm);
-  canopy.position.set(x, 1.15, z); canopy.castShadow = true; scene.add(canopy);
-  const table = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 0.8), mToit);
-  table.position.set(x, 0.5, z); scene.add(table);
-}
-
-/* ── Mosquée avec minaret ── */
-function addMosque(x, z) {
-  addBox(6, 1.8, 6, x, z, mBanco, true);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.2, 6.2), mToit);
-  roof.position.set(x, 1.9, z); scene.add(roof);
-  const mh = 6.5;
-  addBox(0.8, mh, 0.8, x+2.8, z-2.8, mMinaret, true);
-  const balcon = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 1.3), mToit2);
-  balcon.position.set(x+2.8, mh*0.68, z-2.8); scene.add(balcon);
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.0, 8), mMinaret);
-  cone.position.set(x+2.8, mh+0.5, z-2.8); scene.add(cone);
-}
-
-/* ── Pirogue sur le fleuve ── */
-function addBoat(x, z) {
-  const bm = new THREE.MeshStandardMaterial({ color:0x3d2008, roughness:0.9 });
-  const hull = new THREE.Mesh(new THREE.BoxGeometry(3.5+rng(), 0.25, 0.7+rng()*0.3), bm);
-  hull.position.set(x, 0.14, z); scene.add(hull);
-}
-
-/* ══════════════════════════════════════════
-   PARAMÈTRES DE LA GRILLE
-   Fleuve à l'est (+X), Tombeau centre-gauche,
-   Marché + Mosquée près du fleuve
-══════════════════════════════════════════ */
-const BS     = 6;
-const RUE    = 2.5;
-const CELL   = BS + RUE;
-const GRID_W = 11;   // colonnes (axe X, W=est-ouest)
-const GRID_D = 10;   // rangées  (axe Z, D=nord-sud)
-const OFF_X  = -(GRID_W * CELL) / 2;
-const OFF_Z  = -(GRID_D * CELL) / 2;
-
-/* Tombeau : colonnes 2-3, rangées 4-5 (centre-gauche comme dans la photo) */
-const TC0 = 2, TC1 = 3;   // colonnes X
-const T0  = 4, T1  = 5;   // rangées Z
-
-/* Colonne à partir de laquelle c'est la zone marché / fleuve */
-const MKT_COL = 8;
-
-/* Rangée de l'avenue principale (large boulevard vers le fleuve) */
-const BLVD = 4;
-
-/* tombX / tombZ : centre de la place du Tombeau */
-const tombX = OFF_X + TC0 * CELL + CELL;
-const tombZ = OFF_Z + T0  * CELL + CELL;
-
-/* ── Fleuve Niger (à l'est, côté +X) ── */
-const RIVER_X = OFF_X + MKT_COL * CELL + 14;
-const riverMesh = new THREE.Mesh(new THREE.PlaneGeometry(90, 500), mWater);
-riverMesh.rotation.x = -Math.PI / 2;
-riverMesh.position.set(RIVER_X + 35, 0.04, 0);
-riverMesh.receiveShadow = true;
-scene.add(riverMesh);
-
-/* Rive sablonneuse */
-const bankMesh = new THREE.Mesh(new THREE.PlaneGeometry(18, 500), mBank);
-bankMesh.rotation.x = -Math.PI / 2;
-bankMesh.position.set(RIVER_X + 9, 0.02, 0);
-bankMesh.receiveShadow = true;
-scene.add(bankMesh);
-
-/* Pirogues amarrées */
-for (let i = 0; i < 14; i++)
-  addBoat(RIVER_X + 4 + rng()*22, OFF_Z + rng()*GRID_D*CELL);
-
-/* ── Génération des compounds ── */
-for (let gx = 0; gx < GRID_W; gx++) {
-  for (let gz = 0; gz < GRID_D; gz++) {
-    const cx = OFF_X + gx * CELL + BS / 2;
-    const cz = OFF_Z + gz * CELL + BS / 2;
-
-    /* Zone tombeau */
-    if (gx >= TC0 && gx <= TC1 && gz >= T0 && gz <= T1) continue;
-
-    /* Zone marché / fleuve — pas de compound */
-    if (gx >= MKT_COL) continue;
-
-    /* Avenue principale — rangée BLVD dégagée entre le tombeau et le marché */
-    if (gz === BLVD && gx > TC1 && gx < MKT_COL) continue;
-
-    /* Sol de cour intérieure */
-    const court = new THREE.Mesh(new THREE.PlaneGeometry(BS-0.50, BS-0.50), mCour);
-    court.rotation.x = -Math.PI / 2;
-    court.position.set(cx, 0.01, cz); court.receiveShadow = true; scene.add(court);
-
-    /* Murs d'enceinte */
-    const wh = 1.2 + rng()*0.6, wt = 0.22;
-    const mat = bancMat();
-    addBox(BS, wh, wt, cx, cz-BS/2, mat, true);
-    addBox(BS, wh, wt, cx, cz+BS/2, mat, true);
-    addBox(wt, wh, BS, cx-BS/2, cz, mat, true);
-    addBox(wt, wh, BS, cx+BS/2, cz, mat, true);
-
-    /* Bâtiments intérieurs */
-    const nb = 1 + Math.floor(rng()*3);
-    for (let i = 0; i < nb; i++) {
-      const bw=1.2+rng()*2.5, bd=1.0+rng()*2.2, bh=1.1+rng()*1.2;
-      const bx=cx+(rng()-0.5)*(BS-bw-0.8), bz=cz+(rng()-0.5)*(BS-bd-0.8);
-      const bm = bancMat();
-      addBox(bw, bh, bd, bx, bz, bm);
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(bw+0.15, 0.12, bd+0.15), rng()>0.48?mToit:mToit2);
-      roof.position.set(bx, bh+0.06, bz); roof.receiveShadow=true; scene.add(roof);
-      if (rng()>0.50) {
-        const ph=0.16+rng()*0.12, pm=bancMat(), py=bh+0.12+ph/2;
-        const hw=bw/2+0.08, hd=bd/2+0.08;
-        [[bw+0.15,ph,0.10,bx,bz-hd],[bw+0.15,ph,0.10,bx,bz+hd]].forEach(([w,h,d,px,pz])=>{
-          const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),pm); m.position.set(px,py,pz); m.castShadow=true; scene.add(m);
-        });
-        [[0.10,ph,bd+0.15,bx-hw,bz],[0.10,ph,bd+0.15,bx+hw,bz]].forEach(([w,h,d,px,pz])=>{
-          const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),pm); m.position.set(px,py,pz); m.castShadow=true; scene.add(m);
-        });
-      }
-    }
-    if (rng()>0.50) addTree(cx+(rng()-0.5)*(BS-2.0), cz+(rng()-0.5)*(BS-2.0));
-  }
-}
-
-/* ── Arbres en rue ── */
-for (let i = 0; i < 110; i++)
-  addTree(OFF_X + rng()*MKT_COL*CELL, OFF_Z + rng()*GRID_D*CELL);
-
-/* ── Zone marché colorée près du fleuve ── */
-const mktX = OFF_X + (MKT_COL + 0.5) * CELL;
-const mktZ = OFF_Z + GRID_D / 2 * CELL;
-
-const mktFloor = new THREE.Mesh(new THREE.PlaneGeometry(CELL*3, CELL*4.5), mPlaza);
-mktFloor.rotation.x = -Math.PI / 2;
-mktFloor.position.set(mktX, 0.02, mktZ); mktFloor.receiveShadow=true; scene.add(mktFloor);
-
-for (let i = 0; i < 22; i++)
-  addStall(mktX + (rng()-0.5)*CELL*2.5, mktZ + (rng()-0.5)*CELL*4);
-
-for (let i = 0; i < 12; i++)
-  addTree(mktX+(rng()-0.5)*CELL*3.5, mktZ+(rng()-0.5)*CELL*5);
-
-/* ── Mosquée avec minaret ── */
-addMosque(mktX - CELL*0.8, mktZ + CELL*1.6);
-
-/* ── Place du Tombeau des Askia ── */
-const plaza = new THREE.Mesh(new THREE.PlaneGeometry(CELL*2+2, CELL*2+2), mPlaza);
-plaza.rotation.x = -Math.PI / 2;
-plaza.position.set(tombX, 0.02, tombZ); plaza.receiveShadow=true; scene.add(plaza);
-
-const pSize = CELL*2, pwh=1.2, pwt=0.25;
-addBox(pSize, pwh, pwt, tombX, tombZ-pSize/2, mTomb, false);
-addBox(pSize, pwh, pwt, tombX, tombZ+pSize/2, mTomb, false);
-addBox(pwt, pwh, pSize, tombX-pSize/2, tombZ, mTomb, false);
-addBox(pwt, pwh, pSize, tombX+pSize/2, tombZ, mTomb, false);
-
-/* ── Modèle 3D du Tombeau des Askia (Draco) ── */
-const tombDraco = new DRACOLoader();
-tombDraco.setDecoderPath(BASE + 'assets/draco/');
-const tombLoader = new GLTFLoader();
-tombLoader.setDRACOLoader(tombDraco);
-tombLoader.load(
-  BASE + 'assets/3d/Tombeaux_des_Askia.glb',
+gltfLoader.load(
+  MODEL_PATH,
   (gltf) => {
-    const tomb = gltf.scene;
-    tomb.traverse(o => { if (o.isMesh) { o.castShadow=true; o.receiveShadow=true; } });
-    tomb.scale.setScalar(4);
-    scene.add(tomb);
-    const box = new THREE.Box3().setFromObject(tomb);
-    const center = box.getCenter(new THREE.Vector3());
-    tomb.position.set(tombX - center.x, -box.min.y, tombZ - center.z);
-    tomb.traverse(o => {
-      if (o.name === 'Tombeaux') {
-        const nb = new THREE.Box3().setFromObject(o);
-        colliders.push({ minX:nb.min.x, maxX:nb.max.x, minZ:nb.min.z, maxZ:nb.max.z });
+    character = gltf.scene;
+
+    character.traverse(obj => {
+      if (obj.isMesh) {
+        obj.castShadow    = true;
+        obj.receiveShadow = true;
       }
     });
+
+    // Positionner au centre, debout sur le sol
+    character.position.set(0, 0, 0);
+    scene.add(character);
+
+    // Animation mixer
+    mixer = new THREE.AnimationMixer(character);
+    if (gltf.animations.length > 0) {
+      walkAction = mixer.clipAction(gltf.animations[0]);
+      walkAction.setLoop(THREE.LoopRepeat);
+      walkAction.clampWhenFinished = false;
+      // Ne pas jouer tout de suite
+    }
+
+    // Masquer le loading
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('info-anim').textContent = 'Animation : idle';
   },
-  null,
-  (err) => console.warn('Tombeau GLB non chargé :', err)
+  (xhr) => {
+    const pct = Math.round((xhr.loaded / xhr.total) * 100);
+    document.getElementById('loading-bar').style.width = pct + '%';
+    document.getElementById('loading-text').textContent = `Chargement… ${pct}%`;
+  },
+  (err) => {
+    document.getElementById('loading-text').textContent = 'Erreur de chargement : ' + err.message;
+    console.error(err);
+  }
 );
 
-/* ══════════════════════════════════════════
-   CONTRÔLES — joystick tactile + clavier
-══════════════════════════════════════════ */
-const keys = { up:false, down:false, left:false, right:false };
+/* ═══════════════════════════════════════════
+   CLAVIER
+═══════════════════════════════════════════ */
+const keys = { up: false, down: false, left: false, right: false };
+const keyMap = {
+  ArrowUp:    'up',   KeyW: 'up',
+  ArrowDown:  'down', KeyS: 'down',
+  ArrowLeft:  'left', KeyA: 'left',
+  ArrowRight: 'right',KeyD: 'right',
+};
 
-/* ── Clavier ── */
-const KMAP = { ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down', ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right' };
-window.addEventListener('keydown', e => { const k=KMAP[e.code]; if(k){ e.preventDefault(); keys[k]=true;  } });
-window.addEventListener('keyup',   e => { const k=KMAP[e.code]; if(k){ keys[k]=false; } });
+const keyEls = {
+  up:    document.getElementById('key-up'),
+  down:  document.getElementById('key-down'),
+  left:  document.getElementById('key-left'),
+  right: document.getElementById('key-right'),
+};
 
-/* ── Joystick tactile ── */
-const jZone   = document.getElementById('joystick-zone');
-const jHandle = document.getElementById('joystick-handle');
-const J_RADIUS = 38;   // débattement max du handle en px
-const J_DEAD   = 0.25; // zone morte (25 % du rayon)
-
-let jActive = false;
-let jId     = null;
-let jCx     = 0, jCy = 0;  // centre de la zone
-let jDx     = 0, jDy = 0;  // direction normalisée [-1, 1]
-
-function jStart(cx, cy, tx, ty) {
-  jActive = true;
-  jCx = cx; jCy = cy;
-  jMove(tx, ty);
-}
-
-function jMove(tx, ty) {
-  if (!jActive) return;
-  let dx = tx - jCx;
-  let dy = ty - jCy;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  const clamped = Math.min(dist, J_RADIUS);
-  const nx = dist > 0 ? dx/dist : 0;
-  const ny = dist > 0 ? dy/dist : 0;
-
-  /* déplacer le handle visuellement */
-  jHandle.style.transform = `translate(calc(-50% + ${nx*clamped}px), calc(-50% + ${ny*clamped}px))`;
-
-  /* convertir en directions */
-  jDx = Math.abs(nx) > J_DEAD ? nx : 0;
-  jDy = Math.abs(ny) > J_DEAD ? ny : 0;
-  keys.up    = jDy < -J_DEAD;
-  keys.down  = jDy >  J_DEAD;
-  keys.left  = jDx < -J_DEAD;
-  keys.right = jDx >  J_DEAD;
-}
-
-function jEnd() {
-  jActive = false;
-  jHandle.style.transform = 'translate(-50%, -50%)';
-  keys.up = keys.down = keys.left = keys.right = false;
-}
-
-/* Touch */
-jZone.addEventListener('touchstart', e => {
-  e.preventDefault();
-  const r = jZone.getBoundingClientRect();
-  const t = e.changedTouches[0];
-  jId = t.identifier;
-  jStart(r.left + r.width/2, r.top + r.height/2, t.clientX, t.clientY);
-}, { passive:false });
-
-window.addEventListener('touchmove', e => {
-  for (const t of e.changedTouches) {
-    if (t.identifier === jId) { e.preventDefault(); jMove(t.clientX, t.clientY); break; }
-  }
-}, { passive:false });
-
-window.addEventListener('touchend',    e => { for (const t of e.changedTouches) if (t.identifier === jId) jEnd(); });
-window.addEventListener('touchcancel', e => { for (const t of e.changedTouches) if (t.identifier === jId) jEnd(); });
-
-/* Souris (desktop) */
-jZone.addEventListener('mousedown', e => {
-  const r = jZone.getBoundingClientRect();
-  jStart(r.left + r.width/2, r.top + r.height/2, e.clientX, e.clientY);
+window.addEventListener('keydown', e => {
+  const k = keyMap[e.code];
+  if (k) { keys[k] = true; keyEls[k].classList.add('active'); e.preventDefault(); }
 });
-window.addEventListener('mousemove', e => { if (jActive) jMove(e.clientX, e.clientY); });
-window.addEventListener('mouseup',   () => { if (jActive) jEnd(); });
+window.addEventListener('keyup', e => {
+  const k = keyMap[e.code];
+  if (k) { keys[k] = false; keyEls[k].classList.remove('active'); }
+});
 
-/* ── État personnage ── */
-let model     = null;
-let mixer     = null;
-let walkClip  = null;
-let bones     = {};
-let idleTimer = 0;
-let isWalking = false;
-let fadeOut   = false;   // vrai pendant le fondu walk→idle
-let fadeTimer = 0;
-const FADE_DUR = 0.5;   // durée du fondu en secondes
-const status  = document.getElementById('ui-status');
-
-/* ── Chargement ── */
-const draco = new DRACOLoader();
-draco.setDecoderPath(BASE + 'assets/draco/');
-
-const loader = new GLTFLoader();
-loader.setDRACOLoader(draco);
-
-loader.load(
-  BASE + 'assets/3d/char1_walking.glb',
-
-  (gltf) => {
-    model = gltf.scene;
-    model.traverse(o => {
-      if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
-      if (o.isBone) { bones[o.name] = o; }
-    });
-    /* Positionner le personnage à l'entrée de la place du Tombeau */
-    model.position.set(tombX, 0, tombZ - 8);  // devant le socle du Tombeau
-    model.rotation.y = 0;
-    scene.add(model);
-
-    /* pose de repos pour l'idle */
-    model.traverse(o => { if (o.isBone) o.userData.rest = o.quaternion.clone(); });
-
-    /* animation walk */
-    if (gltf.animations && gltf.animations.length > 0) {
-      mixer    = new THREE.AnimationMixer(model);
-      walkClip = mixer.clipAction(gltf.animations[0]);
-      walkClip.setLoop(THREE.LoopRepeat, Infinity);
-      walkClip.clampWhenFinished = false;
-    }
-
-    document.getElementById('screen-load').classList.add('hide');
-  },
-
-  xhr => {
-    if (xhr.total > 0)
-      document.getElementById('load-bar').style.width =
-        Math.round(xhr.loaded / xhr.total * 100) + '%';
-  },
-
-  err => fatal('Impossible de charger char1_walking.glb\n' + (err?.message ?? String(err)))
-);
-
-/* ══════════════════════════════════════════
-   ANIMATION IDLE PROCÉDURALE
-   Bras relâchés le long du corps +
-   tête qui tourne lentement gauche/droite
-══════════════════════════════════════════ */
-const _Q = new THREE.Quaternion();
-const _E = new THREE.Euler();
-const D  = g => g * Math.PI / 180;
-
-function applyIdle(t) {
-  const br  = Math.PI*2 * t / 5.0;   // respiration 5 s
-  const lk  = Math.PI*2 * t / 6.0;   // rotation tête gauche/droite 6 s
-
-  function rot(name, rx, ry, rz) {
-    const b = bones[name];
-    if (!b || !b.userData.rest) return;
-    _E.set(rx, ry, rz, 'XYZ');
-    _Q.setFromEuler(_E);
-    b.quaternion.copy(b.userData.rest).multiply(_Q);
-  }
-
-  /* Bassin : micro-respiration, quasi immobile */
-  rot('Hips',   D(0.2)*Math.sin(br), 0, 0);
-
-  /* Colonne : légère expansion poitrine à l'inspiration */
-  rot('Spine',  D(0.5)*Math.sin(br), 0, 0);
-  rot('Spine1', D(0.4)*Math.sin(br), 0, 0);
-  rot('Spine2', D(0.3)*Math.sin(br), 0, 0);
-
-  /* Cou : accompagne légèrement la tête */
-  rot('Neck', 0, D(10)*Math.sin(lk) * 0.3, 0);
-
-  /* Tête : tourne sur l'axe Y (gauche/droite) — 30° max */
-  rot('Head', 0, D(30)*Math.sin(lk), 0);
-
-  /* Bras gauche : relâché, pendant naturellement */
-  rot('LeftShoulder', 0, 0, 0);
-  rot('LeftArm',     D(1)*Math.sin(br), 0, 0);
-  rot('LeftForeArm', D(2), 0, 0);
-  rot('LeftHand',    0, 0, 0);
-
-  /* Bras droit : relâché, pendant naturellement */
-  rot('RightShoulder', 0, 0, 0);
-  rot('RightArm',     D(1)*Math.sin(br + Math.PI), 0, 0);
-  rot('RightForeArm', D(2), 0, 0);
-  rot('RightHand',    0, 0, 0);
-}
-
-/* ── Caméra 3e personne ── */
-const camOff = new THREE.Vector3();
-const camTgt = new THREE.Vector3();
+/* ═══════════════════════════════════════════
+   CAMÉRA — suit le personnage en douceur
+═══════════════════════════════════════════ */
+const camTarget   = new THREE.Vector3();
+const camPosition = new THREE.Vector3();
 
 function updateCamera() {
-  if (!model) return;
-  const ry = model.rotation.y;
-  camOff.set(
-    model.position.x - Math.sin(ry) * 9.0,
-    model.position.y + 5.5,
-    model.position.z - Math.cos(ry) * 9.0
-  );
-  camera.position.lerp(camOff, 0.07);
-  camTgt.set(model.position.x, model.position.y + 1.2, model.position.z);
-  camera.lookAt(camTgt);
-  sun.target.position.copy(model.position);
-  sun.target.updateMatrixWorld();
+  if (!character) return;
+
+  const angle = character.rotation.y;
+  const idealX = character.position.x - Math.sin(angle) * CAM_DISTANCE;
+  const idealY = character.position.y + CAM_HEIGHT;
+  const idealZ = character.position.z - Math.cos(angle) * CAM_DISTANCE;
+
+  camPosition.set(idealX, idealY, idealZ);
+  camera.position.lerp(camPosition, 0.08);
+
+  camTarget.copy(character.position).y += 0.9;
+  camera.lookAt(camTarget);
 }
 
-/* ── Boucle principale ── */
+/* ═══════════════════════════════════════════
+   BOUCLE PRINCIPALE
+═══════════════════════════════════════════ */
 const clock = new THREE.Clock();
+const infoPos  = document.getElementById('info-pos');
+const infoAnim = document.getElementById('info-anim');
 
-(function loop() {
-  requestAnimationFrame(loop);
-  const dt = Math.min(clock.getDelta(), 0.05);
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
 
-  if (!model) { renderer.render(scene, camera); return; }
+  if (character) {
+    let moving = false;
 
-  const moving = keys.up || keys.down || keys.left || keys.right;
+    // Rotation
+    if (keys.left)  character.rotation.y += TURN_SPEED * dt;
+    if (keys.right) character.rotation.y -= TURN_SPEED * dt;
 
-  /* rotation — droite = sens horaire (rotation.y décroît) */
-  if (keys.left)  model.rotation.y += 2.2 * dt;
-  if (keys.right) model.rotation.y -= 2.2 * dt;
-
-  /* déplacement avec collision (glissement le long des murs) */
-  const spd = 2.3 * dt;
-  const ry  = model.rotation.y;
-  let dx = 0, dz = 0;
-  if (keys.up)   { dx =  Math.sin(ry) * spd; dz =  Math.cos(ry) * spd; }
-  if (keys.down) { dx = -Math.sin(ry) * spd; dz = -Math.cos(ry) * spd; }
-
-  const R  = 0.45;   // rayon du personnage
-  const px = model.position.x;
-  const pz = model.position.z;
-
-  function blocked(nx, nz) {
-    for (const c of colliders) {
-      if (nx + R > c.minX && nx - R < c.maxX &&
-          nz + R > c.minZ && nz - R < c.maxZ) return true;
+    // Déplacement avant/arrière
+    if (keys.up) {
+      character.position.x -= Math.sin(character.rotation.y) * WALK_SPEED * dt;
+      character.position.z -= Math.cos(character.rotation.y) * WALK_SPEED * dt;
+      moving = true;
     }
-    return false;
-  }
-
-  if (!blocked(px + dx, pz + dz)) {
-    model.position.x += dx;
-    model.position.z += dz;
-  } else if (!blocked(px + dx, pz)) {
-    model.position.x += dx;         // glisse en X seulement
-  } else if (!blocked(px, pz + dz)) {
-    model.position.z += dz;         // glisse en Z seulement
-  }
-
-  /* transition walk ↔ idle */
-  if (moving && !isWalking) {
-    /* démarrage marche : annule le fondu si en cours */
-    isWalking = true;
-    fadeOut   = false;
-    idleTimer = 0;
-    if (walkClip) walkClip.reset().play();
-    status.textContent = 'MARCHE';
-  } else if (!moving && isWalking) {
-    /* arrêt marche : lance le fondu, ne stop pas abruptement */
-    isWalking = false;
-    fadeOut   = true;
-    fadeTimer = 0;
-    if (walkClip) walkClip.fadeOut(FADE_DUR);
-    status.textContent = 'IDLE';
-  }
-
-  /* animation */
-  if (isWalking) {
-    /* marche : le mixer contrôle les bones */
-    if (mixer) mixer.update(dt);
-  } else if (fadeOut) {
-    /* fondu : le mixer continue jusqu'à la fin du fadeOut */
-    fadeTimer += dt;
-    if (mixer) mixer.update(dt);
-    if (fadeTimer >= FADE_DUR) {
-      fadeOut = false;
-      if (walkClip) walkClip.stop();
+    if (keys.down) {
+      character.position.x += Math.sin(character.rotation.y) * WALK_SPEED * dt;
+      character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
+      moving = true;
     }
-  } else {
-    /* idle : procédural contrôle les bones */
-    idleTimer += dt;
-    applyIdle(idleTimer);
+
+    // Gestion animation marche
+    if (walkAction) {
+      if (moving && !isWalking) {
+        walkAction.play();
+        isWalking = true;
+        infoAnim.textContent = 'Animation : marche';
+      } else if (!moving && isWalking) {
+        walkAction.stop();
+        isWalking = false;
+        infoAnim.textContent = 'Animation : idle';
+      }
+    }
+
+    // Mixer
+    if (mixer) mixer.update(dt);
+
+    // Info position
+    infoPos.textContent = `Position : ${character.position.x.toFixed(1)}, ${character.position.z.toFixed(1)}`;
+
+    updateCamera();
   }
 
-  updateCamera();
   renderer.render(scene, camera);
-})();
+}
 
+animate();
+
+/* ═══════════════════════════════════════════
+   RESIZE
+═══════════════════════════════════════════ */
 window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 </script>
 </body>
