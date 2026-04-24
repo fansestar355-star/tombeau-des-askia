@@ -152,6 +152,50 @@
         .maplibregl-ctrl-attrib a { color:rgba(249,213,139,0.4)!important; }
         .maplibregl-ctrl-logo { display:none!important; }
 
+        /* ══ ÉDITEUR DE POSITION ══ */
+        #editor-panel {
+            display: none;
+            position: fixed; bottom: 24px; right: 24px;
+            width: 270px;
+            background: rgba(7,5,15,0.92);
+            border: 1px solid rgba(249,213,139,0.35);
+            border-radius: 12px;
+            padding: 18px 20px 16px;
+            z-index: 200;
+            font-family: 'Courier New', monospace;
+            color: #f0eaf8;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(249,213,139,0.12);
+        }
+        body.edit-mode #editor-panel { display: block; }
+        .ed-title {
+            font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+            color: var(--gold); margin-bottom: 14px; font-weight: 600;
+        }
+        .ed-coords { margin-bottom: 12px; }
+        .ed-row { display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.75rem; }
+        .ed-label { color: rgba(249,213,139,0.55); text-transform:uppercase; font-size:0.6rem; letter-spacing:0.15em; padding-top:2px; }
+        .ed-row span:last-child { color:#fff; font-size:0.82rem; font-weight:500; }
+        .ed-sep { height:1px; background:rgba(249,213,139,0.15); margin:12px 0; }
+        .ed-hint { font-size:0.63rem; color:rgba(240,234,248,0.55); line-height:1.8; margin-bottom:12px; }
+        .ed-hint b { color:rgba(249,213,139,0.75); }
+        .ed-step-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:0.63rem; }
+        .ed-step-row select {
+            flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(249,213,139,0.3);
+            color:#f0eaf8; border-radius:5px; padding:4px 8px; font-size:0.7rem;
+            cursor:pointer;
+        }
+        #ed-copy {
+            width:100%; padding:9px; background:rgba(249,213,139,0.1);
+            border:1px solid rgba(249,213,139,0.4); color:var(--gold);
+            border-radius:7px; cursor:pointer; font-size:0.72rem;
+            letter-spacing:0.05em; transition:background 0.2s;
+        }
+        #ed-copy:hover { background:rgba(249,213,139,0.2); }
+        #ed-copied { display:none; text-align:center; margin-top:8px; font-size:0.65rem; color:#7dffb3; }
+        /* Curseur crosshair sur la carte en mode éditeur */
+        body.edit-mode #map .maplibregl-canvas { cursor: crosshair !important; }
+
         /* ── Mobile tweaks ── */
         @media (max-width:768px) {
             #hud-data { display:none; }
@@ -211,6 +255,29 @@
 
 <a href="index.html" id="back-btn">← Retour</a>
 
+<!-- ══ ÉDITEUR DE POSITION (activé via ?edit dans l'URL) ══ -->
+<div id="editor-panel">
+    <div class="ed-title">🎯 ÉDITEUR DE POSITION</div>
+    <div class="ed-coords">
+        <div class="ed-row"><span class="ed-label">LAT</span><span id="ed-lat">–</span></div>
+        <div class="ed-row"><span class="ed-label">LNG</span><span id="ed-lng">–</span></div>
+        <div class="ed-row"><span class="ed-label">ALT</span><span id="ed-alt">–</span></div>
+    </div>
+    <div class="ed-sep"></div>
+    <div class="ed-hint">🖱 <b>Clic carte</b> → place le modèle<br>⬆⬇⬅➡ <b>Flèches</b> → ajustement fin<br>🖱 <b>Molette</b> → altitude (±1m)</div>
+    <div class="ed-step-row">
+        <span class="ed-label">Pas flèches</span>
+        <select id="ed-step">
+            <option value="0.000009">1 m</option>
+            <option value="0.000045">5 m</option>
+            <option value="0.00009" selected>10 m</option>
+            <option value="0.00045">50 m</option>
+        </select>
+    </div>
+    <button id="ed-copy" onclick="editorCopy()">📋 Copier les coordonnées</button>
+    <div id="ed-copied">✅ Copié dans le presse-papier !</div>
+</div>
+
 <!-- Loader -->
 <div id="loader">
     <div class="loader-txt">Chargement du modèle 3D</div>
@@ -239,15 +306,26 @@ const GPS_LNG = -0.03925;
 const GPS_LAT =  16.27970;
 const GPS_ALT =  256;
 
+/* Mode éditeur : activé par ?edit dans l'URL */
+const EDIT_MODE = location.search.includes('edit');
+if (EDIT_MODE) document.body.classList.add('edit-mode');
+
 /* ══════════════════════════════════════════════════════════════════
    INIT — selon la plateforme
 ══════════════════════════════════════════════════════════════════ */
-if (IS_MOBILE) {
+if (IS_MOBILE && !EDIT_MODE) {
     document.getElementById('mobile-view').style.display = 'block';
     document.getElementById('panel-hint').textContent = 'Tournez · Zoomez · Explorez';
 } else {
     document.getElementById('map').style.display = 'block';
     initDesktop();
+    /* En mode éditeur : démarre directement sans overlay */
+    if (EDIT_MODE) {
+        setTimeout(() => {
+            document.getElementById('intro-overlay').style.display = 'none';
+            revealHUD();
+        }, 800);
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -318,9 +396,20 @@ function createMap() {
         antialias: true
     });
 
-    /* ── Transform mercator du modèle ── */
-    const origin = maplibregl.MercatorCoordinate.fromLngLat([GPS_LNG, GPS_LAT], GPS_ALT);
-    const mScale = origin.meterInMercatorCoordinateUnits();
+    /* ── Transform mercator du modèle (mutable pour l'éditeur) ── */
+    let editLng = GPS_LNG, editLat = GPS_LAT, editAlt = GPS_ALT;
+    let origin = maplibregl.MercatorCoordinate.fromLngLat([editLng, editLat], editAlt);
+    let mScale = origin.meterInMercatorCoordinateUnits();
+
+    function updateOrigin() {
+        origin = maplibregl.MercatorCoordinate.fromLngLat([editLng, editLat], editAlt);
+        mScale = origin.meterInMercatorCoordinateUnits();
+        if (window._tombeau_map) window._tombeau_map.triggerRepaint();
+        document.getElementById('ed-lat').textContent = editLat.toFixed(6);
+        document.getElementById('ed-lng').textContent = editLng.toFixed(6);
+        document.getElementById('ed-alt').textContent = Math.round(editAlt) + ' m';
+    }
+    updateOrigin();
 
     /* Rotation Blender → WebGL (Z-up → Y-up) */
     const ROTATE_X = Math.PI / 2;
@@ -393,10 +482,50 @@ function createMap() {
 
     map.on('load', () => {
         map.addLayer(customLayer);
+
+        /* ── ÉDITEUR : interactions ── */
+        if (EDIT_MODE) {
+            /* Clic sur la carte → repositionne le modèle */
+            map.on('click', e => {
+                editLng = e.lngLat.lng;
+                editLat = e.lngLat.lat;
+                updateOrigin();
+            });
+
+            /* Touches fléchées → ajustement fin */
+            document.addEventListener('keydown', e => {
+                const step = parseFloat(document.getElementById('ed-step').value);
+                if (e.key === 'ArrowUp')    { editLat += step; updateOrigin(); e.preventDefault(); }
+                if (e.key === 'ArrowDown')  { editLat -= step; updateOrigin(); e.preventDefault(); }
+                if (e.key === 'ArrowRight') { editLng += step; updateOrigin(); e.preventDefault(); }
+                if (e.key === 'ArrowLeft')  { editLng -= step; updateOrigin(); e.preventDefault(); }
+            });
+
+            /* Molette → altitude */
+            document.getElementById('map').addEventListener('wheel', e => {
+                if (!e.altKey) return; /* Alt + molette pour altitude, molette seule = zoom map */
+                editAlt += e.deltaY > 0 ? -1 : 1;
+                updateOrigin();
+                e.preventDefault();
+            }, { passive: false });
+        }
     });
 
     /* Stocke la map pour le fly-in */
     window._tombeau_map = map;
+}
+
+/* ── Copier les coordonnées dans le presse-papier ── */
+function editorCopy() {
+    const txt =
+        `const GPS_LNG = ${document.getElementById('ed-lng').textContent};\n` +
+        `const GPS_LAT =  ${document.getElementById('ed-lat').textContent};\n` +
+        `const GPS_ALT =  ${document.getElementById('ed-alt').textContent.replace(' m','')};`;
+    navigator.clipboard.writeText(txt).then(() => {
+        const el = document.getElementById('ed-copied');
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2500);
+    });
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -418,9 +547,9 @@ function startExperience() {
                 map.flyTo({
                     center:   [GPS_LNG, GPS_LAT],
                     zoom:     17.5,
-                    pitch:    62,
+                    pitch:    EDIT_MODE ? 30 : 62,
                     bearing:  -20,
-                    duration: 5500,
+                    duration: EDIT_MODE ? 1200 : 5500,
                     essential: true,
                     easing: t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2
                 });
