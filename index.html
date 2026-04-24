@@ -487,8 +487,25 @@
 
         /* Mobile */
         @media (max-width: 768px) {
-            .ch4-pyramid { width: 100%; right: 0; bottom: 0; opacity: 0.25; }
-            .ch4-line    { display: none; }
+            .ch4-pyramid {
+                width: 110%;
+                right: -5%;
+                bottom: 22%;
+                opacity: 0.55;
+            }
+            .ch4-line { display: none; }
+        }
+
+        /* ── Taille hero-gao adaptée au chapitre 4 (mot long) ── */
+        body.ch4 .hero-gao {
+            font-size: clamp(5rem, 14vw, 14rem);
+            letter-spacing: -0.03em;
+        }
+        @media (max-width: 768px) {
+            body.ch4 .hero-gao {
+                font-size: clamp(2.4rem, 9.5vw, 5rem);
+                letter-spacing: -0.02em;
+            }
         }
 
 
@@ -870,6 +887,7 @@ const ch4Overlay  = document.getElementById('ch4-overlay');
 
 function setCh4(active) {
     ch4Overlay.classList.toggle('visible', active);
+    document.body.classList.toggle('ch4', active);
     /* Efface le modèle 3D sur le chapitre pyramides */
     mv.style.transition = 'opacity 0.9s ease';
     mv.style.opacity    = active ? '0' : '';
