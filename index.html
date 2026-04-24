@@ -933,9 +933,6 @@ const ch5Overlay  = document.getElementById('ch5-overlay');
 function setCh4(active) {
     ch4Overlay.classList.toggle('visible', active);
     document.body.classList.toggle('ch4', active);
-    mv.style.transition = 'opacity 0.9s ease';
-    mv.style.opacity    = active ? '0' : '';
-    document.querySelector('.bg-glow').style.opacity = active ? '0' : '';
 
     if (active) {
         gsap.set('.ch4-pyramid', { x: 100, opacity: 0 });
@@ -950,9 +947,6 @@ function setCh4(active) {
 function setCh5(active) {
     ch5Overlay.classList.toggle('visible', active);
     document.body.classList.toggle('ch5', active);
-    mv.style.transition = 'opacity 0.9s ease';
-    mv.style.opacity    = active ? '0' : '';
-    document.querySelector('.bg-glow').style.opacity = active ? '0' : '';
 
     if (active) {
         gsap.set('.ch5-tombeau', { x: 80, opacity: 0 });
@@ -1042,6 +1036,11 @@ function goTo(index) {
         dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index));
         current = index;
         updateScrollBar(index);
+        /* Masquer le modèle 3D pour les chapitres avec overlay image */
+        const useOverlay = (index === 3 || index === 4);
+        mv.style.transition = 'opacity 0.9s ease';
+        mv.style.opacity    = useOverlay ? '0' : '';
+        document.querySelector('.bg-glow').style.opacity = useOverlay ? '0' : '';
         setCh4(index === 3);
         setCh5(index === 4);
     });
