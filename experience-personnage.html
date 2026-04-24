@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personnage — Askia Mohamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -127,7 +130,7 @@
       line-height: 1.8;
     }
 
-    /* Loading */
+    /* Loading — caché pendant l'intro, affiché si nécessaire après */
     #loading {
       position: fixed;
       inset: 0;
@@ -138,9 +141,12 @@
       background: #0b0f1a;
       z-index: 100;
       gap: 20px;
+      opacity: 0;
+      pointer-events: none;
       transition: opacity 0.6s ease;
     }
-    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading.visible { opacity: 1; pointer-events: all; }
+    #loading.hidden  { opacity: 0; pointer-events: none; }
     #loading-bar-wrap {
       width: 200px; height: 2px;
       background: rgba(167,139,250,0.15);
@@ -195,9 +201,360 @@
     }
     /* Cacher les touches flèches sur mobile */
     @media (max-width: 768px) { #controls-hud { display: none; } }
+
+    /* ════════════════════════════════════════
+       INTRO OVERLAY
+    ════════════════════════════════════════ */
+    #intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #07050f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #intro-overlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.9s ease;
+    }
+
+    /* Particules flottantes */
+    .intro-particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .i-particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(167,139,250,0.35);
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(110vh); opacity: 0; }
+      8%   { opacity: 1; }
+      92%  { opacity: 0.8; }
+      100% { transform: translateY(-40px) translateX(30px); opacity: 0; }
+    }
+
+    /* Lignes dorées décoratives */
+    .i-line {
+      position: absolute;
+      height: 1px;
+      width: 55%;
+      background: linear-gradient(90deg, transparent, rgba(249,213,139,0.35), transparent);
+      animation: linePulse 3.5s ease-in-out infinite;
+    }
+    @keyframes linePulse {
+      0%, 100% { opacity: 0.3; transform: scaleX(0.9); }
+      50%       { opacity: 1;   transform: scaleX(1); }
+    }
+
+    /* Coin décoratif */
+    .i-corner {
+      position: absolute;
+      width: 60px; height: 60px;
+      border-color: rgba(249,213,139,0.25);
+      border-style: solid;
+    }
+    .i-corner.tl { top: 28px; left: 28px; border-width: 1.5px 0 0 1.5px; }
+    .i-corner.tr { top: 28px; right: 28px; border-width: 1.5px 1.5px 0 0; }
+    .i-corner.bl { bottom: 28px; left: 28px; border-width: 0 0 1.5px 1.5px; }
+    .i-corner.br { bottom: 28px; right: 28px; border-width: 0 1.5px 1.5px 0; }
+
+    /* Slides — transition CSS (plus fiable que keyframes + inline styles) */
+    .intro-slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      /* État initial : invisible + décalé vers le bas */
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.85s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.85s cubic-bezier(0.22,1,0.36,1);
+    }
+    /* Slide logo : zoom au lieu de translation */
+    #slide-logo {
+      transform: scale(0.84);
+    }
+    /* État visible */
+    .intro-slide.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+    /* État sortie : monte vers le haut */
+    .intro-slide.out {
+      opacity: 0;
+      transform: translateY(-32px);
+      transition: opacity 0.65s ease,
+                  transform 0.65s ease;
+      pointer-events: none;
+    }
+    /* Désactiver la transition au reset pour éviter le flash */
+    .intro-slide.no-transition {
+      transition: none !important;
+    }
+
+    /* ── Slide 1 : Logo Kabakoo ── */
+    #slide-logo .logo-wrap {
+      position: relative;
+      width: 190px; height: 190px;
+      margin-bottom: 36px;
+    }
+    .logo-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(249,213,139,0.3);
+      animation: ringBreath 2.2s ease-in-out infinite;
+    }
+    .logo-ring.r1 { inset: -14px; }
+    .logo-ring.r2 { inset: -28px; border-color: rgba(108,99,255,0.2); animation-delay: 0.6s; }
+    .logo-ring.r3 { inset: -44px; border-color: rgba(108,99,255,0.1); animation-delay: 1.2s; }
+    @keyframes ringBreath {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50%       { transform: scale(1.04); opacity: 1; }
+    }
+    #slide-logo .logo-img {
+      width: 190px; height: 190px;
+      border-radius: 50%;
+      border: 2px solid rgba(249,213,139,0.5);
+      box-shadow: 0 0 50px rgba(249,213,139,0.18), 0 0 100px rgba(108,99,255,0.12);
+      object-fit: cover;
+      display: block;
+    }
+    #slide-logo .logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: #f9d58b;
+      text-shadow: 0 0 28px rgba(249,213,139,0.45);
+      margin-bottom: 10px;
+    }
+    #slide-logo .logo-sub {
+      font-size: 0.6rem;
+      letter-spacing: 0.55em;
+      text-transform: uppercase;
+      color: rgba(167,139,250,0.65);
+    }
+
+    /* ── Slide 2 : Présentation ── */
+    #slide-about .s-badge {
+      font-size: 0.55rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: #a78bfa;
+      border: 1px solid rgba(167,139,250,0.28);
+      padding: 6px 20px;
+      border-radius: 50px;
+      margin-bottom: 26px;
+    }
+    .s-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 4rem);
+      color: #f0eaf8;
+      text-align: center;
+      line-height: 1.15;
+      margin-bottom: 0;
+    }
+    .s-title em { color: #f9d58b; font-style: normal; }
+    .s-divider {
+      width: 56px; height: 1px;
+      background: linear-gradient(90deg, transparent, #f9d58b, transparent);
+      margin: 22px auto 22px;
+    }
+    #slide-about .s-desc {
+      font-size: clamp(0.8rem, 2vw, 0.95rem);
+      color: rgba(240,234,248,0.6);
+      text-align: center;
+      max-width: 540px;
+      line-height: 1.85;
+      padding: 0 28px;
+    }
+
+    /* ── Slide 3 : Contrôles ── */
+    #slide-controls .s-title { font-size: clamp(1.6rem, 4.5vw, 2.8rem); margin-bottom: 8px; }
+    #slide-controls .s-sub {
+      font-size: 0.6rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(167,139,250,0.55);
+      margin-bottom: 36px;
+    }
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      max-width: 540px;
+      width: 90%;
+    }
+    .ctrl-card {
+      background: rgba(11,15,26,0.55);
+      border: 1px solid rgba(167,139,250,0.18);
+      border-radius: 14px;
+      padding: 18px 16px;
+      backdrop-filter: blur(14px);
+      text-align: center;
+      transition: border-color 0.3s ease;
+    }
+    .ctrl-card:hover { border-color: rgba(167,139,250,0.5); }
+    .ctrl-icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .ctrl-label {
+      font-size: 0.52rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #a78bfa;
+      margin-bottom: 6px;
+    }
+    .ctrl-desc {
+      font-size: 0.72rem;
+      color: rgba(240,234,248,0.55);
+      line-height: 1.6;
+    }
+    .ctrl-desc strong { color: rgba(249,213,139,0.8); font-weight: 600; }
+
+    /* ── Navigation dots & skip ── */
+    #intro-nav {
+      position: absolute;
+      bottom: 38px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .i-dot {
+      width: 6px; height: 6px;
+      border-radius: 3px;
+      background: rgba(167,139,250,0.22);
+      transition: all 0.4s ease;
+    }
+    .i-dot.on {
+      width: 22px;
+      background: #f9d58b;
+      box-shadow: 0 0 8px rgba(249,213,139,0.5);
+    }
+    #intro-skip {
+      position: absolute;
+      top: 26px; right: 26px;
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(167,139,250,0.38);
+      cursor: pointer;
+      padding: 8px 18px;
+      border: 1px solid rgba(167,139,250,0.14);
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+    #intro-skip:hover { color: rgba(167,139,250,0.8); border-color: rgba(167,139,250,0.4); }
+
+    /* ── Fade-out de l'overlay entier ── */
+    @keyframes overlayFadeOut {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
   </style>
 </head>
 <body>
+
+<!-- ════════════════════════════════════════════
+     INTRO OVERLAY
+════════════════════════════════════════════ -->
+<div id="intro-overlay">
+
+  <!-- Fond animé : particules + lignes -->
+  <div class="intro-particles" id="intro-particles"></div>
+  <div class="i-line" style="top:28%; left:22.5%;"></div>
+  <div class="i-line" style="bottom:26%; left:22.5%; animation-delay:1.8s;"></div>
+
+  <!-- Coins décoratifs -->
+  <div class="i-corner tl"></div>
+  <div class="i-corner tr"></div>
+  <div class="i-corner bl"></div>
+  <div class="i-corner br"></div>
+
+  <!-- ── Slide 1 : Logo Kabakoo ── -->
+  <div class="intro-slide" id="slide-logo">
+    <div class="logo-wrap">
+      <div class="logo-ring r1"></div>
+      <div class="logo-ring r2"></div>
+      <div class="logo-ring r3"></div>
+      <img class="logo-img"
+           src="https://avatars.githubusercontent.com/u/100370045?v=4"
+           alt="Kabakoo" />
+    </div>
+    <div class="logo-name">Kabakoo</div>
+    <div class="logo-sub">Présente</div>
+  </div>
+
+  <!-- ── Slide 2 : Présentation de l'expérience ── -->
+  <div class="intro-slide" id="slide-about">
+    <div class="s-badge">Patrimoine UNESCO · Mali</div>
+    <h2 class="s-title">Tombeau<br/>des <em>Askia</em></h2>
+    <div class="s-divider"></div>
+    <p class="s-desc">
+      Plongez dans l'histoire de l'Empire Songhaï et marchez dans les pas d'Askia Mohamed,
+      l'un des plus grands empereurs d'Afrique de l'Ouest. Explorez en 3D ce site historique
+      classé UNESCO à Gao, au Mali.
+    </p>
+  </div>
+
+  <!-- ── Slide 3 : Guide d'utilisation ── -->
+  <div class="intro-slide" id="slide-controls">
+    <h2 class="s-title">Comment<br/>explorer</h2>
+    <p class="s-sub">Guide d'utilisation</p>
+    <div class="ctrl-grid">
+      <div class="ctrl-card">
+        <div class="ctrl-icon">⌨️</div>
+        <div class="ctrl-label">Clavier</div>
+        <div class="ctrl-desc">
+          Touches <strong>↑ ↓ ← →</strong> ou <strong>W A S D</strong>
+          pour déplacer le personnage
+        </div>
+      </div>
+      <div class="ctrl-card">
+        <div class="ctrl-icon">🖱️</div>
+        <div class="ctrl-label">Caméra</div>
+        <div class="ctrl-desc">
+          <strong>Cliquer + glisser</strong> la souris pour tourner
+          la caméra autour du personnage
+        </div>
+      </div>
+      <div class="ctrl-card">
+        <div class="ctrl-icon">👆</div>
+        <div class="ctrl-label">Mobile — Déplacement</div>
+        <div class="ctrl-desc">
+          Le <strong>joystick virtuel</strong> en bas de l'écran
+          contrôle la marche du personnage
+        </div>
+      </div>
+      <div class="ctrl-card">
+        <div class="ctrl-icon">🔄</div>
+        <div class="ctrl-label">Mobile — Caméra</div>
+        <div class="ctrl-desc">
+          <strong>Glisser l'écran</strong> (hors joystick) pour
+          faire pivoter la caméra à 360°
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dots de navigation -->
+  <div id="intro-nav">
+    <div class="i-dot on" id="idot-0"></div>
+    <div class="i-dot"    id="idot-1"></div>
+    <div class="i-dot"    id="idot-2"></div>
+  </div>
+
+  <!-- Bouton passer -->
+  <div id="intro-skip" onclick="window.skipIntro()">Passer →</div>
+</div>
 
 <div id="canvas-wrap"></div>
 
@@ -249,6 +606,116 @@
   <div id="loading-text">Chargement du personnage…</div>
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
+
+<script>
+/* ════════════════════════════════════════════
+   INTRO CONTROLLER — approche par transitions CSS
+   Séquence : Logo (3s) → Expérience (5s) → Contrôles (5s)
+════════════════════════════════════════════ */
+(function () {
+  window.introComplete    = false;
+  window.modelLoadComplete = false;
+
+  /* ── Particules flottantes ── */
+  const pcont = document.getElementById('intro-particles');
+  for (let i = 0; i < 50; i++) {
+    const p   = document.createElement('div');
+    p.className = 'i-particle';
+    const sz  = 1 + Math.random() * 2.5;
+    p.style.left              = (Math.random() * 100) + '%';
+    p.style.width             = sz + 'px';
+    p.style.height            = sz + 'px';
+    p.style.animationDuration = (9 + Math.random() * 14) + 's';
+    p.style.animationDelay    = (Math.random() * 12) + 's';
+    p.style.opacity           = (0.15 + Math.random() * 0.5).toFixed(2);
+    pcont.appendChild(p);
+  }
+
+  const SLIDES    = ['slide-logo', 'slide-about', 'slide-controls'];
+  const DURATIONS = [3000, 5000, 5000]; // ms affichage par slide
+  const T_OUT     = 650;                // ms pour la transition de sortie
+  let   current   = -1;
+  let   timer     = null;
+  let   ended     = false;
+
+  function setDot(idx) {
+    SLIDES.forEach(function(_, i) {
+      var d = document.getElementById('idot-' + i);
+      if (d) d.classList.toggle('on', i === idx);
+    });
+  }
+
+  /* Affiche un slide : ajoute la classe .show via transition CSS */
+  function showSlide(idx) {
+    if (ended) return;
+    current = idx;
+    setDot(idx);
+    var el = document.getElementById(SLIDES[idx]);
+
+    /* Force le navigateur à recalculer le style AVANT d'ajouter .show */
+    void el.offsetWidth;
+    el.classList.add('show');
+    el.classList.remove('out');
+
+    /* Planifie la sortie */
+    timer = setTimeout(function () {
+      hideSlide(el, function () {
+        var next = idx + 1;
+        if (next < SLIDES.length) showSlide(next);
+        else endIntro();
+      });
+    }, DURATIONS[idx]);
+  }
+
+  /* Cache un slide : ajoute .out puis rappelle cb après la transition */
+  function hideSlide(el, cb) {
+    el.classList.add('out');
+    el.classList.remove('show');
+    setTimeout(function () {
+      /* Remet le slide à son état neutre (sans transition pour éviter le flash) */
+      el.classList.add('no-transition');
+      el.classList.remove('out');
+      void el.offsetWidth;
+      el.classList.remove('no-transition');
+      if (cb) cb();
+    }, T_OUT);
+  }
+
+  /* Ferme l'intro et révèle l'expérience */
+  function endIntro() {
+    if (ended) return;
+    ended = true;
+    clearTimeout(timer);
+
+    var overlay = document.getElementById('intro-overlay');
+    overlay.style.animation = 'overlayFadeOut 0.9s ease forwards';
+
+    setTimeout(function () {
+      overlay.style.display = 'none';
+      window.introComplete  = true;
+      /* Si le modèle 3D est déjà chargé, on masque le loading */
+      if (window.modelLoadComplete) {
+        var ld = document.getElementById('loading');
+        if (ld) { ld.classList.remove('visible'); ld.classList.add('hidden'); }
+      }
+      /* Sinon : on révèle le loading screen qui tourne en arrière-plan */
+      else {
+        var ld = document.getElementById('loading');
+        if (ld) ld.classList.add('visible');
+      }
+    }, 900);
+  }
+
+  window.skipIntro = endIntro;
+
+  /* ── Lancement : attendre que le DOM soit peint ── */
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      showSlide(0);
+    });
+  });
+})();
+</script>
 
 <script type="importmap">
 {
@@ -493,8 +960,15 @@ gltfLoader.load(
       walkAction.clampWhenFinished = false;
     }
 
-    // Masquer le loading
-    document.getElementById('loading').classList.add('hidden');
+    // Signaler que le modèle est prêt
+    window.modelLoadComplete = true;
+    if (window.introComplete) {
+      // L'intro est finie : on cache le loading directement
+      const ld = document.getElementById('loading');
+      ld.classList.remove('visible');
+      ld.classList.add('hidden');
+    }
+    // Sinon : l'intro est encore en cours, endIntro() s'en chargera
     document.getElementById('info-anim').textContent = 'Animation : idle';
   },
   (xhr) => {
@@ -628,13 +1102,13 @@ function animate() {
 
     // Déplacement avant/arrière
     if (keys.up) {
-      character.position.x -= Math.sin(character.rotation.y) * WALK_SPEED * dt;
-      character.position.z -= Math.cos(character.rotation.y) * WALK_SPEED * dt;
+      character.position.x += Math.sin(character.rotation.y) * WALK_SPEED * dt;
+      character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
       moving = true;
     }
     if (keys.down) {
-      character.position.x += Math.sin(character.rotation.y) * WALK_SPEED * dt;
-      character.position.z += Math.cos(character.rotation.y) * WALK_SPEED * dt;
+      character.position.x -= Math.sin(character.rotation.y) * WALK_SPEED * dt;
+      character.position.z -= Math.cos(character.rotation.y) * WALK_SPEED * dt;
       moving = true;
     }
 
