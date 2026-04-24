@@ -144,25 +144,38 @@
             margin-top:2px;
         }
 
-        /* ── Barre de toggle ── */
+        /* ── Barre slider ── */
         #toggle-bar {
             position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
-            display:flex; gap:8px; z-index:60;
-            opacity:0; transition:opacity 1s ease 0.8s; pointer-events:none;
+            display:flex; flex-direction:column; align-items:center; gap:8px;
+            z-index:60; opacity:0; transition:opacity 1s ease 0.8s; pointer-events:none;
         }
         #toggle-bar.on { opacity:1; pointer-events:all; }
-        .toggle-pill {
-            font-size:0.48rem; letter-spacing:0.2em; text-transform:uppercase;
-            border:1px solid rgba(249,213,139,0.3); color:rgba(249,213,139,0.6);
-            background:rgba(7,5,15,0.55); padding:9px 20px; border-radius:20px;
-            cursor:pointer; backdrop-filter:blur(8px);
-            transition:background 0.2s, color 0.2s, border-color 0.2s;
+        #toggle-label {
+            font-size:0.42rem; letter-spacing:0.25em; text-transform:uppercase;
+            color:rgba(249,213,139,0.45); font-family:'Inter',sans-serif;
         }
-        .toggle-pill.active {
-            border-color:rgba(249,213,139,0.6); color:var(--gold);
-            background:rgba(249,213,139,0.1);
+        #layer-slider {
+            -webkit-appearance:none; appearance:none;
+            width:160px; height:3px; border-radius:2px; outline:none; cursor:pointer;
+            background:linear-gradient(to right,
+                rgba(249,213,139,0.7) 0%,
+                rgba(249,213,139,0.7) var(--val,100%),
+                rgba(249,213,139,0.15) var(--val,100%),
+                rgba(249,213,139,0.15) 100%);
         }
-        .toggle-pill:hover { background:rgba(249,213,139,0.15); }
+        #layer-slider::-webkit-slider-thumb {
+            -webkit-appearance:none; appearance:none;
+            width:14px; height:14px; border-radius:50%;
+            background:var(--gold); cursor:pointer;
+            box-shadow:0 0 8px rgba(249,213,139,0.5);
+            transition:transform 0.15s;
+        }
+        #layer-slider::-webkit-slider-thumb:hover { transform:scale(1.3); }
+        #layer-slider::-moz-range-thumb {
+            width:14px; height:14px; border-radius:50%; border:none;
+            background:var(--gold); cursor:pointer;
+        }
 
         /* ── Panneau détail (clic annotation) ── */
         #detail-panel {
@@ -216,6 +229,7 @@
             #detail-panel { width:100%; right:-110%; }
             #detail-panel.on { right:0; }
             #toggle-bar { bottom:18px; }
+            #layer-slider { width:130px; }
         }
     </style>
 </head>
@@ -246,10 +260,11 @@
 <div id="annotations"></div>
 <a href="index.html" id="back-btn">← Retour</a>
 
-<!-- Barre de toggle -->
+<!-- Barre slider -->
 <div id="toggle-bar">
-    <button class="toggle-pill active" id="btn-ann"   onclick="toggleLayer('ann')">◉ Annotations</button>
-    <button class="toggle-pill active" id="btn-illus" onclick="toggleLayer('illus')">◈ Illustrations</button>
+    <div id="toggle-label">Annotations &amp; Illustrations</div>
+    <input type="range" id="layer-slider" min="0" max="100" value="100"
+           oninput="onLayerSlider(this.value)">
 </div>
 
 <!-- Panneau détail (clic annotation) -->
@@ -466,20 +481,29 @@ const ANN_INFO = {
     }
 };
 
-/* ── Toggle couches ── */
-const _layerState = { ann: true, illus: true };
+/* ── Slider couches ── */
+function onLayerSlider(val) {
+    const t = val / 100;
+    const slider = document.getElementById('layer-slider');
+    slider.style.setProperty('--val', val + '%');
 
-function toggleLayer(layer) {
-    _layerState[layer] = !_layerState[layer];
-    document.getElementById('btn-' + layer).classList.toggle('active', _layerState[layer]);
-    if (layer === 'ann') {
-        document.querySelectorAll('.ann').forEach(el => {
-            el.style.display = _layerState.ann ? '' : 'none';
+    /* Annotations : opacité globale via filtre CSS */
+    document.querySelectorAll('.ann').forEach(el => {
+        el.style.opacity = t > 0 ? '' : '0';
+        el.style.pointerEvents = t > 0.05 ? '' : 'none';
+    });
+    window._annOpacityScale = t;
+
+    /* Illustrations 3D : opacité des meshes */
+    if (window._illusMeshes) {
+        window._illusMeshes.forEach(m => {
+            m.material.opacity = (window._illusOpacity || 1) * t;
         });
     }
-    if (layer === 'illus' && window._illusMeshes) {
-        window._illusMeshes.forEach(m => { m.visible = _layerState.illus; });
-    }
+
+    /* Label dynamique */
+    const label = document.getElementById('toggle-label');
+    label.textContent = t === 0 ? 'Masqué' : t < 0.5 ? 'Annotations & Illustrations' : 'Annotations & Illustrations';
 }
 
 /* ── Zoom animé vers une position 3D ── */
