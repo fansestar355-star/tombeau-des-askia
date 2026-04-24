@@ -480,52 +480,6 @@ function illusPlane(scene, tex, pw, ph, x, y, z, ry = 0) {
     return mesh;
 }
 
-/* ─── Palmier doum ─── */
-function drawPalm(ctx, w, h, alpha = 0.75) {
-    ctx.strokeStyle = G + alpha + ')';
-    ctx.lineWidth = w * 0.015;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    /* tronc courbé */
-    ctx.beginPath();
-    ctx.moveTo(w * .5, h * .98);
-    ctx.bezierCurveTo(w * .47, h * .7, w * .53, h * .42, w * .5, h * .1);
-    ctx.stroke();
-    /* palmes */
-    const tip = [w * .5, h * .1];
-    const fronds = [
-        [-.6, -.05], [-.45, -.28], [-.2, -.4], [0, -.44],
-        [.2, -.4], [.45, -.28], [.6, -.05],
-        [-.5, .14], [.5, .14]
-    ];
-    ctx.lineWidth = w * 0.01;
-    fronds.forEach(([dx, dy]) => {
-        ctx.beginPath();
-        ctx.moveTo(tip[0], tip[1]);
-        ctx.bezierCurveTo(
-            tip[0] + dx * w * .35, tip[1] + dy * h * .35,
-            tip[0] + dx * w * .55, tip[1] + dy * h * .45,
-            tip[0] + dx * w * .65, tip[1] + dy * h * .5
-        );
-        ctx.stroke();
-    });
-}
-
-/* ─── Acacia (tête plate) ─── */
-function drawAcacia(ctx, w, h) {
-    ctx.strokeStyle = G + '.65)';
-    ctx.lineWidth = w * 0.016; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.beginPath(); ctx.moveTo(w*.5,h*.98); ctx.lineTo(w*.5,h*.52); ctx.stroke();
-    [[w*.2,h*.38],[w*.8,h*.38],[w*.15,h*.48],[w*.85,h*.48]].forEach(([ex,ey])=>{
-        ctx.beginPath(); ctx.moveTo(w*.5,h*.52); ctx.lineTo(ex,ey); ctx.stroke();
-    });
-    ctx.lineWidth = w * 0.012;
-    ctx.beginPath();
-    ctx.moveTo(w*.1,h*.34);
-    ctx.bezierCurveTo(w*.22,h*.18, w*.4,h*.15, w*.5,h*.17);
-    ctx.bezierCurveTo(w*.6,h*.15, w*.78,h*.18, w*.9,h*.34);
-    ctx.bezierCurveTo(w*.9,h*.42, w*.5,h*.44, w*.1,h*.42);
-    ctx.closePath(); ctx.stroke();
-}
 
 /* ─── Soleil ─── */
 function drawSun(ctx, w, h) {
@@ -588,37 +542,54 @@ function drawCompass(ctx, w, h) {
 }
 
 function addIllustrations3D(scene) {
-    /* Centre du tombeau en Three.js */
     const cx=52.82, cz=-26.69;
     const meshes = [];
 
-    /* === PALMIERS === */
-    meshes.push(illusPlane(scene, cvTex(256,512,drawPalm), 13,26, cx-58,13,cz+10,  0.18));
-    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.55)), 10,20, cx-72,10,cz-8, 0.25));
-    meshes.push(illusPlane(scene, cvTex(256,512,(c,w,h)=>drawPalm(c,w,h,.4)),   8,16, cx-48, 8,cz-22, 0.1));
-
-    /* === ACACIA === */
-    meshes.push(illusPlane(scene, cvTex(256,256,drawAcacia), 24,24, cx+45,12,cz+42, -0.3));
-
-    /* === SOLEIL (haut dans le ciel) === */
+    /* === SOLEIL === */
     meshes.push(illusPlane(scene, cvTex(256,256,drawSun), 38,38, cx+110,95,cz-90));
 
     /* === VENT / SABLE === */
     meshes.push(illusPlane(scene, cvTex(512,192,drawWind), 55,20, cx+65,28,cz-70, -0.15));
 
-    /* === FLÈCHES + NOTES === */
-    meshes.push(illusPlane(scene,
-        cvTex(384,192,(c,w,h)=>drawNote(c,w,h,'Banco · argile','+paille · bois')),
-        38,18, cx-28,28,cz-5, 0.12));
+    /* === NOTE : Tour 17m === */
     meshes.push(illusPlane(scene,
         cvTex(384,192,(c,w,h)=>drawNote(c,w,h,'Tour · 17 m','~1495 · Askia I')),
-        38,18, cx+30,32,cz-42, -0.25));
+        38,18, cx-28,28,cz-5, 0.12));
 
     /* === ROSE DES VENTS === */
     meshes.push(illusPlane(scene, cvTex(192,192,drawCompass), 18,18, cx+80,9,cz+55, -0.4));
 
-    /* Retourne les meshes pour le fade-in */
     window._illusMeshes = meshes;
+
+    /* === ARBRES (image) — chargement asynchrone === */
+    const img = new Image();
+    img.onload = function() {
+        const cv2 = document.createElement('canvas');
+        cv2.width = img.width; cv2.height = img.height;
+        const ctx2 = cv2.getContext('2d');
+        ctx2.drawImage(img, 0, 0);
+        const id = ctx2.getImageData(0, 0, cv2.width, cv2.height);
+        const d = id.data;
+        /* Fond blanc → transparent, lignes noires → blanches */
+        for (let i = 0; i < d.length; i += 4) {
+            const br = (d[i] + d[i+1] + d[i+2]) / 3;
+            if (br > 210) { d[i+3] = 0; }
+            else { d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=Math.round((210-br)*1.2); }
+        }
+        ctx2.putImageData(id, 0, 0);
+        const tex = new THREE.CanvasTexture(cv2);
+        tex.premultiplyAlpha = true;
+
+        const trees = [
+            illusPlane(scene, tex, 18,30, cx-58,15,cz+10,  0.18),
+            illusPlane(scene, tex, 14,23, cx-72,12,cz-8,   0.25),
+            illusPlane(scene, tex, 11,18, cx-48, 9,cz-22,  0.10),
+            illusPlane(scene, tex, 16,26, cx+45,13,cz+42, -0.30),
+        ];
+        const op = window._illusOpacity || 0;
+        trees.forEach(m => { m.material.opacity = op; window._illusMeshes.push(m); });
+    };
+    img.src = "assets/images/illustration d'arbre.jpg";
 }
 
 function fadeInIllustrations() {
@@ -626,7 +597,8 @@ function fadeInIllustrations() {
     const start = performance.now();
     (function tick(now) {
         const t = Math.min((now - start) / 2000, 1);
-        window._illusMeshes.forEach(m => { m.material.opacity = t * 1.0; });
+        window._illusOpacity = t;
+        window._illusMeshes.forEach(m => { m.material.opacity = t; });
         if (t < 1) requestAnimationFrame(tick);
     })(start);
 }
