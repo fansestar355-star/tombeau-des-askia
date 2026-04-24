@@ -553,9 +553,129 @@
             .btn-enquete, .btn-experience { padding: 10px 18px; font-size: 0.61rem; }
         }
 
+        /* ══════════════════════════════════════════
+           ÉCRAN DE DÉMARRAGE
+        ══════════════════════════════════════════ */
+        #scroll-invite {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(7,5,15,0.95);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+        #scroll-invite.out { opacity: 0; pointer-events: none; }
+
+        .si-logo {
+            width: clamp(90px,16vw,150px);
+            margin-bottom: 36px;
+            filter: drop-shadow(0 0 22px rgba(108,99,255,0.45));
+            animation: siLogoPulse 3s ease-in-out infinite;
+        }
+        @keyframes siLogoPulse {
+            0%,100% { filter: drop-shadow(0 0 18px rgba(108,99,255,0.35)); }
+            50%     { filter: drop-shadow(0 0 36px rgba(108,99,255,0.7))
+                              drop-shadow(0 0 64px rgba(249,213,139,0.2)); }
+        }
+        .si-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem,5vw,3.4rem);
+            color: #f0eaf8;
+            text-align: center;
+            letter-spacing: 0.04em;
+            margin-bottom: 10px;
+        }
+        .si-title em { color: #f9d58b; font-style: normal; }
+        .si-sub {
+            font-size: 0.6rem;
+            letter-spacing: 0.48em;
+            text-transform: uppercase;
+            color: rgba(167,139,250,0.55);
+            margin-bottom: 64px;
+        }
+        .si-mouse-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .si-mouse {
+            width: 28px; height: 44px;
+            border: 2px solid rgba(196,175,248,0.55);
+            border-radius: 14px;
+            position: relative;
+            animation: siMousePulse 2s ease-in-out infinite;
+        }
+        @keyframes siMousePulse {
+            0%,100% { border-color: rgba(196,175,248,0.3); }
+            50%     { border-color: rgba(196,175,248,0.9); }
+        }
+        .si-wheel {
+            width: 4px; height: 8px;
+            background: #c4aff8;
+            border-radius: 2px;
+            position: absolute;
+            top: 6px; left: 50%;
+            transform: translateX(-50%);
+            animation: siWheel 1.7s ease-in-out infinite;
+        }
+        @keyframes siWheel {
+            0%   { top: 6px;  opacity: 1; }
+            80%  { top: 24px; opacity: 0; }
+            100% { top: 6px;  opacity: 0; }
+        }
+        .si-chevrons {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 3px;
+        }
+        .si-chevrons span {
+            display: block; width: 12px; height: 12px;
+            border-right: 2px solid rgba(196,175,248,0.7);
+            border-bottom: 2px solid rgba(196,175,248,0.7);
+            transform: rotate(45deg);
+        }
+        .si-chevrons span:nth-child(1) { animation: siChev 1.5s ease-in-out infinite 0s; }
+        .si-chevrons span:nth-child(2) { animation: siChev 1.5s ease-in-out infinite 0.22s; }
+        .si-chevrons span:nth-child(3) { animation: siChev 1.5s ease-in-out infinite 0.44s; }
+        @keyframes siChev {
+            0%,100% { opacity:0.15; transform: rotate(45deg) translateY(-3px); }
+            50%     { opacity:1;    transform: rotate(45deg) translateY(3px); }
+        }
+        .si-scroll-text {
+            font-size: 0.58rem;
+            letter-spacing: 0.48em;
+            text-transform: uppercase;
+            color: rgba(196,175,248,0.5);
+            margin-top: 16px;
+            animation: siTextBlink 2s ease-in-out infinite;
+        }
+        @keyframes siTextBlink {
+            0%,100% { opacity: 0.35; }
+            50%     { opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════
+     ÉCRAN DE DÉMARRAGE — disparaît au premier scroll
+══════════════════════════════════════════════ -->
+<div id="scroll-invite">
+  <img src="assets/images/logo-kabakoo.png" class="si-logo" alt="Kabakoo" />
+  <h2 class="si-title">Tombeau des <em>Askia</em></h2>
+  <p class="si-sub">Empire Songhaï · 1495 · Gao, Mali</p>
+  <div class="si-mouse-wrap">
+    <div class="si-mouse"><div class="si-wheel"></div></div>
+    <div class="si-chevrons"><span></span><span></span><span></span></div>
+    <p class="si-scroll-text">Défiler pour explorer</p>
+  </div>
+</div>
 
 <div class="scene">
 
@@ -679,6 +799,7 @@ const CHAPTERS = [
 ══════════════════════════════════════════════ */
 let current       = 0;
 let transitioning = false;
+let pageStarted   = false;
 
 const mv        = document.getElementById('mv');
 const heroGao   = document.getElementById('hero-gao');
@@ -801,7 +922,7 @@ gsap.set(chDesc, { opacity: 0, y: 16 });
 gsap.set(chDivider, { width: 0, opacity: 0 });
 gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
 
-const intro = gsap.timeline({});
+const intro = gsap.timeline({ paused: true, onComplete: () => { pageStarted = true; } });
 intro
     .to(heroGao, { opacity: 0.78, y: 0, duration: 1.0, ease: 'power3.out' })
     .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
@@ -816,7 +937,7 @@ intro
 ══════════════════════════════════════════════ */
 let wheelCooldown = false;
 window.addEventListener('wheel', (e) => {
-    if (wheelCooldown || transitioning) return;
+    if (!pageStarted || wheelCooldown || transitioning) return;
     wheelCooldown = true;
     /* Attend la fin de l'animation + 400ms tampon anti-inertie */
     const waitDone = setInterval(() => {
@@ -835,7 +956,7 @@ let touchStartY = 0;
 let touchCooldown = false;
 window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
 window.addEventListener('touchend', e => {
-    if (touchCooldown || transitioning) return;
+    if (!pageStarted || touchCooldown || transitioning) return;
     const delta = touchStartY - e.changedTouches[0].clientY;
     if (Math.abs(delta) < 30) return;
     touchCooldown = true;
@@ -880,6 +1001,26 @@ function switchModel(idx) {
 
 document.getElementById('arrow-right').addEventListener('click', () => switchModel(modelIdx === 0 ? 1 : 0));
 document.getElementById('arrow-left').addEventListener('click',  () => switchModel(modelIdx === 0 ? 1 : 0));
+
+/* ══════════════════════════════════════════════
+   PREMIER SCROLL → ferme l'écran de démarrage
+   et lance l'animation GSAP d'entrée
+══════════════════════════════════════════════ */
+(function () {
+    function onFirstInteraction() {
+        window.removeEventListener('wheel',      onFirstInteraction);
+        window.removeEventListener('touchstart', onFirstInteraction);
+        window.removeEventListener('keydown',    onFirstInteraction);
+        const si = document.getElementById('scroll-invite');
+        if (!si) return;
+        si.classList.add('out');
+        setTimeout(() => { si.style.display = 'none'; }, 800);
+        intro.play();
+    }
+    window.addEventListener('wheel',      onFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', onFirstInteraction, { passive: true });
+    window.addEventListener('keydown',    onFirstInteraction);
+})();
 
 </script>
 </body>
