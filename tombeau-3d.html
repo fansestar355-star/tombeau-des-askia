@@ -348,7 +348,9 @@ const ANN_DATA = [
     { mesh:'Espace_des_hommes', name:'Espace des Hommes',  sub:'Mosquée', side:'right' },
     { mesh:'Branche',           name:'Les Piquets',         sub:'Bois de rônier', side:'right' },
     { mesh:'Haute_parleur',     name:'Minaret',             sub:'Appel à la prière', side:'left' },
-    { mesh:'cimtière',          name:'Cimetière',           sub:'Askia Mohamed I', side:'right' },
+    /* cimtière : position fixe depuis Blender (101.98, 62.18, 1.12) → Three.js */
+    { mesh:null, pos: new THREE.Vector3(101.98, 1.12, -62.18),
+      name:'Cimetière', sub:'Askia Mohamed I', side:'left' },
 ];
 
 let _annotations = [];
@@ -358,15 +360,20 @@ function buildAnnotations(scene3d, camera, renderer) {
     container.innerHTML = '';
     _annotations = [];
 
-    ANN_DATA.forEach(({ mesh, name, sub, side }) => {
-        let found = null;
-        scene3d.traverse(obj => { if (obj.name.trim() === mesh.trim()) found = obj; });
-        if (!found) return;
-
-        const box3 = new THREE.Box3().setFromObject(found);
-        const pos  = new THREE.Vector3();
-        box3.getCenter(pos);
-        pos.y = box3.max.y;
+    ANN_DATA.forEach(({ mesh, pos, name, sub, side }) => {
+        /* Position : depuis le mesh OU position fixe (cimtière) */
+        let annPos;
+        if (mesh) {
+            let found = null;
+            scene3d.traverse(obj => { if (obj.name.trim() === mesh.trim()) found = obj; });
+            if (!found) return;
+            const box3 = new THREE.Box3().setFromObject(found);
+            annPos = new THREE.Vector3();
+            box3.getCenter(annPos);
+            annPos.y = box3.max.y;
+        } else {
+            annPos = pos.clone();
+        }
 
         const wrap = document.createElement('div');
         wrap.className = 'ann';
@@ -394,7 +401,7 @@ function buildAnnotations(scene3d, camera, renderer) {
         wrap.appendChild(label);
 
         container.appendChild(wrap);
-        _annotations.push({ wrap, lv, lh, label, pos, side });
+        _annotations.push({ wrap, lv, lh, label, pos: annPos, side });
     });
 
     window._annotations = _annotations;
