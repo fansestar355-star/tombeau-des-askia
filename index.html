@@ -433,18 +433,62 @@
         /* ══ CHAPITRE 4 — OVERLAY PYRAMIDE ══ */
         #ch4-overlay {
             position: fixed; inset: 0;
-            z-index: 6; pointer-events: none;
-            opacity: 0; transition: opacity 0.8s ease;
+            z-index: 4; pointer-events: none;
+            opacity: 0; transition: opacity 1s ease;
         }
         #ch4-overlay.visible { opacity: 1; }
 
-        /* Grille blueprint */
+        /* Grille dorée */
         .ch4-grid {
             position: absolute; inset: 0;
             background-image:
-                linear-gradient(rgba(249,213,139,0.032) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(249,213,139,0.032) 1px, transparent 1px);
+                linear-gradient(rgba(249,213,139,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(249,213,139,0.04) 1px, transparent 1px);
             background-size: 56px 56px;
+        }
+
+        /* Pyramide */
+        .ch4-pyramid {
+            position: absolute;
+            right: -4%;
+            bottom: 0;
+            width: 68%;
+            max-width: 820px;
+            opacity: 0.82;
+            filter: sepia(0.25) saturate(1.1) brightness(0.92);
+            transform-origin: bottom right;
+        }
+
+        /* Lueur dorée derrière la pyramide */
+        .ch4-glow {
+            position: absolute;
+            right: 0; bottom: 0;
+            width: 70%; height: 80%;
+            background: radial-gradient(ellipse 65% 55% at 65% 75%,
+                rgba(249,213,139,0.18) 0%,
+                rgba(180,120,40,0.08)  40%,
+                transparent 70%);
+            filter: blur(40px);
+        }
+
+        /* Ligne de connexion — trait doré vertical gauche */
+        .ch4-line {
+            position: absolute;
+            left: 46%;
+            top: 15%;
+            bottom: 10%;
+            width: 1px;
+            background: linear-gradient(to bottom,
+                transparent,
+                rgba(249,213,139,0.35) 25%,
+                rgba(249,213,139,0.35) 75%,
+                transparent);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .ch4-pyramid { width: 100%; right: 0; bottom: 0; opacity: 0.25; }
+            .ch4-line    { display: none; }
         }
 
 
@@ -741,6 +785,14 @@
 </div>
 
 
+<!-- ══ OVERLAY CHAPITRE 4 : PYRAMIDES ══ -->
+<div id="ch4-overlay">
+    <div class="ch4-grid"></div>
+    <div class="ch4-glow"></div>
+    <div class="ch4-line"></div>
+    <img class="ch4-pyramid" src="assets/images/pyramide.png" alt="Pyramides de Gizeh" />
+</div>
+
 <!-- Scroll progress bar droite -->
 <div class="scroll-hint" id="scroll-hint">
     <div class="scroll-chevrons">
@@ -785,6 +837,15 @@ const CHAPTERS = [
         btn:    false,
         year:   "1493 — 1528 · Apogée"
     },
+    {
+        gao:    "PYRAMIDES",
+        tag:    "Héritage millénaire",
+        camera: "25deg 86deg 2.5m",
+        lines:  ["L'Écho des", "Pyramides"],
+        desc:   "Surnommé «la pyramide du Sahel», le Tombeau des Askia perpétue une tradition bâtisseuse vieille de 5 000 ans. Sa forme pyramidale en terre crue dialogue avec les grandes architectures sacrées d'Afrique.",
+        btn:    false,
+        year:   "~3000 av. J.-C. — 1495 · Gao"
+    },
 ];
 
 /* ══════════════════════════════════════════════
@@ -805,6 +866,15 @@ const scrollHint  = document.getElementById('scroll-hint');
 const modelToggle = document.querySelector('.model-toggle');
 const sbProgress  = document.getElementById('sb-progress');
 const sbDot       = document.getElementById('sb-dot');
+const ch4Overlay  = document.getElementById('ch4-overlay');
+
+function setCh4(active) {
+    ch4Overlay.classList.toggle('visible', active);
+    /* Efface le modèle 3D sur le chapitre pyramides */
+    mv.style.transition = 'opacity 0.9s ease';
+    mv.style.opacity    = active ? '0' : '';
+    document.querySelector('.bg-glow').style.opacity = active ? '0' : '';
+}
 const sbChevrons  = document.querySelector('.scroll-chevrons');
 
 function updateScrollBar(idx) {
@@ -884,6 +954,7 @@ function goTo(index) {
         dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index));
         current = index;
         updateScrollBar(index);
+        setCh4(index === 3);
     });
 
     /* ─── ENTRÉE ─── */
