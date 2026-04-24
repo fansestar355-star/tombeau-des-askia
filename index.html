@@ -284,6 +284,11 @@
             display: flex;
             align-items: center;
             gap: 14px;
+            transition: opacity 0.5s ease;
+        }
+        body.ch4 .model-toggle {
+            opacity: 0;
+            pointer-events: none;
         }
         .toggle-label {
             font-size: 0.62rem;
@@ -888,10 +893,20 @@ const ch4Overlay  = document.getElementById('ch4-overlay');
 function setCh4(active) {
     ch4Overlay.classList.toggle('visible', active);
     document.body.classList.toggle('ch4', active);
-    /* Efface le modèle 3D sur le chapitre pyramides */
     mv.style.transition = 'opacity 0.9s ease';
     mv.style.opacity    = active ? '0' : '';
     document.querySelector('.bg-glow').style.opacity = active ? '0' : '';
+
+    if (active) {
+        /* Positions de départ */
+        gsap.set('.ch4-pyramid', { x: 80,  opacity: 0 });
+        gsap.set('.ch4-glow',    { opacity: 0 });
+        gsap.set('.ch4-line',    { scaleY: 0, opacity: 0, transformOrigin: 'top center' });
+        /* Animations d'entrée */
+        gsap.to('.ch4-glow',    { opacity: 1,    duration: 1.1, ease: 'power2.out', delay: 0.2 });
+        gsap.to('.ch4-pyramid', { x: 0, opacity: 0.82, duration: 1.2, ease: 'power3.out', delay: 0.35 });
+        gsap.to('.ch4-line',    { scaleY: 1, opacity: 1, duration: 1.0, ease: 'power2.out', delay: 0.6 });
+    }
 }
 const sbChevrons  = document.querySelector('.scroll-chevrons');
 
