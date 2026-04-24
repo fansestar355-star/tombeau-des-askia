@@ -219,6 +219,23 @@
         }
         #detail-back:hover { color:var(--gold); }
 
+        /* ── Bouton mode sketch ── */
+        #sketch-btn {
+            position:fixed; top:22px; left:24px; z-index:60;
+            font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase;
+            color:rgba(249,213,139,0.7); text-decoration:none;
+            border:1px solid rgba(249,213,139,0.25); padding:9px 18px; border-radius:20px;
+            backdrop-filter:blur(6px); background:rgba(7,5,15,0.35);
+            opacity:0; transition:opacity 1s ease, background 0.2s, color 0.2s, border-color 0.2s;
+            cursor:pointer;
+        }
+        #sketch-btn.on  { opacity:1; }
+        #sketch-btn.active {
+            background:rgba(249,213,139,0.15); border-color:rgba(249,213,139,0.6);
+            color:var(--gold);
+        }
+        #sketch-btn:hover { background:rgba(249,213,139,0.12); }
+
         /* Dot cliquable */
         .ann { cursor:pointer; }
         .ann-dot { transition:transform 0.2s, background 0.2s; }
@@ -263,6 +280,7 @@
 
 <div id="annotations"></div>
 <a href="index.html" id="back-btn">← Retour</a>
+<button id="sketch-btn" onclick="toggleSketch()">✏ Mode Dessin</button>
 
 <!-- Barre slider -->
 <div id="toggle-bar">
@@ -308,7 +326,11 @@ function loadScript(src, cb) {
 loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js', () =>
 loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js', () =>
 loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js', initScene))));
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js', initScene))))))));
 
 /* ═══════════════════════════════════════════════════════════
    SCÈNE THREE.JS
@@ -432,16 +454,134 @@ function initScene() {
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    /* ── Shader dessin au crayon ── */
+    const SketchShader = {
+        uniforms: {
+            tDiffuse:      { value: null },
+            resolution:    { value: new THREE.Vector2(W, H) },
+            strength:      { value: 0.0 }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+        `,
+        fragmentShader: `
+            uniform sampler2D tDiffuse;
+            uniform vec2 resolution;
+            uniform float strength;
+            varying vec2 vUv;
+
+            float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
+
+            float sobel(vec2 uv){
+                vec2 px = 1.8 / resolution;
+                float tl=luma(texture2D(tDiffuse,uv+vec2(-px.x, px.y)).rgb);
+                float tm=luma(texture2D(tDiffuse,uv+vec2(0.0,   px.y)).rgb);
+                float tr=luma(texture2D(tDiffuse,uv+vec2( px.x, px.y)).rgb);
+                float ml=luma(texture2D(tDiffuse,uv+vec2(-px.x, 0.0 )).rgb);
+                float mr=luma(texture2D(tDiffuse,uv+vec2( px.x, 0.0 )).rgb);
+                float bl=luma(texture2D(tDiffuse,uv+vec2(-px.x,-px.y)).rgb);
+                float bm=luma(texture2D(tDiffuse,uv+vec2(0.0,  -px.y)).rgb);
+                float br=luma(texture2D(tDiffuse,uv+vec2( px.x,-px.y)).rgb);
+                float gx = -tl -2.0*ml -bl +tr +2.0*mr +br;
+                float gy =  tl +2.0*tm +tr -bl -2.0*bm -br;
+                return clamp(sqrt(gx*gx+gy*gy)*9.0, 0.0, 1.0);
+            }
+
+            float hatch(vec2 uv, float angle, float freq){
+                float c=cos(angle), s=sin(angle);
+                return fract((c*uv.x - s*uv.y) * freq);
+            }
+
+            void main(){
+                vec4 col  = texture2D(tDiffuse, vUv);
+                float lum = luma(col.rgb);
+                float edge = sobel(vUv);
+
+                /* Hachures selon luminosité */
+                vec2 huv = vUv * resolution / 5.0;
+                float h1 = step(0.55, hatch(huv, 0.785, 1.0));   /* 45° */
+                float h2 = step(0.55, hatch(huv, 2.356, 1.0));   /* 135° */
+                float hatching = 0.0;
+                if(lum < 0.75) hatching += h1 * (0.75-lum) * 1.1;
+                if(lum < 0.45) hatching += h2 * (0.45-lum) * 1.4;
+                hatching = clamp(hatching, 0.0, 1.0);
+
+                /* Bruit léger papier */
+                float noise = fract(sin(dot(vUv, vec2(127.1,311.7))) * 43758.5) * 0.03;
+
+                float sketch = clamp(1.0 - edge - hatching + noise, 0.0, 1.0);
+                vec3 sketchCol = vec3(sketch * 0.92 + 0.08);   /* jamais noir pur */
+
+                gl_FragColor = vec4(mix(col.rgb, sketchCol, strength), 1.0);
+            }
+        `
+    };
+
+    /* ── EffectComposer ── */
+    const composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    const sketchPass = new THREE.ShaderPass(SketchShader);
+    sketchPass.renderToScreen = true;
+    composer.addPass(sketchPass);
+
+    window._composer   = composer;
+    window._sketchPass = sketchPass;
+    window._sketchOn   = false;
+
+    /* Resize aussi le composer */
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+        sketchPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+    });
+
     /* Boucle */
     (function animate() {
         requestAnimationFrame(animate);
         controls.update();
-        renderer.render(scene, camera);
+        composer.render();
         updateAnnotations();
     })();
 
     window._controls = controls;
     window._camera   = camera;
+    window._scene    = scene;
+}
+
+/* ── Toggle mode dessin ── */
+function toggleSketch() {
+    window._sketchOn = !window._sketchOn;
+    const btn = document.getElementById('sketch-btn');
+    btn.classList.toggle('active', window._sketchOn);
+
+    const pass = window._sketchPass;
+    if (!pass) return;
+
+    const target = window._sketchOn ? 1.0 : 0.0;
+    const start  = pass.uniforms.strength.value;
+    const t0     = performance.now();
+    const dur    = 800;
+
+    /* Fond scène */
+    const scene = window._scene;
+    if (window._sketchOn && scene) {
+        scene.background = new THREE.Color(0xf5f0e8);
+        scene.fog = null;
+    }
+
+    (function tick(now) {
+        const t = Math.min((now - t0) / dur, 1);
+        const e = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        pass.uniforms.strength.value = start + (target - start) * e;
+        if (t < 1) requestAnimationFrame(tick);
+        else if (!window._sketchOn && scene) {
+            scene.background = new THREE.Color(0x07050f);
+            scene.fog = new THREE.Fog(0x07050f, 600, 1400);
+        }
+    })(t0);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -918,6 +1058,7 @@ function revealHUD() {
     document.getElementById('info-panel').classList.add('on');
     document.getElementById('back-btn').classList.add('on');
     document.getElementById('toggle-bar').classList.add('on');
+    document.getElementById('sketch-btn').classList.add('on');
 }
 </script>
 </body>
