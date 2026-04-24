@@ -710,11 +710,20 @@ function zoomToAnnotation(pos) {
     const dur = 1400, t0 = performance.now();
     function ease(t) { return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
     (function tick(now) {
-        const e = ease(Math.min((now-t0)/dur, 1));
+        const t = Math.min((now-t0)/dur, 1);
+        const e = ease(t);
         cam.position.lerpVectors(startPos, endPos, e);
         ctrl.target.lerpVectors(startTgt, endTgt, e);
         ctrl.update();
-        if (e < 1) requestAnimationFrame(tick);
+        if (t < 1) {
+            requestAnimationFrame(tick);
+        } else {
+            /* Rotation lente autour de la partie sélectionnée */
+            ctrl.target.copy(endTgt);
+            ctrl.autoRotate      = true;
+            ctrl.autoRotateSpeed = 0.6;
+            ctrl.update();
+        }
     })(t0);
 }
 
@@ -730,7 +739,26 @@ function openDetail(key, pos) {
 
 function closeDetail() {
     document.getElementById('detail-panel').classList.remove('on');
-    if (window._controls) window._controls.autoRotate = true;
+    const ctrl = window._controls;
+    const cam  = window._camera;
+    if (!ctrl || !cam) return;
+
+    /* Retour doux vers le centre du modèle */
+    const center = window._modelCenter || new THREE.Vector3(52.82, 0, -26.69);
+    const startTgt = ctrl.target.clone();
+    ctrl.autoRotate = false;
+    const dur = 1200, t0 = performance.now();
+    function ease(t) { return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+    (function tick(now) {
+        const e = ease(Math.min((now-t0)/dur, 1));
+        ctrl.target.lerpVectors(startTgt, center, e);
+        ctrl.update();
+        if (e < 1) requestAnimationFrame(tick);
+        else {
+            ctrl.autoRotate      = true;
+            ctrl.autoRotateSpeed = 0.4;
+        }
+    })(t0);
 }
 
 /* ═══════════════════════════════════════════════════════════
