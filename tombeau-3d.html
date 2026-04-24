@@ -241,6 +241,16 @@
         .ann-dot { transition:transform 0.2s, background 0.2s; }
         .ann:hover .ann-dot { transform:translate(-50%,-50%) scale(1.8); background:#fff; }
 
+        /* ── Mode dessin : annotations sombres sur fond clair ── */
+        body.sketch-mode .ann-dot { background:#2a1a00; }
+        body.sketch-mode .ann-svg .ann-line-v,
+        body.sketch-mode .ann-svg .ann-line-h { stroke:rgba(30,15,0,0.7); stroke-width:1px; }
+        body.sketch-mode .ann-label-name { color:rgba(30,15,0,0.9); }
+        body.sketch-mode .ann-label-sub  { color:rgba(30,15,0,0.5); }
+        body.sketch-mode .ann:hover .ann-dot { background:#000; }
+        body.sketch-mode #toggle-bar { filter:invert(1) brightness(0.4); }
+        body.sketch-mode #sketch-btn { color:#2a1a00; border-color:rgba(30,15,0,0.4); background:rgba(245,240,232,0.6); }
+
         @media (max-width:768px) {
             #hud-data { display:none; }
             #info-panel { padding:40px 20px 24px; }
@@ -485,7 +495,7 @@ function initScene() {
                 float br=luma(texture2D(tDiffuse,uv+vec2( px.x,-px.y)).rgb);
                 float gx = -tl -2.0*ml -bl +tr +2.0*mr +br;
                 float gy =  tl +2.0*tm +tr -bl -2.0*bm -br;
-                return clamp(sqrt(gx*gx+gy*gy)*4.5, 0.0, 1.0);
+                return clamp(sqrt(gx*gx+gy*gy)*2.2, 0.0, 1.0);
             }
 
             float hatch(vec2 uv, float angle, float freq){
@@ -503,9 +513,9 @@ function initScene() {
                 float h1 = step(0.6, hatch(huv, 0.785, 1.0));
                 float h2 = step(0.6, hatch(huv, 2.356, 1.0));
                 float hatching = 0.0;
-                if(lum < 0.55) hatching += h1 * (0.55-lum) * 0.7;
-                if(lum < 0.30) hatching += h2 * (0.30-lum) * 0.8;
-                hatching = clamp(hatching, 0.0, 0.55);
+                if(lum < 0.40) hatching += h1 * (0.40-lum) * 0.5;
+                if(lum < 0.20) hatching += h2 * (0.20-lum) * 0.5;
+                hatching = clamp(hatching, 0.0, 0.30);
 
                 /* Bruit papier discret */
                 float noise = fract(sin(dot(vUv, vec2(127.1,311.7))) * 43758.5) * 0.02;
@@ -568,11 +578,13 @@ function toggleSketch() {
     const t0     = performance.now();
     const dur    = 800;
 
-    /* Fond scène */
+    /* Fond scène + classe CSS annotations */
     const scene = window._scene;
-    if (window._sketchOn && scene) {
-        scene.background = new THREE.Color(0xf5f0e8);
-        scene.fog = null;
+    if (window._sketchOn) {
+        document.body.classList.add('sketch-mode');
+        if (scene) { scene.background = new THREE.Color(0xf5f0e8); scene.fog = null; }
+    } else {
+        document.body.classList.remove('sketch-mode');
     }
 
     (function tick(now) {
