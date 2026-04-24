@@ -257,18 +257,16 @@ function initScene() {
         /* Réduit la taille du modèle sur la carte */
         model.scale.set(0.5, 0.5, 0.5);
 
-        /* Centre le modèle sur le point GPS du tombeau = origine satellite (0,0) */
+        /* Pose la base sur la carte sans toucher aux positions Blender */
         const box = new THREE.Box3().setFromObject(model);
-        const mid = new THREE.Vector3();
-        box.getCenter(mid);
-        model.position.x -= mid.x;   /* centre X sur l'axe GPS */
-        model.position.z -= mid.z;   /* centre Z sur l'axe GPS */
-        model.position.y -= box.min.y; /* pose la base sur la carte */
+        model.position.y -= box.min.y;
 
         scene.add(model);
 
-        /* Caméra centrée sur le modèle */
-        const center = new THREE.Vector3(0, 0, 0);
+        /* Centre caméra sur le centre réel du modèle */
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        center.y = 0;
         controls.target.copy(center);
         window._modelCenter = center.clone();
         controls.update();
@@ -278,7 +276,7 @@ function initScene() {
 
     /* OrbitControls — identique à saydnaya.amnesty.org */
     const controls = new THREE.OrbitControls(camera, canvas);
-    controls.target.set(0, 0, 0);
+    controls.target.set(25, 0, -13); /* centre approx du modèle en Three.js */
     controls.minPolarAngle   = 0.7;   /* ~40° — pas trop haut */
     controls.maxPolarAngle   = 1.1;   /* ~63° — pas de vue rasante */
     controls.enablePan       = false;
@@ -334,7 +332,7 @@ function flyIn() {
     if (!cam || !ctrl) return;
 
     /* Centre réel du modèle (calculé après chargement GLB) */
-    const c = window._modelCenter || new THREE.Vector3(0, 0, 0);
+    const c = window._modelCenter || new THREE.Vector3(25, 0, -13);
 
     /* Position de départ : vue haute (avant fly-in) */
     cam.position.set(c.x, 280, c.z + 280);
