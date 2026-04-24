@@ -261,42 +261,17 @@
     .i-corner.bl { bottom: 28px; left: 28px; border-width: 0 0 1.5px 1.5px; }
     .i-corner.br { bottom: 28px; right: 28px; border-width: 0 1.5px 1.5px 0; }
 
-    /* Slides — transition CSS (plus fiable que keyframes + inline styles) */
+    /* Slides — display + transition ici, opacity/transform gérés en JS */
     .intro-slide {
       position: absolute;
       inset: 0;
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      /* État initial : invisible + décalé vers le bas */
-      opacity: 0;
-      transform: translateY(32px);
       transition: opacity 0.85s cubic-bezier(0.22,1,0.36,1),
                   transform 0.85s cubic-bezier(0.22,1,0.36,1);
-    }
-    /* Slide logo : zoom au lieu de translation */
-    #slide-logo {
-      transform: scale(0.84);
-    }
-    /* État visible */
-    .intro-slide.show {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: all;
-    }
-    /* État sortie : monte vers le haut */
-    .intro-slide.out {
-      opacity: 0;
-      transform: translateY(-32px);
-      transition: opacity 0.65s ease,
-                  transform 0.65s ease;
-      pointer-events: none;
-    }
-    /* Désactiver la transition au reset pour éviter le flash */
-    .intro-slide.no-transition {
-      transition: none !important;
     }
 
     /* ── Slide 1 : Logo Kabakoo ── */
@@ -632,9 +607,9 @@
   }
 
   const SLIDES    = ['slide-logo', 'slide-about', 'slide-controls'];
-  const DURATIONS = [3000, 5000, 5000]; // ms affichage par slide
-  const T_OUT     = 650;                // ms pour la transition de sortie
-  let   current   = -1;
+  const DURATIONS = [3000, 5000, 5000];
+  const T_IN      = 850;   // ms transition entrée
+  const T_OUT     = 650;   // ms transition sortie
   let   timer     = null;
   let   ended     = false;
 
@@ -645,19 +620,28 @@
     });
   }
 
-  /* Affiche un slide : ajoute la classe .show via transition CSS */
+  /* ── Affiche un slide avec styles inline (0 conflit CSS) ── */
   function showSlide(idx) {
     if (ended) return;
-    current = idx;
     setDot(idx);
+
     var el = document.getElementById(SLIDES[idx]);
 
-    /* Force le navigateur à recalculer le style AVANT d'ajouter .show */
-    void el.offsetWidth;
-    el.classList.add('show');
-    el.classList.remove('out');
+    /* 1. Rendre visible et placer à l'état initial */
+    el.style.display    = 'flex';
+    el.style.opacity    = '0';
+    el.style.transform  = (idx === 0) ? 'scale(0.82)' : 'translateY(34px)';
+    el.style.pointerEvents = 'none';
 
-    /* Planifie la sortie */
+    /* 2. Forcer le reflow pour que le navigateur voit l'état initial */
+    void el.offsetWidth;
+
+    /* 3. Lancer la transition vers l'état final */
+    el.style.opacity   = '1';
+    el.style.transform = (idx === 0) ? 'scale(1)' : 'translateY(0)';
+    el.style.pointerEvents = 'all';
+
+    /* 4. Planifier la sortie après la durée d'affichage */
     timer = setTimeout(function () {
       hideSlide(el, function () {
         var next = idx + 1;
@@ -667,53 +651,51 @@
     }, DURATIONS[idx]);
   }
 
-  /* Cache un slide : ajoute .out puis rappelle cb après la transition */
+  /* ── Cache un slide avec la transition de sortie ── */
   function hideSlide(el, cb) {
-    el.classList.add('out');
-    el.classList.remove('show');
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(-34px)';
+    el.style.pointerEvents = 'none';
+
     setTimeout(function () {
-      /* Remet le slide à son état neutre (sans transition pour éviter le flash) */
-      el.classList.add('no-transition');
-      el.classList.remove('out');
-      void el.offsetWidth;
-      el.classList.remove('no-transition');
+      el.style.display = 'none';
+      /* Nettoyer les styles inline pour le prochain affichage éventuel */
+      el.style.opacity = el.style.transform = el.style.pointerEvents = '';
       if (cb) cb();
     }, T_OUT);
   }
 
-  /* Ferme l'intro et révèle l'expérience */
+  /* ── Ferme l'overlay et révèle l'expérience ── */
   function endIntro() {
     if (ended) return;
     ended = true;
     clearTimeout(timer);
 
     var overlay = document.getElementById('intro-overlay');
-    overlay.style.animation = 'overlayFadeOut 0.9s ease forwards';
+    overlay.style.transition = 'opacity 0.9s ease';
+    overlay.style.opacity    = '0';
 
     setTimeout(function () {
       overlay.style.display = 'none';
       window.introComplete  = true;
-      /* Si le modèle 3D est déjà chargé, on masque le loading */
+
+      var ld = document.getElementById('loading');
+      if (!ld) return;
       if (window.modelLoadComplete) {
-        var ld = document.getElementById('loading');
-        if (ld) { ld.classList.remove('visible'); ld.classList.add('hidden'); }
-      }
-      /* Sinon : on révèle le loading screen qui tourne en arrière-plan */
-      else {
-        var ld = document.getElementById('loading');
-        if (ld) ld.classList.add('visible');
+        /* Modèle prêt : passer directement à l'expérience */
+        ld.classList.remove('visible');
+        ld.classList.add('hidden');
+      } else {
+        /* Modèle en cours : montrer la barre de chargement */
+        ld.classList.add('visible');
       }
     }, 900);
   }
 
   window.skipIntro = endIntro;
 
-  /* ── Lancement : attendre que le DOM soit peint ── */
-  requestAnimationFrame(function () {
-    requestAnimationFrame(function () {
-      showSlide(0);
-    });
-  });
+  /* ── Lancement après le premier paint du navigateur ── */
+  setTimeout(function () { showSlide(0); }, 80);
 })();
 </script>
 
@@ -943,8 +925,9 @@ gltfLoader.load(
       }
     });
 
-    // Positionner au centre, debout sur le sol
+    // Positionner au centre, dos vers la caméra (rotation 180° = face vers -Z)
     character.position.set(0, 0, 0);
+    character.rotation.y = Math.PI;
     scene.add(character);
 
     // Collecter les bones + pose de repos pour l'idle
