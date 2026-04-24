@@ -1131,8 +1131,9 @@ const CHAPTERS = [
 /* ══════════════════════════════════════════════
    ÉTAT
 ══════════════════════════════════════════════ */
-let current     = 0;
+let current       = 0;
 let transitioning = false;
+let pageStarted   = false;   /* true une fois l'animation d'entrée terminée */
 
 const mv        = document.getElementById('mv');
 const heroGao   = document.getElementById('hero-gao');
@@ -1255,7 +1256,7 @@ gsap.set(chDesc, { opacity: 0, y: 16 });
 gsap.set(chDivider, { width: 0, opacity: 0 });
 gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
 
-const intro = gsap.timeline({ paused: true });
+const intro = gsap.timeline({ paused: true, onComplete: () => { pageStarted = true; } });
 intro
     .to(heroGao, { opacity: 0.78, y: 0, duration: 1.0, ease: 'power3.out' })
     .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
@@ -1270,8 +1271,8 @@ intro
 ══════════════════════════════════════════════ */
 let wheelCooldown = false;
 window.addEventListener('wheel', (e) => {
-    /* Bloque si animation en cours OU si cooldown actif */
-    if (wheelCooldown || transitioning) return;
+    /* Bloque tant que l'animation d'entrée n'est pas finie */
+    if (!pageStarted || wheelCooldown || transitioning) return;
     wheelCooldown = true;
     /* Attend la fin de l'animation + 400ms tampon anti-inertie */
     const waitDone = setInterval(() => {
@@ -1290,7 +1291,7 @@ let touchStartY = 0;
 let touchCooldown = false;
 window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
 window.addEventListener('touchend', e => {
-    if (touchCooldown || transitioning) return;
+    if (!pageStarted || touchCooldown || transitioning) return;
     const delta = touchStartY - e.changedTouches[0].clientY;
     if (Math.abs(delta) < 30) return;
     touchCooldown = true;
