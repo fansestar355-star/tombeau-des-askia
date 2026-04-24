@@ -189,17 +189,17 @@ function initScene() {
     scene.background = new THREE.Color(0x07050f);
     scene.fog        = new THREE.Fog(0x07050f, 600, 1400);
 
-    /* Caméra — vue de dessus légèrement inclinée, centrée sur le modèle */
-    const camera = new THREE.PerspectiveCamera(52, W / H, 1, 3000);
-    camera.position.set(52, 280, 320);
+    /* Caméra — FOV 40° (télescopique, comme Saydnaya) */
+    const camera = new THREE.PerspectiveCamera(40, W / H, 1, 3000);
+    camera.position.set(0, 280, 280);
 
     /* Éclairage identique au Material Preview de Blender
        HemisphereLight = simulation HDRI (ciel + sol)
        DirectionalLight = soleil principal */
-    const hemi = new THREE.HemisphereLight(0xddeeff, 0xffe0b0, 0.9);
+    const hemi = new THREE.HemisphereLight(0xddeeff, 0xffe0b0, 0.5);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.9);
     sun.position.set(80, 200, 100);
     sun.castShadow           = true;
     sun.shadow.mapSize.width = 2048;
@@ -213,7 +213,7 @@ function initScene() {
     sun.shadow.bias          = -0.001;
     scene.add(sun);
 
-    const fill = new THREE.DirectionalLight(0xc8d8ff, 0.4);
+    const fill = new THREE.DirectionalLight(0xc8d8ff, 0.25);
     fill.position.set(-60, 80, -80);
     scene.add(fill);
 
@@ -244,8 +244,9 @@ function initScene() {
                 obj.castShadow    = true;
                 obj.receiveShadow = true;
                 if (obj.material) {
-                    obj.material.envMapIntensity = 0;   /* pas de reflet env */
-                    obj.material.needsUpdate     = true;
+                    obj.material.envMapIntensity  = 0;
+                    obj.material.emissiveIntensity = 0;  /* supprime toute émission */
+                    obj.material.needsUpdate       = true;
                     if (obj.material.map) {
                         obj.material.map.encoding  = THREE.sRGBEncoding;
                         obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -253,30 +254,42 @@ function initScene() {
                 }
             }
         });
-        /* Pose la base exactement sur la carte */
+        /* Réduit la taille du modèle sur la carte */
+        model.scale.set(0.5, 0.5, 0.5);
+
+        /* Centre le modèle sur le point GPS du tombeau = origine satellite (0,0) */
         const box = new THREE.Box3().setFromObject(model);
-        model.position.y -= box.min.y;
+        const mid = new THREE.Vector3();
+        box.getCenter(mid);
+        model.position.x -= mid.x;   /* centre X sur l'axe GPS */
+        model.position.z -= mid.z;   /* centre Z sur l'axe GPS */
+        model.position.y -= box.min.y; /* pose la base sur la carte */
+
         scene.add(model);
 
-        /* Cible OrbitControls = centre du modèle */
-        const center = new THREE.Vector3();
-        box.getCenter(center);
-        center.y = 0;
+        /* Caméra centrée sur le modèle */
+        const center = new THREE.Vector3(0, 0, 0);
         controls.target.copy(center);
+        window._modelCenter = center.clone();
         controls.update();
 
         window._modelLoaded = true;
     }, undefined, err => console.warn('GLB:', err));
 
-    /* OrbitControls */
+    /* OrbitControls — identique à saydnaya.amnesty.org */
     const controls = new THREE.OrbitControls(camera, canvas);
-    controls.target.set(52, 0, 46);
-    controls.minPolarAngle   = Math.PI / 8;
-    controls.maxPolarAngle   = Math.PI / 2.1;
-    controls.minDistance     = 40;
-    controls.maxDistance     = 700;
+    controls.target.set(0, 0, 0);
+    controls.minPolarAngle   = 0.7;   /* ~40° — pas trop haut */
+    controls.maxPolarAngle   = 1.1;   /* ~63° — pas de vue rasante */
+    controls.enablePan       = false;
+    controls.enableZoom      = true;
+    controls.zoomSpeed       = 0.2;
+    controls.minDistance     = 60;
+    controls.maxDistance     = 450;
+    controls.autoRotate      = true;
+    controls.autoRotateSpeed = 0.4;   /* rotation lente et continue */
     controls.enableDamping   = true;
-    controls.dampingFactor   = 0.06;
+    controls.dampingFactor   = 0.05;
     controls.update();
 
     /* Resize */
@@ -316,20 +329,24 @@ function startExperience() {
 }
 
 function flyIn() {
-    const cam = window._camera;
+    const cam  = window._camera;
     const ctrl = window._controls;
     if (!cam || !ctrl) return;
 
-    /* Position de départ : vue haute */
-    cam.position.set(52, 280, 320);
-    ctrl.target.set(52, 0, 46);
+    /* Centre réel du modèle (calculé après chargement GLB) */
+    const c = window._modelCenter || new THREE.Vector3(0, 0, 0);
+
+    /* Position de départ : vue haute (avant fly-in) */
+    cam.position.set(c.x, 280, c.z + 280);
+    ctrl.target.copy(c);
+    ctrl.autoRotate = false; /* stop pendant l'animation */
     ctrl.update();
 
-    /* Anime vers une vue rapprochée inclinée */
+    /* Arrive à la distance de croisière Saydnaya (~150u, angle 0.85rad) */
     const startPos = cam.position.clone();
-    const endPos   = new THREE.Vector3(52, 100, 160);
+    const endPos   = new THREE.Vector3(c.x, 95, c.z + 115);
     const startTgt = ctrl.target.clone();
-    const endTgt   = new THREE.Vector3(52, 0, 46);
+    const endTgt   = c.clone();
     const duration = 4000;
     const start    = performance.now();
 
@@ -342,7 +359,10 @@ function flyIn() {
         ctrl.target.lerpVectors(startTgt, endTgt, e);
         ctrl.update();
         if (t < 1) requestAnimationFrame(tick);
-        else revealHUD();
+        else {
+            ctrl.autoRotate = true; /* reprend l'auto-rotation après le fly-in */
+            revealHUD();
+        }
     })(start);
 }
 
