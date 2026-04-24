@@ -429,6 +429,89 @@
         }
         .scroll-hint.hidden { opacity: 0; }
 
+        /* ══ TORNADE CANVAS ══ */
+        #tornado-canvas {
+            position: fixed; inset: 0;
+            z-index: 200; pointer-events: none;
+            display: none;
+        }
+
+        /* ══ HUD — CHAPITRE 4 ══ */
+        .hud-overlay {
+            position: fixed; inset: 0;
+            z-index: 7; pointer-events: none;
+            opacity: 0; transition: opacity 0.6s ease;
+        }
+        .hud-overlay.visible { opacity: 1; }
+        .hud-panel {
+            position: absolute;
+            background: rgba(10,8,20,0.65);
+            border: 1px solid rgba(196,175,248,0.25);
+            border-left: 2px solid rgba(196,175,248,0.7);
+            padding: 10px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.55rem;
+            color: rgba(220,210,255,0.85);
+            letter-spacing: 0.06em;
+            min-width: 150px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 0 18px rgba(108,99,255,0.15);
+        }
+        .hud-panel .hud-id {
+            font-size: 0.65rem; font-weight: bold;
+            color: rgba(196,175,248,1);
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .hud-panel .hud-row {
+            display: flex; justify-content: space-between;
+            gap: 12px; line-height: 1.8;
+        }
+        .hud-panel .hud-key  { color: rgba(196,175,248,0.5); }
+        .hud-panel .hud-val  { color: rgba(255,255,255,0.9); font-weight: bold; }
+        .hud-panel .hud-bar  {
+            height: 3px; background: rgba(196,175,248,0.15);
+            border-radius: 2px; margin-top: 6px;
+            overflow: hidden;
+        }
+        .hud-panel .hud-bar-fill {
+            height: 100%; border-radius: 2px;
+            background: linear-gradient(to right, rgba(108,99,255,0.8), rgba(196,175,248,0.9));
+        }
+        /* Ligne connectrice */
+        .hud-line {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(to bottom, rgba(196,175,248,0.5), transparent);
+            transform-origin: top center;
+        }
+        .hud-dot {
+            position: absolute;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(196,175,248,0.8);
+            box-shadow: 0 0 8px rgba(196,175,248,0.6);
+            transform: translate(-50%, -50%);
+        }
+        /* Positions des panneaux */
+        .hud-p1 { top: 12%; left: 3%; }
+        .hud-p2 { top: 10%; right: 3%; }
+        .hud-p3 { bottom: 28%; left: 3%; }
+        .hud-p4 { bottom: 26%; right: 3%; }
+        /* Lignes */
+        .hud-line-1 { top: calc(12% + 90px); left: calc(3% + 75px); height: 80px; }
+        .hud-line-2 { top: calc(10% + 80px); right: calc(3% + 75px); height: 100px; width: 1px; position: absolute; background: linear-gradient(to bottom, rgba(196,175,248,0.5), transparent); }
+        .hud-dot-1  { top: calc(12% + 175px); left: calc(3% + 75px); }
+        .hud-dot-2  { top: calc(10% + 185px); right: calc(3% + 75px); }
+
+        @media (max-width: 768px) {
+            .hud-p1 { top: 8%;  left: 2%; min-width: 120px; font-size: 0.48rem; }
+            .hud-p2 { top: 8%;  right: 10%; min-width: 120px; font-size: 0.48rem; }
+            .hud-p3 { display: none; }
+            .hud-p4 { display: none; }
+        }
+
         /* ══ RESPONSIVE MOBILE ══ */
         @media (max-width: 768px) {
 
@@ -605,6 +688,41 @@
 
 </div>
 
+<!-- Canvas tornade de sable -->
+<canvas id="tornado-canvas"></canvas>
+
+<!-- HUD Chapitre 4 -->
+<div class="hud-overlay" id="hud-overlay">
+    <div class="hud-panel hud-p1">
+        <span class="hud-id">◈ TOMBEAU DES ASKIA</span>
+        <div class="hud-row"><span class="hud-key">LOCALISATION</span><span class="hud-val">GAO, MALI</span></div>
+        <div class="hud-row"><span class="hud-key">COORDONNÉES</span><span class="hud-val">16.29°N 0.04°W</span></div>
+        <div class="hud-row"><span class="hud-key">ÉLÉVATION</span><span class="hud-val">256 M</span></div>
+        <div class="hud-bar"><div class="hud-bar-fill" style="width:72%"></div></div>
+    </div>
+    <div class="hud-panel hud-p2">
+        <span class="hud-id">◈ STRUCTURE</span>
+        <div class="hud-row"><span class="hud-key">HAUTEUR</span><span class="hud-val">17 M</span></div>
+        <div class="hud-row"><span class="hud-key">MATÉRIAU</span><span class="hud-val">BANCO</span></div>
+        <div class="hud-row"><span class="hud-key">TYPE</span><span class="hud-val">PYRAMIDALE</span></div>
+        <div class="hud-bar"><div class="hud-bar-fill" style="width:88%"></div></div>
+    </div>
+    <div class="hud-panel hud-p3">
+        <span class="hud-id">◈ PATRIMOINE</span>
+        <div class="hud-row"><span class="hud-key">UNESCO</span><span class="hud-val">2004</span></div>
+        <div class="hud-row"><span class="hud-key">RESTAURATION</span><span class="hud-val">2026</span></div>
+        <div class="hud-bar"><div class="hud-bar-fill" style="width:100%"></div></div>
+    </div>
+    <div class="hud-panel hud-p4">
+        <span class="hud-id">◈ CONSTRUCTION</span>
+        <div class="hud-row"><span class="hud-key">CONSTRUIT</span><span class="hud-val">1495</span></div>
+        <div class="hud-row"><span class="hud-key">EMPIRE</span><span class="hud-val">SONGHAÏ</span></div>
+        <div class="hud-bar"><div class="hud-bar-fill" style="width:60%"></div></div>
+    </div>
+    <div class="hud-dot hud-dot-1"></div>
+    <div class="hud-dot hud-dot-2"></div>
+</div>
+
 <!-- Scroll progress bar droite -->
 <div class="scroll-hint" id="scroll-hint">
     <div class="scroll-chevrons">
@@ -648,6 +766,16 @@ const CHAPTERS = [
         desc:   "De Tombouctou à Agadez, l'Empire Songhaï contrôle les routes trans-sahariennes. Askia fait de Tombouctou un phare intellectuel du monde islamique.",
         btn:    false,
         year:   "1493 — 1528 · Apogée"
+    },
+    {
+        gao:    "1495",
+        tag:    "Le monument éternel",
+        camera: "30deg 78deg 3.5m",
+        lines:  ["Le Tombeau", "des Askia"],
+        desc:   "Chef-d'œuvre de l'architecture soudano-sahélienne. La tour pyramidale s'élève à 17 mètres, construite en banco — argile, paille et eau. Patrimoine UNESCO depuis 2004, restauré en 2026.",
+        btn:    false,
+        year:   "1495 · Gao · Mali",
+        isTombeau: true
     }
 ];
 
@@ -665,7 +793,10 @@ const chDivider = document.getElementById('ch-divider');
 const chDesc    = document.getElementById('ch-desc');
 const chBtn     = null;
 const bottomY   = document.getElementById('bottom-year');
-const scrollHint= document.getElementById('scroll-hint');
+const scrollHint  = document.getElementById('scroll-hint');
+const modelToggle = document.querySelector('.model-toggle');
+const hudOverlay  = document.getElementById('hud-overlay');
+const tornadoCanvas = document.getElementById('tornado-canvas');
 const sbProgress  = document.getElementById('sb-progress');
 const sbDot       = document.getElementById('sb-dot');
 const sbChevrons  = document.querySelector('.scroll-chevrons');
@@ -707,82 +838,196 @@ mv.addEventListener('load', () => {
 });
 
 /* ══════════════════════════════════════════════
+   TORNADE DE SABLE
+══════════════════════════════════════════════ */
+function launchTornado() {
+    const ctx = tornadoCanvas.getContext('2d');
+    tornadoCanvas.width  = window.innerWidth;
+    tornadoCanvas.height = window.innerHeight;
+    tornadoCanvas.style.display = 'block';
+    const W = tornadoCanvas.width, H = tornadoCanvas.height;
+    const COLORS = ['#d4a96a','#c4954a','#8b6914','#f0d090','#e8c878','#b8863c','#c09040','#e0b860','#7a5020'];
+
+    /* 700 grains de sable */
+    const grains = Array.from({length: 700}, (_, i) => ({
+        x: W + Math.random() * 300,
+        y: Math.random() * H,
+        vx: -(Math.random() * 14 + 5),
+        vy: (Math.random() - 0.55) * 10,
+        size: Math.random() * 5 + 0.8,
+        op: Math.random() * 0.85 + 0.15,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        rot: Math.random() * Math.PI * 2,
+        rotS: (Math.random() - 0.5) * 0.5,
+        swirl: (Math.random() - 0.5) * 3
+    }));
+
+    let frame = 0;
+    const TOTAL = 110;
+
+    function draw() {
+        const p = frame / TOTAL;
+
+        /* Brume sablonneuse */
+        const fog = p < 0.5 ? p * 0.65 : (1 - p) * 0.65;
+        ctx.fillStyle = `rgba(160,110,40,${fog * 0.45})`;
+        ctx.fillRect(0, 0, W, H);
+
+        /* Voile sombre au pic */
+        if (p > 0.25 && p < 0.75) {
+            const veil = Math.sin((p - 0.25) / 0.5 * Math.PI) * 0.55;
+            ctx.fillStyle = `rgba(7,5,15,${veil})`;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        /* Vortex central */
+        if (p > 0.15 && p < 0.85) {
+            const vAlpha = Math.sin((p - 0.15) / 0.7 * Math.PI) * 0.35;
+            const vR     = 60 + p * 200;
+            const grad   = ctx.createRadialGradient(W*0.5, H*0.45, 5, W*0.5, H*0.45, vR);
+            grad.addColorStop(0, `rgba(210,155,55,${vAlpha})`);
+            grad.addColorStop(0.5, `rgba(180,120,40,${vAlpha*0.5})`);
+            grad.addColorStop(1, 'rgba(180,120,40,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(W*0.5, H*0.45, vR, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        /* Grains */
+        grains.forEach(g => {
+            g.x   += g.vx;
+            g.y   += g.vy;
+            g.rot += g.rotS;
+            /* Légère spirale vers le centre */
+            const dx = g.x - W*0.5, dy = g.y - H*0.45;
+            const d  = Math.sqrt(dx*dx + dy*dy);
+            if (d > 0) {
+                const angle = Math.atan2(dy, dx);
+                g.x += -Math.sin(angle) * g.swirl * 0.06 * d * 0.015;
+                g.y +=  Math.cos(angle) * g.swirl * 0.06 * d * 0.015;
+            }
+            const alive  = g.x > -80 && g.x < W + 80;
+            const fadeOut = p > 0.7 ? (1 - p) / 0.3 : 1;
+            const alpha  = g.op * (alive ? 1 : 0) * fadeOut;
+            if (alpha <= 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(g.x, g.y);
+            ctx.rotate(g.rot);
+            ctx.fillStyle = g.color;
+            ctx.fillRect(-g.size/2, -g.size*0.25, g.size, g.size*0.5);
+            ctx.restore();
+        });
+
+        frame++;
+        if (frame < TOTAL) requestAnimationFrame(draw);
+        else tornadoCanvas.style.display = 'none';
+    }
+    requestAnimationFrame(draw);
+}
+
+/* ══════════════════════════════════════════════
    TRANSITION
 ══════════════════════════════════════════════ */
 function goTo(index) {
     if (transitioning || index === current || index < 0 || index >= CHAPTERS.length) return;
     transitioning = true;
 
-    const dir      = index > current ? 1 : -1;
-    const next     = CHAPTERS[index];
-    const tl       = gsap.timeline({ onComplete: () => { transitioning = false; } });
-    const lines    = chTitle.querySelectorAll('.title-line span');
+    const dir         = index > current ? 1 : -1;
+    const next        = CHAPTERS[index];
+    const toTombeau   = !!next.isTombeau;
+    const fromTombeau = !!CHAPTERS[current].isTombeau;
+    const tl          = gsap.timeline({ onComplete: () => { transitioning = false; } });
+    const lines       = chTitle.querySelectorAll('.title-line span');
 
     /* ─── SORTIE ─── */
-    tl.to(heroGao, { y: dir * -40, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
-      .to(chTag,   { y: -18, opacity: 0, duration: 0.3, ease: 'power2.in' }, 0)
-      .to(lines,   { y: dir * -60 + '%', opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
-      .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
-      .to(chDesc,  { y: -16, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.15)
-      ;
+    if (toTombeau) {
+        /* Soufflé par le vent / tornade */
+        tl.to(heroGao,   { x: -130, rotation: -20, opacity: 0, duration: 0.48, ease: 'power3.in' }, 0)
+          .to(chTag,     { x:  110, rotation:  10, opacity: 0, duration: 0.32, ease: 'power3.in' }, 0.04)
+          .to(lines,     { x:  100, rotation:  14, opacity: 0, stagger: 0.06, duration: 0.38, ease: 'power3.in' }, 0.07)
+          .to(chDivider, { scaleX: 0, opacity: 0, duration: 0.28, ease: 'power2.in' }, 0.12)
+          .to(chDesc,    { x:  120, opacity: 0, duration: 0.32, ease: 'power3.in' }, 0.18)
+          .call(() => launchTornado())
+          .to({}, { duration: 1.5 }); /* attendre la tornade */
+    } else {
+        tl.to(heroGao,   { y: dir*-40, x: 0, rotation: 0, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
+          .to(chTag,     { y: -18,     x: 0, rotation: 0, opacity: 0, duration: 0.3,  ease: 'power2.in' }, 0)
+          .to(lines,     { y: dir*-60+'%', x: 0, rotation: 0, opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
+          .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
+          .to(chDesc,    { y: -16, x: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.15);
+    }
 
-    /* ─── MISE À JOUR CONTENU (milieu de l'animation) ── */
+    /* ─── MISE À JOUR ─── */
     tl.call(() => {
-        /* Camera modèle */
-        if (isMobile) applyMobileCamera(next.camera);
-        else mv.setAttribute('camera-orbit', next.camera);
+        /* Modèle */
+        if (toTombeau) {
+            mv.classList.remove('loaded');
+            mv.src = 'assets/3d/Tombeaux_des_Askia.glb';
+            mv.setAttribute('exposure', '1.1');
+            mv.addEventListener('load', () => {
+                mv.classList.add('loaded');
+                mv.setAttribute('camera-orbit', next.camera);
+                mv.setAttribute('camera-target', 'auto');
+            }, { once: true });
+            modelToggle.style.opacity = '0';
+            modelToggle.style.pointerEvents = 'none';
+            hudOverlay.classList.add('visible');
+        } else {
+            if (fromTombeau) {
+                mv.classList.remove('loaded');
+                mv.src = models[modelIdx];
+                mv.setAttribute('exposure', modelIdx === 0 ? '0.65' : '1.0');
+                mv.addEventListener('load', () => {
+                    mv.classList.add('loaded');
+                    if (isMobile) applyMobileCamera(next.camera);
+                    else mv.setAttribute('camera-orbit', next.camera);
+                }, { once: true });
+                modelToggle.style.opacity = '1';
+                modelToggle.style.pointerEvents = 'auto';
+                hudOverlay.classList.remove('visible');
+            } else {
+                if (isMobile) applyMobileCamera(next.camera);
+                else mv.setAttribute('camera-orbit', next.camera);
+            }
+        }
 
-        /* Année en bas */
         bottomY.textContent = next.year;
-
-        /* GAO / année */
         heroGao.textContent = next.gao;
-
-        /* Tag */
-        chTag.textContent = next.tag;
-
-        /* Titre — reconstruction des lignes */
-        chTitle.innerHTML = '';
+        chTag.textContent   = next.tag;
+        chTitle.innerHTML   = '';
         next.lines.forEach(txt => {
-            const line = document.createElement('span');
+            const line  = document.createElement('span');
             line.className = 'title-line';
             const inner = document.createElement('span');
             inner.textContent = txt;
             line.appendChild(inner);
             chTitle.appendChild(line);
         });
-
-        /* Description */
         chDesc.innerHTML = next.desc.replace('\n', '<br>');
-
-
-        /* Dots */
         dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index));
-
         current = index;
-
-        /* Met à jour la barre de progression */
         updateScrollBar(index);
     });
 
     /* ─── ENTRÉE ─── */
-    const enterOffset = dir * 50;
+    const eOff = dir * 50;
     tl.fromTo(heroGao,
-        { y: -enterOffset, opacity: 0 },
+        { y: -eOff, x: 0, rotation: 0, opacity: 0 },
         { y: 0, opacity: 0.78, duration: 0.6, ease: 'power3.out' }, '+=0.05')
       .fromTo(chTag,
-        { y: 14, opacity: 0 },
+        { y: 14, x: 0, rotation: 0, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' }, '<0.1')
       .fromTo(chTitle.querySelectorAll('.title-line span'),
-        { y: '80%', opacity: 0 },
+        { y: '80%', x: 0, rotation: 0, opacity: 0 },
         { y: '0%', opacity: 1, stagger: 0.1, duration: 0.55, ease: 'power3.out' }, '<0.05')
       .fromTo(chDivider,
-        { width: 0, opacity: 0 },
+        { width: 0, scaleX: 1, opacity: 0 },
         { width: 200, opacity: 1, duration: 0.6, ease: 'power2.out' }, '<0.15')
       .fromTo(chDesc,
-        { y: 16, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, '<0.1')
-      ;
+        { y: 16, x: 0, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, '<0.1');
 }
 
 /* ══════════════════════════════════════════════
