@@ -528,87 +528,133 @@
             background: rgba(190,220,255,0.75);
         }
 
-        /* ══ TORNADE CANVAS ══ */
-        #tornado-canvas {
+        /* ══ CHAPITRE 4 — OVERLAY PYRAMIDE ══ */
+        #ch4-overlay {
             position: fixed; inset: 0;
-            z-index: 200; pointer-events: none;
-            display: none;
+            z-index: 6; pointer-events: none;
+            opacity: 0; transition: opacity 0.8s ease;
+        }
+        #ch4-overlay.visible { opacity: 1; }
+
+        /* Grille blueprint */
+        .ch4-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(249,213,139,0.032) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(249,213,139,0.032) 1px, transparent 1px);
+            background-size: 56px 56px;
         }
 
-        /* ══ HUD — CHAPITRE 4 ══ */
-        .hud-overlay {
-            position: fixed; inset: 0;
-            z-index: 7; pointer-events: none;
-            opacity: 0; transition: opacity 0.6s ease;
-        }
-        .hud-overlay.visible { opacity: 1; }
-        .hud-panel {
+        /* SVG wireframe */
+        .ch4-svg {
             position: absolute;
-            background: rgba(10,8,20,0.65);
-            border: 1px solid rgba(196,175,248,0.25);
-            border-left: 2px solid rgba(196,175,248,0.7);
-            padding: 10px 14px;
+            right: 4%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48vw;
+            max-width: 520px;
+            height: auto;
+            overflow: visible;
+        }
+
+        /* Labels de mesure */
+        .ch4-msr {
+            position: absolute;
             font-family: 'Courier New', monospace;
+            font-size: 0.44rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(249,213,139,0.85);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .ch4-msr-h {
+            right: 3.5%;
+            top: 50%;
+            transform: translateY(-50%);
+            writing-mode: vertical-rl;
+            letter-spacing: 0.18em;
+        }
+        .ch4-msr-b {
+            right: 26%;
+            bottom: 20%;
+        }
+        .ch4-msr-a {
+            right: 46%;
+            bottom: 30%;
+        }
+
+        /* Comparaison pyramides */
+        .ch4-compare {
+            position: absolute;
+            left: 44px;
+            bottom: 72px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .ch4-cmp-item { text-align: center; }
+        .ch4-cmp-year {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem; font-weight: 900;
+            color: rgba(249,213,139,0.95);
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .ch4-cmp-year.dim { color: rgba(249,213,139,0.38); }
+        .ch4-cmp-name {
+            font-family: 'Courier New', monospace;
+            font-size: 0.43rem; letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(196,175,248,0.85);
+            margin-top: 4px;
+        }
+        .ch4-cmp-loc {
+            font-size: 0.37rem; letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(148,144,184,0.5);
+            margin-top: 2px;
+        }
+        .ch4-cmp-link {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 5px;
+        }
+        .ch4-cmp-bar {
+            width: 36px; height: 1px;
+            background: linear-gradient(90deg,
+                rgba(249,213,139,0.6), rgba(249,213,139,0.08));
+        }
+        .ch4-cmp-sym {
             font-size: 0.55rem;
-            color: rgba(220,210,255,0.85);
-            letter-spacing: 0.06em;
-            min-width: 150px;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 0 18px rgba(108,99,255,0.15);
+            color: rgba(249,213,139,0.5);
+            letter-spacing: 0;
         }
-        .hud-panel .hud-id {
-            font-size: 0.65rem; font-weight: bold;
-            color: rgba(196,175,248,1);
-            letter-spacing: 0.12em;
-            margin-bottom: 6px;
-            display: block;
-        }
-        .hud-panel .hud-row {
-            display: flex; justify-content: space-between;
-            gap: 12px; line-height: 1.8;
-        }
-        .hud-panel .hud-key  { color: rgba(196,175,248,0.5); }
-        .hud-panel .hud-val  { color: rgba(255,255,255,0.9); font-weight: bold; }
-        .hud-panel .hud-bar  {
-            height: 3px; background: rgba(196,175,248,0.15);
-            border-radius: 2px; margin-top: 6px;
-            overflow: hidden;
-        }
-        .hud-panel .hud-bar-fill {
-            height: 100%; border-radius: 2px;
-            background: linear-gradient(to right, rgba(108,99,255,0.8), rgba(196,175,248,0.9));
-        }
-        /* Ligne connectrice */
-        .hud-line {
+
+        /* Tag "BANCO" flottant */
+        .ch4-tag-banco {
             position: absolute;
-            width: 1px;
-            background: linear-gradient(to bottom, rgba(196,175,248,0.5), transparent);
-            transform-origin: top center;
+            top: 14%;
+            left: 44px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.38rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(249,213,139,0.55);
+            border-left: 1px solid rgba(249,213,139,0.35);
+            padding-left: 8px;
+            line-height: 1.9;
+            opacity: 0;
+            pointer-events: none;
         }
-        .hud-dot {
-            position: absolute;
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: rgba(196,175,248,0.8);
-            box-shadow: 0 0 8px rgba(196,175,248,0.6);
-            transform: translate(-50%, -50%);
-        }
-        /* Positions des panneaux */
-        .hud-p1 { top: 12%; left: 3%; }
-        .hud-p2 { top: 10%; right: 3%; }
-        .hud-p3 { bottom: 28%; left: 3%; }
-        .hud-p4 { bottom: 26%; right: 3%; }
-        /* Lignes */
-        .hud-line-1 { top: calc(12% + 90px); left: calc(3% + 75px); height: 80px; }
-        .hud-line-2 { top: calc(10% + 80px); right: calc(3% + 75px); height: 100px; width: 1px; position: absolute; background: linear-gradient(to bottom, rgba(196,175,248,0.5), transparent); }
-        .hud-dot-1  { top: calc(12% + 175px); left: calc(3% + 75px); }
-        .hud-dot-2  { top: calc(10% + 185px); right: calc(3% + 75px); }
 
         @media (max-width: 768px) {
-            .hud-p1 { top: 8%;  left: 2%; min-width: 120px; font-size: 0.48rem; }
-            .hud-p2 { top: 8%;  right: 10%; min-width: 120px; font-size: 0.48rem; }
-            .hud-p3 { display: none; }
-            .hud-p4 { display: none; }
+            .ch4-svg { width: 88vw; right: 2%; top: 45%; }
+            .ch4-msr-h { right: 1.5%; }
+            .ch4-compare { left: 16px; bottom: 88px; gap: 10px; }
+            .ch4-cmp-year { font-size: 1.1rem; }
+            .ch4-tag-banco { left: 16px; top: 12%; }
         }
 
         /* ══ RESPONSIVE MOBILE ══ */
@@ -927,39 +973,80 @@
 
 </div>
 
-<!-- Canvas tornade de sable -->
-<canvas id="tornado-canvas"></canvas>
+<!-- Chapitre 4 — Overlay Pyramide -->
+<div id="ch4-overlay">
+    <div class="ch4-grid"></div>
 
-<!-- HUD Chapitre 4 -->
-<div class="hud-overlay" id="hud-overlay">
-    <div class="hud-panel hud-p1">
-        <span class="hud-id">◈ TOMBEAU DES ASKIA</span>
-        <div class="hud-row"><span class="hud-key">LOCALISATION</span><span class="hud-val">GAO, MALI</span></div>
-        <div class="hud-row"><span class="hud-key">COORDONNÉES</span><span class="hud-val">16.29°N 0.04°W</span></div>
-        <div class="hud-row"><span class="hud-key">ÉLÉVATION</span><span class="hud-val">256 M</span></div>
-        <div class="hud-bar"><div class="hud-bar-fill" style="width:72%"></div></div>
+    <svg class="ch4-svg" viewBox="0 0 460 390" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Triangle principal -->
+        <polygon id="ch4-tri1" points="230,12 448,372 12,372"
+            stroke="rgba(249,213,139,0.7)" stroke-width="1.6"
+            fill="rgba(249,213,139,0.018)"
+            stroke-dasharray="980" stroke-dashoffset="980"/>
+        <!-- Triangle intérieur décoratif -->
+        <polygon id="ch4-tri2" points="230,72 396,348 64,348"
+            stroke="rgba(249,213,139,0.2)" stroke-width="0.9"
+            fill="none"
+            stroke-dasharray="740" stroke-dashoffset="740"/>
+        <!-- Triangle intérieur 2 -->
+        <polygon id="ch4-tri3" points="230,132 344,324 116,324"
+            stroke="rgba(249,213,139,0.1)" stroke-width="0.6"
+            fill="none"
+            stroke-dasharray="500" stroke-dashoffset="500"/>
+        <!-- Ligne centrale (hauteur) -->
+        <line id="ch4-lh" x1="230" y1="12" x2="230" y2="372"
+            stroke="rgba(249,213,139,0.28)" stroke-width="0.8"
+            stroke-dasharray="5 4" opacity="0"/>
+        <!-- Cote hauteur (droite du triangle) -->
+        <line id="ch4-ch" x1="458" y1="12" x2="458" y2="372"
+            stroke="rgba(249,213,139,0.45)" stroke-width="0.8" opacity="0"/>
+        <line id="ch4-ch2" x1="448" y1="12"  x2="462" y2="12"
+            stroke="rgba(249,213,139,0.45)" stroke-width="0.8" opacity="0"/>
+        <line id="ch4-ch3" x1="448" y1="372" x2="462" y2="372"
+            stroke="rgba(249,213,139,0.45)" stroke-width="0.8" opacity="0"/>
+        <!-- Cote base -->
+        <line id="ch4-cb" x1="12" y1="382" x2="448" y2="382"
+            stroke="rgba(249,213,139,0.55)" stroke-width="1"
+            stroke-dasharray="440" stroke-dashoffset="440"/>
+        <line x1="12"  y1="375" x2="12"  y2="389" stroke="rgba(249,213,139,0.55)" stroke-width="0.8"/>
+        <line x1="448" y1="375" x2="448" y2="389" stroke="rgba(249,213,139,0.55)" stroke-width="0.8"/>
+        <!-- Angle sommet -->
+        <path id="ch4-angle" d="M 215,38 A 22,22 0 0,1 245,38"
+            stroke="rgba(249,213,139,0.45)" stroke-width="0.9"
+            fill="none" opacity="0"/>
+    </svg>
+
+    <!-- Labels mesures -->
+    <div class="ch4-msr ch4-msr-h" id="ch4-lbl-h">17 M</div>
+    <div class="ch4-msr ch4-msr-b" id="ch4-lbl-b">BASE · 12 M</div>
+    <div class="ch4-msr ch4-msr-a" id="ch4-lbl-a">∠ 72°</div>
+
+    <!-- Tag technique -->
+    <div class="ch4-tag-banco" id="ch4-tag">
+        MATÉRIAU · BANCO<br>
+        ARGILE · PAILLE · EAU<br>
+        PATRIMOINE UNESCO · 2004<br>
+        RESTAURÉ · 2026
     </div>
-    <div class="hud-panel hud-p2">
-        <span class="hud-id">◈ STRUCTURE</span>
-        <div class="hud-row"><span class="hud-key">HAUTEUR</span><span class="hud-val">17 M</span></div>
-        <div class="hud-row"><span class="hud-key">MATÉRIAU</span><span class="hud-val">BANCO</span></div>
-        <div class="hud-row"><span class="hud-key">TYPE</span><span class="hud-val">PYRAMIDALE</span></div>
-        <div class="hud-bar"><div class="hud-bar-fill" style="width:88%"></div></div>
+
+    <!-- Comparaison pyramides -->
+    <div class="ch4-compare" id="ch4-compare">
+        <div class="ch4-cmp-item">
+            <div class="ch4-cmp-year">1495</div>
+            <div class="ch4-cmp-name">Tombeau des Askia</div>
+            <div class="ch4-cmp-loc">Gao · Mali · Sahel</div>
+        </div>
+        <div class="ch4-cmp-link">
+            <div class="ch4-cmp-bar"></div>
+            <span class="ch4-cmp-sym">◈</span>
+            <div class="ch4-cmp-bar" style="transform:scaleX(-1)"></div>
+        </div>
+        <div class="ch4-cmp-item">
+            <div class="ch4-cmp-year dim">−2560</div>
+            <div class="ch4-cmp-name">Grande Pyramide</div>
+            <div class="ch4-cmp-loc">Gizeh · Égypte · Nil</div>
+        </div>
     </div>
-    <div class="hud-panel hud-p3">
-        <span class="hud-id">◈ PATRIMOINE</span>
-        <div class="hud-row"><span class="hud-key">UNESCO</span><span class="hud-val">2004</span></div>
-        <div class="hud-row"><span class="hud-key">RESTAURATION</span><span class="hud-val">2026</span></div>
-        <div class="hud-bar"><div class="hud-bar-fill" style="width:100%"></div></div>
-    </div>
-    <div class="hud-panel hud-p4">
-        <span class="hud-id">◈ CONSTRUCTION</span>
-        <div class="hud-row"><span class="hud-key">CONSTRUIT</span><span class="hud-val">1495</span></div>
-        <div class="hud-row"><span class="hud-key">EMPIRE</span><span class="hud-val">SONGHAÏ</span></div>
-        <div class="hud-bar"><div class="hud-bar-fill" style="width:60%"></div></div>
-    </div>
-    <div class="hud-dot hud-dot-1"></div>
-    <div class="hud-dot hud-dot-2"></div>
 </div>
 
 <!-- Scroll progress bar droite -->
@@ -1007,11 +1094,11 @@ const CHAPTERS = [
         year:   "1493 — 1528 · Apogée"
     },
     {
-        gao:    "1495",
-        tag:    "Le monument éternel",
+        gao:    "PYRAMIDE",
+        tag:    "Architecture Éternelle",
         camera: "30deg 52deg 20m",
         lines:  ["Le Tombeau", "des Askia"],
-        desc:   "Chef-d'œuvre de l'architecture soudano-sahélienne. La tour pyramidale s'élève à 17 mètres, construite en banco — argile, paille et eau. Patrimoine UNESCO depuis 2004, restauré en 2026.",
+        desc:   "La tour de banco s'élève à 17 mètres — écho sahélien des grandes pyramides. Même géométrie sacrée, même verticalité vers le ciel, construite 4 000 ans plus tard, à 4 000 km de distance.",
         btn:    false,
         year:   "1495 · Gao · Mali",
         isTombeau: true
@@ -1030,12 +1117,10 @@ const chTag     = document.getElementById('ch-tag');
 const chTitle   = document.getElementById('ch-title');
 const chDivider = document.getElementById('ch-divider');
 const chDesc    = document.getElementById('ch-desc');
-const chBtn     = null;
 const bottomY   = document.getElementById('bottom-year');
 const scrollHint  = document.getElementById('scroll-hint');
 const modelToggle = document.querySelector('.model-toggle');
-const hudOverlay  = document.getElementById('hud-overlay');
-const tornadoCanvas = document.getElementById('tornado-canvas');
+const ch4Overlay  = document.getElementById('ch4-overlay');
 const sbProgress  = document.getElementById('sb-progress');
 const sbDot       = document.getElementById('sb-dot');
 const sbChevrons  = document.querySelector('.scroll-chevrons');
@@ -1077,93 +1162,34 @@ mv.addEventListener('load', () => {
 });
 
 /* ══════════════════════════════════════════════
-   TORNADE DE SABLE
+   HELPERS OVERLAY PYRAMIDE
 ══════════════════════════════════════════════ */
-function launchTornado() {
-    const ctx = tornadoCanvas.getContext('2d');
-    tornadoCanvas.width  = window.innerWidth;
-    tornadoCanvas.height = window.innerHeight;
-    tornadoCanvas.style.display = 'block';
-    const W = tornadoCanvas.width, H = tornadoCanvas.height;
-    const COLORS = ['#d4a96a','#c4954a','#8b6914','#f0d090','#e8c878','#b8863c','#c09040','#e0b860','#7a5020'];
+function showPyramidOverlay() {
+    ch4Overlay.classList.add('visible');
+    gsap.fromTo('#ch4-tri1',  {strokeDashoffset: 980}, {strokeDashoffset: 0, duration: 1.6, ease: 'power2.out', delay: 0.3});
+    gsap.fromTo('#ch4-tri2',  {strokeDashoffset: 740}, {strokeDashoffset: 0, duration: 1.3, ease: 'power2.out', delay: 0.65});
+    gsap.fromTo('#ch4-tri3',  {strokeDashoffset: 500}, {strokeDashoffset: 0, duration: 1.1, ease: 'power2.out', delay: 0.9});
+    gsap.fromTo('#ch4-lh',    {opacity: 0}, {opacity: 1, duration: 0.5, delay: 1.0});
+    gsap.fromTo(['#ch4-ch','#ch4-ch2','#ch4-ch3'], {opacity: 0}, {opacity: 1, stagger: 0.08, duration: 0.4, delay: 1.1});
+    gsap.fromTo('#ch4-cb',    {strokeDashoffset: 440}, {strokeDashoffset: 0, duration: 0.8, ease: 'power2.out', delay: 0.95});
+    gsap.fromTo('#ch4-angle', {opacity: 0}, {opacity: 1, duration: 0.4, delay: 1.4});
+    gsap.fromTo('.ch4-msr',   {opacity: 0, y: 6}, {opacity: 1, y: 0, stagger: 0.12, duration: 0.45, delay: 1.3});
+    gsap.fromTo('#ch4-tag',   {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.5, delay: 1.5});
+    gsap.fromTo('#ch4-compare',{opacity: 0, y: 14},{opacity: 1, y: 0, duration: 0.6, delay: 1.8});
+}
 
-    /* 700 grains de sable */
-    const grains = Array.from({length: 700}, (_, i) => ({
-        x: W + Math.random() * 300,
-        y: Math.random() * H,
-        vx: -(Math.random() * 14 + 5),
-        vy: (Math.random() - 0.55) * 10,
-        size: Math.random() * 5 + 0.8,
-        op: Math.random() * 0.85 + 0.15,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        rot: Math.random() * Math.PI * 2,
-        rotS: (Math.random() - 0.5) * 0.5,
-        swirl: (Math.random() - 0.5) * 3
-    }));
-
-    let frame = 0;
-    const TOTAL = 110;
-
-    function draw() {
-        const p = frame / TOTAL;
-
-        /* Brume sablonneuse */
-        const fog = p < 0.5 ? p * 0.65 : (1 - p) * 0.65;
-        ctx.fillStyle = `rgba(160,110,40,${fog * 0.45})`;
-        ctx.fillRect(0, 0, W, H);
-
-        /* Voile sombre au pic */
-        if (p > 0.25 && p < 0.75) {
-            const veil = Math.sin((p - 0.25) / 0.5 * Math.PI) * 0.55;
-            ctx.fillStyle = `rgba(7,5,15,${veil})`;
-            ctx.fillRect(0, 0, W, H);
-        }
-
-        /* Vortex central */
-        if (p > 0.15 && p < 0.85) {
-            const vAlpha = Math.sin((p - 0.15) / 0.7 * Math.PI) * 0.35;
-            const vR     = 60 + p * 200;
-            const grad   = ctx.createRadialGradient(W*0.5, H*0.45, 5, W*0.5, H*0.45, vR);
-            grad.addColorStop(0, `rgba(210,155,55,${vAlpha})`);
-            grad.addColorStop(0.5, `rgba(180,120,40,${vAlpha*0.5})`);
-            grad.addColorStop(1, 'rgba(180,120,40,0)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(W*0.5, H*0.45, vR, 0, Math.PI*2);
-            ctx.fill();
-        }
-
-        /* Grains */
-        grains.forEach(g => {
-            g.x   += g.vx;
-            g.y   += g.vy;
-            g.rot += g.rotS;
-            /* Légère spirale vers le centre */
-            const dx = g.x - W*0.5, dy = g.y - H*0.45;
-            const d  = Math.sqrt(dx*dx + dy*dy);
-            if (d > 0) {
-                const angle = Math.atan2(dy, dx);
-                g.x += -Math.sin(angle) * g.swirl * 0.06 * d * 0.015;
-                g.y +=  Math.cos(angle) * g.swirl * 0.06 * d * 0.015;
-            }
-            const alive  = g.x > -80 && g.x < W + 80;
-            const fadeOut = p > 0.7 ? (1 - p) / 0.3 : 1;
-            const alpha  = g.op * (alive ? 1 : 0) * fadeOut;
-            if (alpha <= 0.01) return;
-            ctx.save();
-            ctx.globalAlpha = alpha;
-            ctx.translate(g.x, g.y);
-            ctx.rotate(g.rot);
-            ctx.fillStyle = g.color;
-            ctx.fillRect(-g.size/2, -g.size*0.25, g.size, g.size*0.5);
-            ctx.restore();
-        });
-
-        frame++;
-        if (frame < TOTAL) requestAnimationFrame(draw);
-        else tornadoCanvas.style.display = 'none';
-    }
-    requestAnimationFrame(draw);
+function hidePyramidOverlay() {
+    ch4Overlay.classList.remove('visible');
+    gsap.set('#ch4-tri1',  {strokeDashoffset: 980});
+    gsap.set('#ch4-tri2',  {strokeDashoffset: 740});
+    gsap.set('#ch4-tri3',  {strokeDashoffset: 500});
+    gsap.set('#ch4-lh',    {opacity: 0});
+    gsap.set(['#ch4-ch','#ch4-ch2','#ch4-ch3'], {opacity: 0});
+    gsap.set('#ch4-cb',    {strokeDashoffset: 440});
+    gsap.set('#ch4-angle', {opacity: 0});
+    gsap.set('.ch4-msr',   {opacity: 0, y: 6});
+    gsap.set('#ch4-tag',   {opacity: 0, y: 8});
+    gsap.set('#ch4-compare',{opacity: 0, y: 14});
 }
 
 /* ══════════════════════════════════════════════
@@ -1180,33 +1206,21 @@ function goTo(index) {
     const tl          = gsap.timeline({ onComplete: () => { transitioning = false; } });
     const lines       = chTitle.querySelectorAll('.title-line span');
 
-    /* ─── SORTIE ─── */
-    if (toTombeau) {
-        /* Soufflé par le vent / tornade */
-        tl.to(heroGao,   { x: -130, rotation: -20, opacity: 0, duration: 0.48, ease: 'power3.in' }, 0)
-          .to(chTag,     { x:  110, rotation:  10, opacity: 0, duration: 0.32, ease: 'power3.in' }, 0.04)
-          .to(lines,     { x:  100, rotation:  14, opacity: 0, stagger: 0.06, duration: 0.38, ease: 'power3.in' }, 0.07)
-          .to(chDivider, { scaleX: 0, opacity: 0, duration: 0.28, ease: 'power2.in' }, 0.12)
-          .to(chDesc,    { x:  120, opacity: 0, duration: 0.32, ease: 'power3.in' }, 0.18)
-          .call(() => launchTornado())
-          .to({}, { duration: 1.5 }); /* attendre la tornade */
-    } else {
-        tl.to(heroGao,   { y: dir*-40, x: 0, rotation: 0, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
-          .to(chTag,     { y: -18,     x: 0, rotation: 0, opacity: 0, duration: 0.3,  ease: 'power2.in' }, 0)
-          .to(lines,     { y: dir*-60+'%', x: 0, rotation: 0, opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
-          .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
-          .to(chDesc,    { y: -16, x: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.15);
-    }
+    /* ─── SORTIE — identique pour tous les chapitres ─── */
+    tl.to(heroGao,   { y: dir*-40, x: 0, rotation: 0, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
+      .to(chTag,     { y: -18,     x: 0, rotation: 0, opacity: 0, duration: 0.3,  ease: 'power2.in' }, 0)
+      .to(lines,     { y: dir*-60+'%', x: 0, rotation: 0, opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
+      .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
+      .to(chDesc,    { y: -16, x: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.15);
 
     /* ─── MISE À JOUR ─── */
     tl.call(() => {
-        /* Modèle */
         const hotspots = mv.querySelectorAll('.hotspot');
         if (toTombeau) {
             mv.classList.remove('loaded');
             mv.src = 'assets/3d/Tombeaux_des_Askia.glb';
             mv.setAttribute('exposure', '1.1');
-            mv.removeAttribute('interaction-prompt');   /* active l'interaction */
+            mv.removeAttribute('interaction-prompt');
             mv.addEventListener('load', () => {
                 mv.classList.add('loaded');
                 mv.setAttribute('camera-orbit', next.camera);
@@ -1214,14 +1228,14 @@ function goTo(index) {
             }, { once: true });
             modelToggle.style.opacity = '0';
             modelToggle.style.pointerEvents = 'none';
-            hudOverlay.classList.add('visible');
             hotspots.forEach(h => h.style.display = 'block');
+            showPyramidOverlay();
         } else {
             if (fromTombeau) {
                 mv.classList.remove('loaded');
                 mv.src = models[modelIdx];
                 mv.setAttribute('exposure', modelIdx === 0 ? '0.65' : '1.0');
-                mv.setAttribute('interaction-prompt', 'none');  /* désactive interaction */
+                mv.setAttribute('interaction-prompt', 'none');
                 mv.addEventListener('load', () => {
                     mv.classList.add('loaded');
                     if (isMobile) applyMobileCamera(next.camera);
@@ -1229,8 +1243,8 @@ function goTo(index) {
                 }, { once: true });
                 modelToggle.style.opacity = '1';
                 modelToggle.style.pointerEvents = 'auto';
-                hudOverlay.classList.remove('visible');
                 hotspots.forEach(h => h.style.display = 'none');
+                hidePyramidOverlay();
             } else {
                 if (isMobile) applyMobileCamera(next.camera);
                 else mv.setAttribute('camera-orbit', next.camera);
