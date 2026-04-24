@@ -261,8 +261,9 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader }   from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader }  from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 /* ═══════════════════════════════════════════
    CONFIGURATION
@@ -492,70 +493,35 @@ window.addEventListener('mousemove', e => { if (jActive) jMove(e.clientX, e.clie
 window.addEventListener('mouseup',   () => { if (jActive) jEnd(); });
 
 /* ═══════════════════════════════════════════
-   ORBITE CAMÉRA — glisser pour faire tourner
-   La caméra reste à l'angle choisi au lâcher
+   CONTRÔLE CAMÉRA — OrbitControls complet
+   Rotation · Zoom · Vertical · Tactile
 ═══════════════════════════════════════════ */
-let camYaw    = 0;        // angle horizontal caméra (indépendant du personnage)
-let camDrag   = false;
-let camDragId = null;
-let camDragX  = 0;
-const CAM_SENS = 0.006;  // sensibilité rotation
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping    = true;    // inertie douce
+controls.dampingFactor    = 0.08;
+controls.minDistance      = 1.0;     // zoom max vers le modèle
+controls.maxDistance      = 18;      // zoom arrière max
+controls.maxPolarAngle    = Math.PI / 2 - 0.02; // ne passe pas sous le sol
+controls.enablePan        = false;   // pas de translation latérale
+controls.rotateSpeed      = 0.9;
+controls.zoomSpeed        = 1.2;
 
-function inJoystickZone(cx, cy) {
-  const r = jZone.getBoundingClientRect();
-  return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
-}
-
-/* Souris */
-renderer.domElement.addEventListener('mousedown', e => {
-  if (inJoystickZone(e.clientX, e.clientY)) return;
-  camDrag  = true;
-  camDragX = e.clientX;
-});
-window.addEventListener('mousemove', e => {
-  if (!camDrag) return;
-  camYaw  -= (e.clientX - camDragX) * CAM_SENS;
-  camDragX = e.clientX;
-});
-window.addEventListener('mouseup', () => { camDrag = false; });
-
-/* Toucher (doigt différent du joystick) */
-window.addEventListener('touchstart', e => {
-  for (const t of e.changedTouches) {
-    if (t.identifier !== jId && !inJoystickZone(t.clientX, t.clientY)) {
-      camDragId = t.identifier;
-      camDragX  = t.clientX;
-      break;
-    }
-  }
-}, { passive: true });
-window.addEventListener('touchmove', e => {
-  for (const t of e.changedTouches) {
-    if (t.identifier === camDragId) {
-      camYaw  -= (t.clientX - camDragX) * CAM_SENS;
-      camDragX = t.clientX;
-      break;
-    }
-  }
-}, { passive: true });
-window.addEventListener('touchend', e => {
-  for (const t of e.changedTouches)
-    if (t.identifier === camDragId) { camDragId = null; break; }
-});
-
-/* ── Mise à jour position caméra ── */
-const camTarget   = new THREE.Vector3();
-const camPosition = new THREE.Vector3();
-
+/* La caméra suit le personnage en restant à l'angle choisi */
 function updateCamera() {
-  if (!character) return;
-  const idealX = character.position.x - Math.sin(camYaw) * CAM_DISTANCE;
-  const idealY = character.position.y + CAM_HEIGHT;
-  const idealZ = character.position.z - Math.cos(camYaw) * CAM_DISTANCE;
-  camPosition.set(idealX, idealY, idealZ);
-  camera.position.lerp(camPosition, 0.08);
-  camTarget.set(character.position.x, character.position.y + 0.9, character.position.z);
-  camera.lookAt(camTarget);
+  if (!character) {
+    controls.update();
+    return;
+  }
+  const tgt = new THREE.Vector3(
+    character.position.x,
+    character.position.y + 0.9,
+    character.position.z
+  );
+  /* Décaler la caméra avec le personnage sans changer l'orbite */
+  const offset = camera.position.clone().sub(controls.target);
+  controls.target.lerp(tgt, 0.12);
+  camera.position.copy(controls.target).add(offset);
+  controls.update();
 }
 
 /* ═══════════════════════════════════════════
@@ -613,10 +579,9 @@ function animate() {
 
     // Info position
     infoPos.textContent = `Position : ${character.position.x.toFixed(1)}, ${character.position.z.toFixed(1)}`;
-
-    updateCamera();
   }
 
+  updateCamera();
   renderer.render(scene, camera);
 }
 
