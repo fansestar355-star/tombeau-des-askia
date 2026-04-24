@@ -571,11 +571,11 @@ function addIllustrations3D(scene) {
         ctx2.drawImage(img, 0, 0);
         const id = ctx2.getImageData(0, 0, cv2.width, cv2.height);
         const d = id.data;
-        /* Fond blanc → transparent, lignes noires → blanches */
+        /* Fond blanc → transparent, lignes → blanches avec bon contraste */
         for (let i = 0; i < d.length; i += 4) {
             const br = (d[i] + d[i+1] + d[i+2]) / 3;
-            if (br > 210) { d[i+3] = 0; }
-            else { d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=Math.round((210-br)*1.2); }
+            if (br > 220) { d[i+3] = 0; }
+            else { d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=Math.min(255, Math.round((220-br)*2.5)); }
         }
         ctx2.putImageData(id, 0, 0);
         const tex = new THREE.CanvasTexture(cv2);
@@ -590,7 +590,8 @@ function addIllustrations3D(scene) {
         const op = window._illusOpacity || 0;
         trees.forEach(m => { m.material.opacity = op; window._illusMeshes.push(m); });
     };
-    img.src = "assets/images/illustration d'arbre.jpg";
+    img.onerror = () => console.error("Impossible de charger l'image arbre");
+    img.src = encodeURI("assets/images/illustration d'arbre.jpg");
 }
 
 function fadeInIllustrations() {
