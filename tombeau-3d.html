@@ -273,9 +273,12 @@ function initScene() {
                 obj.castShadow    = !isSat;
                 obj.receiveShadow = true;
                 if (obj.material) {
-                    obj.material.envMapIntensity  = 0;
-                    obj.material.emissiveIntensity = 0;
-                    obj.material.needsUpdate       = true;
+                    obj.material.envMapIntensity = 0;
+                    obj.material.side = THREE.DoubleSide;
+                    if (!isSat) {
+                        obj.material.emissiveIntensity = 0;
+                    }
+                    obj.material.needsUpdate = true;
                     if (obj.material.map) {
                         obj.material.map.encoding   = THREE.sRGBEncoding;
                         obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
