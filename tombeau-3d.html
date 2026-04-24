@@ -474,7 +474,7 @@ function initScene() {
             float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
 
             float sobel(vec2 uv){
-                vec2 px = 1.8 / resolution;
+                vec2 px = 1.2 / resolution;
                 float tl=luma(texture2D(tDiffuse,uv+vec2(-px.x, px.y)).rgb);
                 float tm=luma(texture2D(tDiffuse,uv+vec2(0.0,   px.y)).rgb);
                 float tr=luma(texture2D(tDiffuse,uv+vec2( px.x, px.y)).rgb);
@@ -485,7 +485,7 @@ function initScene() {
                 float br=luma(texture2D(tDiffuse,uv+vec2( px.x,-px.y)).rgb);
                 float gx = -tl -2.0*ml -bl +tr +2.0*mr +br;
                 float gy =  tl +2.0*tm +tr -bl -2.0*bm -br;
-                return clamp(sqrt(gx*gx+gy*gy)*9.0, 0.0, 1.0);
+                return clamp(sqrt(gx*gx+gy*gy)*4.5, 0.0, 1.0);
             }
 
             float hatch(vec2 uv, float angle, float freq){
@@ -498,20 +498,20 @@ function initScene() {
                 float lum = luma(col.rgb);
                 float edge = sobel(vUv);
 
-                /* Hachures selon luminosité */
-                vec2 huv = vUv * resolution / 5.0;
-                float h1 = step(0.55, hatch(huv, 0.785, 1.0));   /* 45° */
-                float h2 = step(0.55, hatch(huv, 2.356, 1.0));   /* 135° */
+                /* Hachures légères sur zones sombres uniquement */
+                vec2 huv = vUv * resolution / 6.0;
+                float h1 = step(0.6, hatch(huv, 0.785, 1.0));
+                float h2 = step(0.6, hatch(huv, 2.356, 1.0));
                 float hatching = 0.0;
-                if(lum < 0.75) hatching += h1 * (0.75-lum) * 1.1;
-                if(lum < 0.45) hatching += h2 * (0.45-lum) * 1.4;
-                hatching = clamp(hatching, 0.0, 1.0);
+                if(lum < 0.55) hatching += h1 * (0.55-lum) * 0.7;
+                if(lum < 0.30) hatching += h2 * (0.30-lum) * 0.8;
+                hatching = clamp(hatching, 0.0, 0.55);
 
-                /* Bruit léger papier */
-                float noise = fract(sin(dot(vUv, vec2(127.1,311.7))) * 43758.5) * 0.03;
+                /* Bruit papier discret */
+                float noise = fract(sin(dot(vUv, vec2(127.1,311.7))) * 43758.5) * 0.02;
 
                 float sketch = clamp(1.0 - edge - hatching + noise, 0.0, 1.0);
-                vec3 sketchCol = vec3(sketch * 0.92 + 0.08);   /* jamais noir pur */
+                vec3 sketchCol = vec3(sketch * 0.88 + 0.12);
 
                 gl_FragColor = vec4(mix(col.rgb, sketchCol, strength), 1.0);
             }
@@ -524,6 +524,9 @@ function initScene() {
     const sketchPass = new THREE.ShaderPass(SketchShader);
     sketchPass.renderToScreen = true;
     composer.addPass(sketchPass);
+    /* Fix encodage couleur : les render targets du composer doivent être sRGB */
+    composer.renderTarget1.texture.encoding = THREE.sRGBEncoding;
+    composer.renderTarget2.texture.encoding = THREE.sRGBEncoding;
 
     window._composer   = composer;
     window._sketchPass = sketchPass;
