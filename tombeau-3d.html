@@ -144,11 +144,78 @@
             margin-top:2px;
         }
 
+        /* ── Barre de toggle ── */
+        #toggle-bar {
+            position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+            display:flex; gap:8px; z-index:60;
+            opacity:0; transition:opacity 1s ease 0.8s; pointer-events:none;
+        }
+        #toggle-bar.on { opacity:1; pointer-events:all; }
+        .toggle-pill {
+            font-size:0.48rem; letter-spacing:0.2em; text-transform:uppercase;
+            border:1px solid rgba(249,213,139,0.3); color:rgba(249,213,139,0.6);
+            background:rgba(7,5,15,0.55); padding:9px 20px; border-radius:20px;
+            cursor:pointer; backdrop-filter:blur(8px);
+            transition:background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .toggle-pill.active {
+            border-color:rgba(249,213,139,0.6); color:var(--gold);
+            background:rgba(249,213,139,0.1);
+        }
+        .toggle-pill:hover { background:rgba(249,213,139,0.15); }
+
+        /* ── Panneau détail (clic annotation) ── */
+        #detail-panel {
+            position:fixed; top:0; right:-420px; width:360px; height:100%;
+            z-index:55; padding:90px 36px 40px 36px;
+            background:linear-gradient(to left, rgba(7,5,15,0.97) 55%, transparent);
+            transition:right 0.5s cubic-bezier(0.4,0,0.2,1);
+            pointer-events:none; overflow-y:auto;
+        }
+        #detail-panel.on { right:0; pointer-events:all; }
+        #detail-close {
+            position:absolute; top:26px; right:28px;
+            font-size:1rem; color:rgba(249,213,139,0.4); cursor:pointer;
+            transition:color 0.2s; line-height:1;
+        }
+        #detail-close:hover { color:var(--gold); }
+        #detail-tag {
+            font-size:0.45rem; letter-spacing:0.28em; color:var(--gold);
+            text-transform:uppercase; margin-bottom:16px; opacity:0.6;
+        }
+        #detail-title {
+            font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:900;
+            line-height:1.15; margin-bottom:10px;
+        }
+        #detail-sub {
+            font-size:0.48rem; letter-spacing:0.15em; color:var(--gold);
+            text-transform:uppercase; opacity:0.55; margin-bottom:22px;
+        }
+        #detail-text {
+            font-size:0.76rem; color:rgba(240,234,248,0.62); line-height:1.85;
+        }
+        #detail-back {
+            display:inline-block; margin-top:30px;
+            font-size:0.46rem; letter-spacing:0.2em; text-transform:uppercase;
+            color:rgba(249,213,139,0.5); cursor:pointer;
+            border-bottom:1px solid rgba(249,213,139,0.2); padding-bottom:2px;
+            transition:color 0.2s;
+        }
+        #detail-back:hover { color:var(--gold); }
+
+        /* Dot cliquable */
+        .ann { cursor:pointer; }
+        .ann-dot { transition:transform 0.2s, background 0.2s; }
+        .ann:hover .ann-dot { transform:translate(-50%,-50%) scale(1.8); background:#fff; }
+
         @media (max-width:768px) {
             #hud-data { display:none; }
             #info-panel { padding:40px 20px 24px; }
             .ann-label-name { font-size:0.42rem; letter-spacing:0.12em; }
             .ann-label-sub  { font-size:0.34rem; }
+            #detail-panel { width:100%; right:-110%; }
+            #detail-panel.on { right:0; }
+            #toggle-bar { bottom:18px; }
         }
     </style>
 </head>
@@ -178,6 +245,22 @@
 
 <div id="annotations"></div>
 <a href="index.html" id="back-btn">← Retour</a>
+
+<!-- Barre de toggle -->
+<div id="toggle-bar">
+    <button class="toggle-pill active" id="btn-ann"   onclick="toggleLayer('ann')">◉ Annotations</button>
+    <button class="toggle-pill active" id="btn-illus" onclick="toggleLayer('illus')">◈ Illustrations</button>
+</div>
+
+<!-- Panneau détail (clic annotation) -->
+<div id="detail-panel">
+    <div id="detail-close" onclick="closeDetail()">✕</div>
+    <div id="detail-tag">Patrimoine UNESCO · Gao, Mali</div>
+    <div id="detail-title"></div>
+    <div id="detail-sub"></div>
+    <div id="detail-text"></div>
+    <div id="detail-back" onclick="closeDetail()">← Retour à la vue générale</div>
+</div>
 
 <div id="loader">
     <div class="loader-txt">Chargement du modèle 3D</div>
@@ -343,6 +426,106 @@ function initScene() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   INFOS DÉTAILLÉES PAR PARTIE
+═══════════════════════════════════════════════════════════ */
+const ANN_INFO = {
+    'Tombeaux': {
+        title:'La Tour Pyramidale',
+        sub:'~17 m · Banco · vers 1495',
+        text:'Érigée par Askia Mohamed I, cette tour de 17 mètres en banco — argile mêlée de paille et renforcée de piquets de rônier — est le cœur du monument. Sa forme pyramidale à gradins est caractéristique de l\'architecture soudano-sahélienne, unique sur ce continent.'
+    },
+    'La_base': {
+        title:'Enceinte Principale',
+        sub:'Cour intérieure · Banco',
+        text:'La vaste enceinte rectangulaire en banco délimite l\'espace sacré du tombeau. Elle mesure environ 70 mètres de long et accueille la cour intérieure ouverte, lieu de rassemblement des fidèles lors des grandes cérémonies religieuses.'
+    },
+    'Espace_des_femmes': {
+        title:'Espace des Femmes',
+        sub:'Salle de prière séparée',
+        text:'Séparé selon la tradition islamique, cet espace est dédié aux femmes pour la prière. Il reflète l\'organisation spatiale des mosquées de l\'Empire Songhaï au XVe siècle, où hommes et femmes priaient dans des espaces distincts.'
+    },
+    'Espace_des_hommes': {
+        title:'Espace des Hommes',
+        sub:'Mosquée principale',
+        text:'La grande salle de prière orientée vers La Mecque. C\'est ici que se tiennent les cérémonies religieuses et les prières du vendredi depuis le XVe siècle, témoignant de l\'islamisation de l\'Empire Songhaï sous Askia Mohamed I.'
+    },
+    'Branche': {
+        title:'Les Piquets de Rônier',
+        sub:'Bois de palmier rônier',
+        text:'Ces piquets en bois de palmier rônier qui dépassent de la surface jouent un rôle structurel essentiel. Ils servent d\'échafaudage naturel lors du crépissage collectif — un rituel communautaire annuel maintenu depuis des siècles pour préserver l\'édifice.'
+    },
+    'Haute_parleur': {
+        title:'Minaret',
+        sub:'Appel à la prière · Banco',
+        text:'Le minaret marque le point le plus élevé depuis lequel le muezzin lance l\'appel à la prière cinq fois par jour. Intégré à l\'architecture en banco, il témoigne de la fusion entre les traditions constructives locales et les pratiques islamiques.'
+    },
+    '__cimetiere__': {
+        title:'Cimetière Royal',
+        sub:'Askia Mohamed I · †1538',
+        text:'Lieu de sépulture d\'Askia Mohamed I, fondateur du monument et l\'un des plus grands empereurs de l\'Empire Songhaï. Plusieurs de ses successeurs y sont également enterrés. Ce cimetière reste un lieu de pèlerinage pour les habitants de Gao et les visiteurs du monde entier.'
+    }
+};
+
+/* ── Toggle couches ── */
+const _layerState = { ann: true, illus: true };
+
+function toggleLayer(layer) {
+    _layerState[layer] = !_layerState[layer];
+    document.getElementById('btn-' + layer).classList.toggle('active', _layerState[layer]);
+    if (layer === 'ann') {
+        document.querySelectorAll('.ann').forEach(el => {
+            el.style.display = _layerState.ann ? '' : 'none';
+        });
+    }
+    if (layer === 'illus' && window._illusMeshes) {
+        window._illusMeshes.forEach(m => { m.visible = _layerState.illus; });
+    }
+}
+
+/* ── Zoom animé vers une position 3D ── */
+function zoomToAnnotation(pos) {
+    const cam  = window._camera;
+    const ctrl = window._controls;
+    if (!cam || !ctrl) return;
+    ctrl.autoRotate = false;
+
+    const startPos = cam.position.clone();
+    const startTgt = ctrl.target.clone();
+    const endTgt   = pos.clone();
+    const horiz = new THREE.Vector3(
+        cam.position.x - endTgt.x, 0, cam.position.z - endTgt.z
+    ).normalize();
+    const endPos = endTgt.clone()
+        .add(horiz.multiplyScalar(55))
+        .add(new THREE.Vector3(0, 22, 0));
+
+    const dur = 1400, t0 = performance.now();
+    function ease(t) { return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+    (function tick(now) {
+        const e = ease(Math.min((now-t0)/dur, 1));
+        cam.position.lerpVectors(startPos, endPos, e);
+        ctrl.target.lerpVectors(startTgt, endTgt, e);
+        ctrl.update();
+        if (e < 1) requestAnimationFrame(tick);
+    })(t0);
+}
+
+/* ── Ouvrir / fermer le panneau détail ── */
+function openDetail(key, pos) {
+    const info = ANN_INFO[key] || ANN_INFO['__cimetiere__'];
+    document.getElementById('detail-title').textContent = info.title;
+    document.getElementById('detail-sub').textContent   = info.sub;
+    document.getElementById('detail-text').textContent  = info.text;
+    document.getElementById('detail-panel').classList.add('on');
+    zoomToAnnotation(pos);
+}
+
+function closeDetail() {
+    document.getElementById('detail-panel').classList.remove('on');
+    if (window._controls) window._controls.autoRotate = true;
+}
+
+/* ═══════════════════════════════════════════════════════════
    ANNOTATIONS SIMPLES 3D → 2D
 ═══════════════════════════════════════════════════════════ */
 const ANN_DATA = [
@@ -379,8 +562,12 @@ function buildAnnotations(scene3d, camera, renderer) {
             annPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
         }
 
+        /* Clé pour ANN_INFO */
+        const infoKey = mesh ? mesh.trim() : '__cimetiere__';
+
         const wrap = document.createElement('div');
         wrap.className = 'ann';
+        wrap.addEventListener('click', () => openDetail(infoKey, annPos));
 
         /* Dot */
         const dot = document.createElement('div');
@@ -702,6 +889,7 @@ function revealHUD() {
     document.getElementById('hud-data').classList.add('on');
     document.getElementById('info-panel').classList.add('on');
     document.getElementById('back-btn').classList.add('on');
+    document.getElementById('toggle-bar').classList.add('on');
 }
 </script>
 </body>
