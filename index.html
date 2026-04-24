@@ -1089,18 +1089,20 @@ intro
 ══════════════════════════════════════════════ */
 let wheelCooldown = false;
 window.addEventListener('wheel', (e) => {
+    /* Ignorer les micro-scrolls (inertie trackpad, smooth scroll) */
+    if (Math.abs(e.deltaY) < 40) return;
     if (!pageStarted || wheelCooldown || transitioning) return;
     wheelCooldown = true;
-    /* Attend la fin de l'animation + 400ms tampon anti-inertie */
+    /* Attend la fin de l'animation + 700ms tampon anti-inertie */
     const waitDone = setInterval(() => {
         if (!transitioning) {
             clearInterval(waitDone);
-            setTimeout(() => { wheelCooldown = false; }, 400);
+            setTimeout(() => { wheelCooldown = false; }, 700);
         }
     }, 50);
 
-    if (e.deltaY > 0) goTo(current + 1);   // scroll bas  → chapitre suivant
-    else               goTo(current - 1);   // scroll haut → chapitre précédent
+    if (e.deltaY > 0) goTo(current + 1);
+    else               goTo(current - 1);
 }, { passive: true });
 
 /* ── Touch mobile ── */
