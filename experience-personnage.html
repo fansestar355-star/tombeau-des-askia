@@ -480,41 +480,90 @@ function initAudio() {
   try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
 
+let _stepSide = 1; // alternance gauche/droite
+
 function playSandStep() {
   if (!audioCtx) return;
   if (audioCtx.state === 'suspended') { audioCtx.resume(); return; }
+
   const now = audioCtx.currentTime;
-  const dur  = 0.068;
+  _stepSide *= -1;
 
-  const len = Math.ceil(audioCtx.sampleRate * dur);
-  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-  const ch  = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+  /* Sortie master avec légère alternance gauche/droite */
+  const master = audioCtx.createGain();
+  master.gain.value = 0.85;
+  const panner = audioCtx.createStereoPanner();
+  panner.pan.value = _stepSide * 0.14;
+  master.connect(panner);
+  panner.connect(audioCtx.destination);
 
-  const src  = audioCtx.createBufferSource();
-  src.buffer = buf;
+  /* ── Couche 1 : impact grave (pied qui frappe le sol) ──
+     Oscillateur sinus qui descend rapidement, comme une "claque" sourde */
+  const thud = audioCtx.createOscillator();
+  thud.type = 'sine';
+  thud.frequency.setValueAtTime(95 + Math.random() * 20, now);
+  thud.frequency.exponentialRampToValueAtTime(28, now + 0.055);
+  const thudGain = audioCtx.createGain();
+  thudGain.gain.setValueAtTime(0.38, now);
+  thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.060);
+  thud.connect(thudGain);
+  thudGain.connect(master);
+  thud.start(now);
+  thud.stop(now + 0.065);
 
-  const bp = audioCtx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = 1100 + Math.random() * 700;
-  bp.Q.value = 0.6;
+  /* ── Couche 2 : crunch sableux (grains de sable qui s'écrasent) ──
+     Bruit blanc court, deux bandpass pour le corps + la texture */
+  const makeNoise = (dur) => {
+    const len = Math.ceil(audioCtx.sampleRate * dur);
+    const b   = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const d   = b.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const s = audioCtx.createBufferSource();
+    s.buffer = b;
+    return s;
+  };
 
-  const ls = audioCtx.createBiquadFilter();
-  ls.type = 'lowshelf';
-  ls.frequency.value = 180;
-  ls.gain.value = 7;
+  const crunchDur = 0.10;
+  const nSrc = makeNoise(crunchDur);
 
-  const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.20, now + 0.006);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  // Corps du crunch : fréquences moyennes (sable compact)
+  const bp1 = audioCtx.createBiquadFilter();
+  bp1.type = 'bandpass';
+  bp1.frequency.value = 420 + Math.random() * 160;
+  bp1.Q.value = 1.4;
 
-  src.connect(bp);
-  bp.connect(ls);
-  ls.connect(gain);
-  gain.connect(audioCtx.destination);
-  src.start(now);
-  src.stop(now + dur + 0.01);
+  // Grain : hautes fréquences (texture sableuse fine)
+  const bp2 = audioCtx.createBiquadFilter();
+  bp2.type = 'bandpass';
+  bp2.frequency.value = 2200 + Math.random() * 800;
+  bp2.Q.value = 1.8;
+
+  const crunchGain = audioCtx.createGain();
+  crunchGain.gain.setValueAtTime(0, now);
+  crunchGain.gain.linearRampToValueAtTime(0.45, now + 0.005);
+  crunchGain.gain.exponentialRampToValueAtTime(0.001, now + crunchDur);
+
+  nSrc.connect(bp1); nSrc.connect(bp2);
+  bp1.connect(crunchGain); bp2.connect(crunchGain);
+  crunchGain.connect(master);
+  nSrc.start(now);
+  nSrc.stop(now + crunchDur);
+
+  /* ── Couche 3 : queue sableuse (sable qui glisse après l'impact) ──
+     Bruit filtré passe-haut, très léger, 80–200 ms */
+  const tailDur  = 0.20;
+  const tailSrc  = makeNoise(tailDur);
+  const tailHP   = audioCtx.createBiquadFilter();
+  tailHP.type    = 'highpass';
+  tailHP.frequency.value = 1600;
+  const tailGain = audioCtx.createGain();
+  tailGain.gain.setValueAtTime(0.06, now + 0.015);
+  tailGain.gain.exponentialRampToValueAtTime(0.001, now + tailDur);
+  tailSrc.connect(tailHP);
+  tailHP.connect(tailGain);
+  tailGain.connect(master);
+  tailSrc.start(now + 0.012);
+  tailSrc.stop(now + tailDur);
 }
 
 ['keydown', 'touchstart', 'mousedown'].forEach(ev =>

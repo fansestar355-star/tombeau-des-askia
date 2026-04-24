@@ -791,6 +791,119 @@
             z-index: 10;
         }
         #kab-skip:hover { color:rgba(167,139,250,0.75); border-color:rgba(167,139,250,0.38); }
+
+        /* ══════════════════════════════════════════
+           INVITE DE SCROLL
+        ══════════════════════════════════════════ */
+        #scroll-invite {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(7,5,15,0.92);
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+        #scroll-invite.visible { display: flex; }
+        #scroll-invite.out     { opacity: 0; pointer-events: none; }
+
+        .si-logo {
+            width: clamp(90px,14vw,140px);
+            margin-bottom: 36px;
+            filter: drop-shadow(0 0 20px rgba(108,99,255,0.4));
+            animation: siLogoPulse 3s ease-in-out infinite;
+        }
+        @keyframes siLogoPulse {
+            0%,100% { filter: drop-shadow(0 0 18px rgba(108,99,255,0.35)); }
+            50%     { filter: drop-shadow(0 0 32px rgba(108,99,255,0.65))
+                              drop-shadow(0 0 60px rgba(249,213,139,0.18)); }
+        }
+        .si-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.6rem,4vw,3rem);
+            color: #f0eaf8;
+            text-align: center;
+            letter-spacing: 0.04em;
+            margin-bottom: 10px;
+        }
+        .si-title em { color: #f9d58b; font-style: normal; }
+        .si-sub {
+            font-size: 0.6rem;
+            letter-spacing: 0.45em;
+            text-transform: uppercase;
+            color: rgba(167,139,250,0.55);
+            margin-bottom: 64px;
+        }
+
+        /* Indicateur de scroll — souris animée */
+        .si-mouse-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .si-mouse {
+            width: 28px; height: 44px;
+            border: 2px solid rgba(196,175,248,0.55);
+            border-radius: 14px;
+            position: relative;
+            animation: siMousePulse 2s ease-in-out infinite;
+        }
+        @keyframes siMousePulse {
+            0%,100% { border-color: rgba(196,175,248,0.35); }
+            50%     { border-color: rgba(196,175,248,0.85); }
+        }
+        .si-wheel {
+            width: 4px; height: 8px;
+            background: #c4aff8;
+            border-radius: 2px;
+            position: absolute;
+            top: 6px; left: 50%;
+            transform: translateX(-50%);
+            animation: siWheel 1.7s ease-in-out infinite;
+        }
+        @keyframes siWheel {
+            0%   { top: 6px;  opacity: 1; }
+            80%  { top: 24px; opacity: 0; }
+            100% { top: 6px;  opacity: 0; }
+        }
+        /* Chevrons descendant */
+        .si-chevrons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        .si-chevrons span {
+            display: block;
+            width: 12px; height: 12px;
+            border-right: 2px solid rgba(196,175,248,0.7);
+            border-bottom: 2px solid rgba(196,175,248,0.7);
+            transform: rotate(45deg);
+        }
+        .si-chevrons span:nth-child(1) { animation: siChev 1.5s ease-in-out infinite 0s; }
+        .si-chevrons span:nth-child(2) { animation: siChev 1.5s ease-in-out infinite 0.22s; }
+        .si-chevrons span:nth-child(3) { animation: siChev 1.5s ease-in-out infinite 0.44s; }
+        @keyframes siChev {
+            0%,100% { opacity:0.15; transform: rotate(45deg) translateY(-3px); }
+            50%     { opacity:1;    transform: rotate(45deg) translateY(3px); }
+        }
+        .si-scroll-text {
+            font-size: 0.58rem;
+            letter-spacing: 0.45em;
+            text-transform: uppercase;
+            color: rgba(196,175,248,0.5);
+            margin-top: 16px;
+            animation: siTextBlink 2s ease-in-out infinite;
+        }
+        @keyframes siTextBlink {
+            0%,100% { opacity: 0.4; }
+            50%     { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -807,21 +920,15 @@
   <div class="k-corner bl"></div>
   <div class="k-corner br"></div>
 
-  <!-- Slide 1 : Logo Kabakoo (SVG, sans dépendance réseau) -->
+  <!-- Slide 1 : Logo Kabakoo (image réelle, fond transparent) -->
   <div class="k-slide" id="ks-logo">
     <div class="k-logo-outer">
       <div class="k-ring r1"></div>
       <div class="k-ring r2"></div>
       <div class="k-ring r3"></div>
       <div class="k-logo-circle">
-        <svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- K stylisé -->
-          <line x1="34" y1="18" x2="34" y2="92" stroke="#f9d58b" stroke-width="8" stroke-linecap="round"/>
-          <line x1="34" y1="55" x2="76" y2="18" stroke="#f9d58b" stroke-width="7" stroke-linecap="round"/>
-          <line x1="34" y1="55" x2="76" y2="92" stroke="#f9d58b" stroke-width="7" stroke-linecap="round"/>
-          <!-- Point lumineux -->
-          <circle cx="34" cy="55" r="4" fill="#a78bfa" opacity="0.8"/>
-        </svg>
+        <img src="assets/images/logo-kabakoo.png" alt="Kabakoo"
+             style="width:130px;height:130px;object-fit:contain;" />
       </div>
     </div>
     <div class="k-logo-name">Kabakoo</div>
@@ -884,6 +991,24 @@
   </div>
 
   <div id="kab-skip" onclick="window.kabSkip()">Passer →</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     INVITE DE SCROLL — apparaît après l'intro
+══════════════════════════════════════════════ -->
+<div id="scroll-invite">
+  <img src="assets/images/logo-kabakoo.png" class="si-logo" alt="Kabakoo" />
+  <h2 class="si-title">Tombeau des <em>Askia</em></h2>
+  <p class="si-sub">Empire Songhaï · 1495 · Gao, Mali</p>
+  <div class="si-mouse-wrap">
+    <div class="si-mouse">
+      <div class="si-wheel"></div>
+    </div>
+    <div class="si-chevrons">
+      <span></span><span></span><span></span>
+    </div>
+    <p class="si-scroll-text">Défiler pour explorer</p>
+  </div>
 </div>
 
 <div class="scene">
@@ -1131,7 +1256,6 @@ gsap.set(chDivider, { width: 0, opacity: 0 });
 gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
 
 const intro = gsap.timeline({ paused: true });
-window._kabPlayPage = function () { intro.play(); };
 intro
     .to(heroGao, { opacity: 0.78, y: 0, duration: 1.0, ease: 'power3.out' })
     .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
@@ -1211,6 +1335,29 @@ function switchModel(idx) {
 
 document.getElementById('arrow-right').addEventListener('click', () => switchModel(modelIdx === 0 ? 1 : 0));
 document.getElementById('arrow-left').addEventListener('click',  () => switchModel(modelIdx === 0 ? 1 : 0));
+
+/* ── Gestion de l'invite de scroll ── */
+window._kabPlayPage = function () {
+    const si = document.getElementById('scroll-invite');
+    if (!si || si.style.display === 'none') return;
+    si.classList.add('out');
+    setTimeout(() => { si.style.display = 'none'; }, 800);
+    /* Lancer l'animation d'entrée GSAP */
+    intro.play();
+};
+
+/* Premier scroll ou touch → déclenche l'expérience */
+(function () {
+    function onFirstInteraction() {
+        window.removeEventListener('wheel',      onFirstInteraction);
+        window.removeEventListener('touchstart', onFirstInteraction);
+        window.removeEventListener('keydown',    onFirstInteraction);
+        if (window._kabPlayPage) window._kabPlayPage();
+    }
+    window.addEventListener('wheel',      onFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', onFirstInteraction, { passive: true });
+    window.addEventListener('keydown',    onFirstInteraction);
+})();
 </script>
 
 <script>
@@ -1294,8 +1441,9 @@ document.getElementById('arrow-left').addEventListener('click',  () => switchMod
     ov.style.opacity    = '0';
     setTimeout(function () {
       ov.style.display = 'none';
-      /* Lancer l'animation GSAP de la page principale */
-      if (window._kabPlayPage) window._kabPlayPage();
+      /* Montrer l'invite de scroll — l'animation GSAP se déclenche au premier scroll */
+      var si = document.getElementById('scroll-invite');
+      if (si) si.classList.add('visible');
     }, 900);
   }
 
