@@ -3,317 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tombeau des Askia — Vue Satellite 3D</title>
-
-    <!-- MapLibre (desktop uniquement, chargé conditionnellement) -->
-    <link id="maplibre-css" rel="stylesheet" href="">
+    <title>Tombeau des Askia — Vue 3D</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-        :root {
-            --bg:   #07050f;
-            --gold: #f9d58b;
-            --text: #f0eaf8;
-            --muted:#9490b8;
-        }
+        :root { --bg:#07050f; --gold:#f9d58b; --text:#f0eaf8; --muted:#9490b8; }
         body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; overflow:hidden; }
 
-        /* ══ MAP (desktop) ══ */
-        #map { position:fixed; inset:0; display:none; }
+        canvas#c { position:fixed; inset:0; display:block; }
 
-        /* ══ MOBILE MODEL-VIEWER ══ */
-        #mobile-view {
-            position:fixed; inset:0;
-            display:none;
-            background:
-                radial-gradient(ellipse 80% 60% at 50% 80%, rgba(180,120,30,0.18) 0%, transparent 60%),
-                linear-gradient(160deg, #07050f 0%, #100d1a 40%, #0b0814 100%);
-        }
-        #mv-mobile {
-            width:100vw; height:100vh;
-            --poster-color:transparent;
-            background:transparent;
-        }
-
-        /* Vignette commune */
+        /* Vignette */
         .vignette {
-            position:fixed; inset:0;
+            position:fixed; inset:0; pointer-events:none; z-index:10;
             background:radial-gradient(ellipse at center,
-                transparent 30%, rgba(7,5,15,0.5) 60%, rgba(7,5,15,0.85) 100%);
-            pointer-events:none; z-index:10;
+                transparent 30%, rgba(7,5,15,0.45) 60%, rgba(7,5,15,0.82) 100%);
         }
 
-        /* ══ HUD CORNERS ══ */
+        /* HUD coins */
         .hud-corner {
             position:fixed; width:36px; height:36px;
             border-color:rgba(249,213,139,0.45); border-style:solid;
             z-index:50; opacity:0; transition:opacity 1s ease;
-            animation:hudFlicker 6s ease-in-out infinite;
         }
         .hud-corner.on { opacity:1; }
         .hud-tl { top:20px; left:20px; border-width:2px 0 0 2px; }
         .hud-tr { top:20px; right:20px; border-width:2px 2px 0 0; }
         .hud-bl { bottom:20px; left:20px; border-width:0 0 2px 2px; }
         .hud-br { bottom:20px; right:20px; border-width:0 2px 2px 0; }
-        @keyframes hudFlicker {
-            0%,100%{ border-color:rgba(249,213,139,0.45); }
-            49%    { border-color:rgba(249,213,139,0.45); }
-            50%    { border-color:rgba(249,213,139,0.12); }
-            51%    { border-color:rgba(249,213,139,0.7);  }
-            52%    { border-color:rgba(249,213,139,0.45); }
-        }
 
         #hud-data {
             position:fixed; top:28px; left:68px;
-            font-size:0.52rem; letter-spacing:0.28em;
-            color:rgba(249,213,139,0.5); text-transform:uppercase;
-            line-height:2.2; font-family:'Courier New',monospace;
+            font-size:0.52rem; letter-spacing:0.28em; color:rgba(249,213,139,0.5);
+            text-transform:uppercase; line-height:2.2; font-family:'Courier New',monospace;
             z-index:50; opacity:0; transition:opacity 1s ease 0.4s;
         }
         #hud-data.on { opacity:1; }
 
-        #scan-line {
-            position:fixed; left:0; width:100%; height:1px;
-            background:linear-gradient(90deg,transparent,rgba(249,213,139,0.4),transparent);
-            filter:blur(0.5px); z-index:50; opacity:0;
-            animation:scanAnim 8s linear infinite;
-            transition:opacity 0.8s ease;
-        }
-        #scan-line.on { opacity:1; }
-        @keyframes scanAnim { 0%{top:0%} 100%{top:100%} }
-
-        /* ══ INFO PANEL ══ */
+        /* Info panel */
         #info-panel {
             position:fixed; bottom:0; left:0; right:0;
-            padding:60px 48px 30px;
-            background:linear-gradient(to top,
-                rgba(7,5,15,0.97) 0%, rgba(7,5,15,0.7) 55%, transparent 100%);
-            z-index:30; opacity:0; transform:translateY(20px);
-            transition:opacity 1.2s ease, transform 1.2s ease;
+            padding:52px 40px 32px; z-index:50;
+            background:linear-gradient(transparent, rgba(7,5,15,0.92) 40%);
+            opacity:0; transition:opacity 1s ease 0.6s;
         }
-        #info-panel.on { opacity:1; transform:translateY(0); }
-        .panel-tag  { font-size:0.56rem; letter-spacing:0.42em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
-        .panel-title{ font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2.2rem); font-weight:900; color:#fff; margin-bottom:9px; }
-        .panel-desc { font-size:0.8rem; line-height:1.75; color:rgba(240,234,248,0.58); max-width:500px; font-weight:300; }
-        .panel-hint { margin-top:14px; font-size:0.54rem; letter-spacing:0.3em; color:rgba(249,213,139,0.35); text-transform:uppercase; }
+        #info-panel.on { opacity:1; }
+        .panel-tag  { font-size:0.55rem; letter-spacing:0.25em; color:var(--gold); text-transform:uppercase; margin-bottom:10px; }
+        .panel-title{ font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2.2rem); font-weight:900; margin-bottom:10px; }
+        .panel-desc { font-size:0.78rem; color:rgba(240,234,248,0.65); max-width:520px; line-height:1.75; }
+        .panel-hint { font-size:0.58rem; letter-spacing:0.18em; color:var(--gold); opacity:0.55; margin-top:14px; text-transform:uppercase; }
 
-        /* ══ BOUTON RETOUR ══ */
+        /* Bouton retour */
         #back-btn {
-            position:fixed; top:20px; right:70px;
-            padding:9px 20px;
-            background:rgba(7,5,15,0.6);
-            border:1px solid rgba(249,213,139,0.28);
-            border-radius:50px; color:rgba(249,213,139,0.6);
-            font-family:'Inter',sans-serif; font-size:0.56rem;
-            font-weight:500; letter-spacing:0.3em; text-transform:uppercase;
-            text-decoration:none; cursor:pointer; z-index:50;
-            backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-            opacity:0; transition:opacity 1s ease, background 0.3s, color 0.3s, border-color 0.3s;
+            position:fixed; top:22px; right:24px; z-index:60;
+            font-size:0.55rem; letter-spacing:0.22em; text-transform:uppercase;
+            color:rgba(249,213,139,0.7); text-decoration:none;
+            border:1px solid rgba(249,213,139,0.25); padding:9px 20px; border-radius:20px;
+            backdrop-filter:blur(6px); background:rgba(7,5,15,0.35);
+            opacity:0; transition:opacity 1s ease, background 0.2s;
         }
         #back-btn.on { opacity:1; }
-        #back-btn:hover { background:rgba(249,213,139,0.1); border-color:var(--gold); color:var(--gold); }
+        #back-btn:hover { background:rgba(249,213,139,0.1); }
 
-        /* ══ INTRO ══ */
-        #intro-overlay {
-            position:fixed; inset:0; background:var(--bg); z-index:300;
-            display:flex; flex-direction:column; align-items:center; justify-content:center;
-            transition:opacity 1.8s ease;
-        }
-        #intro-overlay.out { opacity:0; pointer-events:none; }
-        .intro-logo   { width:clamp(65px,10vw,100px); margin-bottom:44px; opacity:0.65; }
-        .intro-tag    { font-size:0.57rem; letter-spacing:0.46em; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
-        .intro-title  { font-family:'Playfair Display',serif; font-size:clamp(2rem,5.5vw,4.2rem); font-weight:900; color:#fff; text-align:center; letter-spacing:-0.01em; line-height:1.05; margin-bottom:9px; }
-        .intro-title em { color:var(--gold); font-style:normal; }
-        .intro-coords { font-size:0.59rem; letter-spacing:0.32em; color:rgba(249,213,139,0.42); text-transform:uppercase; margin-bottom:48px; }
-        .intro-divider{ width:90px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin-bottom:40px; }
-        #start-btn {
-            padding:13px 40px; background:transparent;
-            border:1.5px solid rgba(249,213,139,0.52); border-radius:50px;
-            color:var(--gold); font-family:'Inter',sans-serif;
-            font-size:0.65rem; font-weight:600; letter-spacing:0.38em;
-            text-transform:uppercase; cursor:pointer; transition:all 0.35s ease;
-        }
-        #start-btn:hover { background:rgba(249,213,139,0.09); border-color:var(--gold); letter-spacing:0.48em; }
-
-        /* ══ LOADING ══ */
+        /* Loader */
         #loader {
-            position:fixed; bottom:46%; left:50%; transform:translate(-50%,50%);
-            text-align:center; z-index:302; opacity:0; transition:opacity 0.5s;
+            position:fixed; inset:0; z-index:80; display:flex;
+            flex-direction:column; align-items:center; justify-content:center;
+            background:var(--bg); opacity:0; pointer-events:none;
+            transition:opacity 0.5s ease;
         }
-        #loader.on { opacity:1; }
-        .loader-txt { font-size:0.53rem; letter-spacing:0.42em; color:rgba(249,213,139,0.45); text-transform:uppercase; margin-bottom:14px; }
-        .loader-bar { width:160px; height:1px; background:rgba(249,213,139,0.12); overflow:hidden; }
-        .loader-bar::after { content:''; display:block; width:100%; height:100%; background:var(--gold); animation:loadAnim 1.5s ease-in-out infinite; }
-        @keyframes loadAnim { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+        #loader.on { opacity:1; pointer-events:all; }
+        .loader-txt { font-size:0.6rem; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; margin-bottom:18px; }
+        .loader-bar {
+            width:180px; height:1px; background:rgba(249,213,139,0.15);
+            position:relative; overflow:hidden;
+        }
+        .loader-bar::after {
+            content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+            background:var(--gold); animation:loaderAnim 1.4s ease-in-out infinite;
+        }
+        @keyframes loaderAnim { to { left:100%; } }
 
-        /* MapLibre overrides */
-        .maplibregl-ctrl-attrib { background:rgba(7,5,15,0.6)!important; color:rgba(255,255,255,0.3)!important; font-size:9px!important; }
-        .maplibregl-ctrl-attrib a { color:rgba(249,213,139,0.4)!important; }
-        .maplibregl-ctrl-logo { display:none!important; }
+        /* Intro */
+        #intro-overlay {
+            position:fixed; inset:0; z-index:100;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            background:radial-gradient(ellipse 100% 80% at 50% 60%, rgba(30,18,5,0.95) 0%, rgba(7,5,15,0.99) 100%);
+            transition:opacity 0.8s ease, transform 0.8s ease;
+        }
+        #intro-overlay.out { opacity:0; transform:scale(1.04); pointer-events:none; }
+        .intro-logo  { height:44px; margin-bottom:32px; opacity:0.85; }
+        .intro-tag   { font-size:0.5rem; letter-spacing:0.35em; color:var(--gold); text-transform:uppercase; margin-bottom:18px; opacity:0.7; }
+        .intro-title { font-family:'Playfair Display',serif; font-size:clamp(2rem,6vw,3.8rem); font-weight:900; text-align:center; line-height:1.1; margin-bottom:14px; }
+        .intro-title em { font-style:italic; color:var(--gold); }
+        .intro-coords{ font-size:0.55rem; letter-spacing:0.22em; color:rgba(249,213,139,0.5); text-transform:uppercase; margin-bottom:28px; }
+        .intro-divider{ width:40px; height:1px; background:rgba(249,213,139,0.3); margin:0 auto 32px; }
+        #start-btn {
+            font-size:0.6rem; letter-spacing:0.28em; text-transform:uppercase;
+            border:1px solid rgba(249,213,139,0.5); color:var(--gold);
+            background:rgba(249,213,139,0.06); padding:14px 36px; border-radius:30px;
+            cursor:pointer; transition:background 0.2s, transform 0.2s;
+        }
+        #start-btn:hover { background:rgba(249,213,139,0.14); transform:scale(1.03); }
 
-        /* ══ ÉDITEUR DE POSITION ══ */
-        #editor-panel {
-            display: none;
-            position: fixed; bottom: 24px; right: 24px;
-            width: 270px;
-            background: rgba(7,5,15,0.92);
-            border: 1px solid rgba(249,213,139,0.35);
-            border-radius: 12px;
-            padding: 18px 20px 16px;
-            z-index: 200;
-            font-family: 'Courier New', monospace;
-            color: #f0eaf8;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(249,213,139,0.12);
-        }
-        body.edit-mode #editor-panel { display: block; }
-        .ed-title {
-            font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
-            color: var(--gold); margin-bottom: 14px; font-weight: 600;
-        }
-        .ed-coords { margin-bottom: 12px; }
-        .ed-row { display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.75rem; }
-        .ed-label { color: rgba(249,213,139,0.55); text-transform:uppercase; font-size:0.6rem; letter-spacing:0.15em; padding-top:2px; }
-        .ed-row span:last-child { color:#fff; font-size:0.82rem; font-weight:500; }
-        .ed-sep { height:1px; background:rgba(249,213,139,0.15); margin:12px 0; }
-        .ed-hint { font-size:0.63rem; color:rgba(240,234,248,0.55); line-height:1.8; margin-bottom:12px; }
-        .ed-hint b { color:rgba(249,213,139,0.75); }
-        .ed-step-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:0.63rem; }
-        .ed-step-row select {
-            flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(249,213,139,0.3);
-            color:#f0eaf8; border-radius:5px; padding:4px 8px; font-size:0.7rem;
-            cursor:pointer;
-        }
-        .ed-slider-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .ed-val { color:#fff; font-size:0.78rem; font-weight:600; font-family:'Courier New',monospace; }
-        #ed-scale, #ed-z {
-            width:100%; -webkit-appearance:none; appearance:none;
-            height:4px; border-radius:2px;
-            background:linear-gradient(90deg, rgba(249,213,139,0.5) 0%, rgba(249,213,139,0.15) 100%);
-            outline:none; cursor:pointer; margin-bottom:2px;
-        }
-        #ed-scale::-webkit-slider-thumb, #ed-z::-webkit-slider-thumb {
-            -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
-            background:var(--gold); cursor:pointer; border:2px solid rgba(7,5,15,0.8);
-        }
-        #ed-copy {
-            width:100%; padding:9px; background:rgba(249,213,139,0.1);
-            border:1px solid rgba(249,213,139,0.4); color:var(--gold);
-            border-radius:7px; cursor:pointer; font-size:0.72rem;
-            letter-spacing:0.05em; transition:background 0.2s;
-        }
-        #ed-copy:hover { background:rgba(249,213,139,0.2); }
-        #ed-copied { display:none; text-align:center; margin-top:8px; font-size:0.65rem; color:#7dffb3; }
-        /* Curseur crosshair sur la carte en mode éditeur */
-        body.edit-mode #map .maplibregl-canvas { cursor: crosshair !important; }
-
-        /* ── Mobile tweaks ── */
         @media (max-width:768px) {
             #hud-data { display:none; }
-            #info-panel { padding:46px 20px 22px; }
-            .panel-desc { font-size:0.76rem; }
-            #back-btn { top:14px; right:14px; font-size:0.52rem; padding:8px 16px; }
-            .hud-tl,.hud-tr,.hud-bl,.hud-br { width:28px; height:28px; }
-            .hud-tl { top:14px; left:14px; } .hud-tr { top:14px; right:14px; }
-            .hud-bl { bottom:14px; left:14px; } .hud-br { bottom:14px; right:14px; }
+            #info-panel { padding:40px 20px 24px; }
+            .panel-desc { font-size:0.74rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- Carte satellite (desktop) -->
-<div id="map"></div>
-
-<!-- Modèle léger (mobile) -->
-<div id="mobile-view">
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    <model-viewer
-        id="mv-mobile"
-        src="assets/3d/Tombeaux_des_Askia.glb"
-        camera-controls
-        auto-rotate
-        auto-rotate-delay="1000"
-        shadow-intensity="1.2"
-        exposure="1.1"
-        tone-mapping="commerce"
-        ar
-        ar-modes="webxr scene-viewer quick-look">
-    </model-viewer>
-</div>
-
+<canvas id="c"></canvas>
 <div class="vignette"></div>
 
-<!-- HUD -->
 <div class="hud-corner hud-tl"></div>
 <div class="hud-corner hud-tr"></div>
 <div class="hud-corner hud-bl"></div>
 <div class="hud-corner hud-br"></div>
+
 <div id="hud-data">
     LOCALISATION : GAO · MALI<br>
     GPS : 16.2890°N · 0.0448°W<br>
     ALTITUDE : 256 M · SRTM 90M<br>
     PATRIMOINE UNESCO · 2004
 </div>
-<div id="scan-line"></div>
 
-<!-- Info panel -->
 <div id="info-panel">
     <div class="panel-tag">Tombeau des Askia · Gao, Mali · XVe siècle</div>
     <div class="panel-title">La Tour Pyramidale de Gao</div>
     <div class="panel-desc">Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d'un des plus grands empereurs de l'Empire Songhaï. Classée Patrimoine Mondial de l'UNESCO en 2004.</div>
-    <div class="panel-hint" id="panel-hint">← Glissez pour explorer</div>
+    <div class="panel-hint">← Glissez pour explorer · Molette pour zoomer</div>
 </div>
 
 <a href="index.html" id="back-btn">← Retour</a>
 
-<!-- ══ ÉDITEUR DE POSITION (activé via ?edit dans l'URL) ══ -->
-<div id="editor-panel">
-    <div class="ed-title">🎯 ÉDITEUR DE POSITION</div>
-    <div class="ed-coords">
-        <div class="ed-row"><span class="ed-label">LAT</span><span id="ed-lat">–</span></div>
-        <div class="ed-row"><span class="ed-label">LNG</span><span id="ed-lng">–</span></div>
-        <div class="ed-row"><span class="ed-label">ALT</span><span id="ed-alt">–</span></div>
-    </div>
-    <div class="ed-sep"></div>
-    <div class="ed-hint">🖱 <b>Clic carte</b> → place le modèle<br>⬆⬇⬅➡ <b>Flèches</b> → position fine<br><b>[</b> / <b>]</b> → taille  &nbsp;·&nbsp; <b>Q</b> / <b>E</b> → hauteur Z<br>Alt+🖱 <b>Molette</b> → altitude GPS</div>
-    <div class="ed-sep"></div>
-
-    <div class="ed-slider-row">
-        <span class="ed-label">TAILLE</span>
-        <span id="ed-scale-val" class="ed-val">1.00×</span>
-    </div>
-    <input id="ed-scale" type="range" min="0.05" max="50" step="0.05" value="1"
-        oninput="window._edSetScale && window._edSetScale(parseFloat(this.value))">
-
-    <div class="ed-slider-row" style="margin-top:10px">
-        <span class="ed-label">HAUTEUR Z</span>
-        <span id="ed-z-val" class="ed-val">+0.0</span>
-    </div>
-    <input id="ed-z" type="range" min="-100" max="100" step="0.5" value="0"
-        oninput="window._edSetZ && window._edSetZ(parseFloat(this.value))">
-
-    <div class="ed-sep"></div>
-    <div class="ed-step-row">
-        <span class="ed-label">Pas flèches</span>
-        <select id="ed-step">
-            <option value="0.000009">1 m</option>
-            <option value="0.000045">5 m</option>
-            <option value="0.00009" selected>10 m</option>
-            <option value="0.00045">50 m</option>
-        </select>
-    </div>
-    <button id="ed-copy" onclick="editorCopy()">📋 Copier les valeurs</button>
-    <div id="ed-copied">✅ Copié dans le presse-papier !</div>
-</div>
-
-<!-- Loader -->
 <div id="loader">
     <div class="loader-txt">Chargement du modèle 3D</div>
     <div class="loader-bar"></div>
 </div>
 
-<!-- Intro -->
 <div id="intro-overlay">
     <img class="intro-logo" src="assets/images/logo-kabakoo.png" alt="Kabakoo" onerror="this.style.display='none'">
     <div class="intro-tag">Patrimoine Mondial UNESCO · 2004</div>
@@ -324,314 +153,169 @@
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════════════════
-   DÉTECTION MOBILE
-══════════════════════════════════════════════════════════════════ */
-const IS_MOBILE = window.innerWidth < 768 ||
-    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-/* Coordonnées exactes Google Maps — Tomb of Askia, Gao, Mali */
-const GPS_LNG = -0.044842;
-const GPS_LAT =  16.289045;
-const GPS_ALT =  256;
-
-/* Mode éditeur : activé par ?edit dans l'URL */
-const EDIT_MODE = location.search.includes('edit');
-if (EDIT_MODE) document.body.classList.add('edit-mode');
-
-/* ══════════════════════════════════════════════════════════════════
-   INIT — selon la plateforme
-══════════════════════════════════════════════════════════════════ */
-if (IS_MOBILE && !EDIT_MODE) {
-    document.getElementById('mobile-view').style.display = 'block';
-    document.getElementById('panel-hint').textContent = 'Tournez · Zoomez · Explorez';
-} else {
-    document.getElementById('map').style.display = 'block';
-    initDesktop();
-    /* En mode éditeur : démarre directement sans overlay */
-    if (EDIT_MODE) {
-        setTimeout(() => {
-            document.getElementById('intro-overlay').style.display = 'none';
-            revealHUD();
-        }, 800);
-    }
+/* ═══════════════════════════════════════════════════════════
+   CHARGEMENT THREE.JS (cascade : three → OrbitControls → GLTFLoader → DRACOLoader)
+═══════════════════════════════════════════════════════════ */
+function loadScript(src, cb) {
+    const s = document.createElement('script');
+    s.src = src; s.onload = cb;
+    document.head.appendChild(s);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   DESKTOP — MapLibre + Three.js custom layer
-══════════════════════════════════════════════════════════════════ */
-function initDesktop() {
-    /* Chargement dynamique de MapLibre */
-    const css = document.getElementById('maplibre-css');
-    css.href = 'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css';
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js', () =>
+loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js', initScene))));
 
-    const s1 = document.createElement('script');
-    s1.src = 'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js';
-    s1.onload = () => {
-        const s2 = document.createElement('script');
-        s2.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
-        s2.onload = () => {
-            const s3 = document.createElement('script');
-            s3.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
-            s3.onload = () => {
-                const s4 = document.createElement('script');
-                s4.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js';
-                s4.onload = createMap;
-                document.head.appendChild(s4);
-            };
-            document.head.appendChild(s3);
-        };
-        document.head.appendChild(s2);
-    };
-    document.head.appendChild(s1);
-}
+/* ═══════════════════════════════════════════════════════════
+   SCÈNE THREE.JS
+═══════════════════════════════════════════════════════════ */
+function initScene() {
+    const canvas = document.getElementById('c');
+    const W = window.innerWidth, H = window.innerHeight;
 
-function createMap() {
-    /* ── Carte satellite (Google tiles — couverture mondiale, sans clé API) ── */
-    const map = new maplibregl.Map({
-        container: 'map',
-        style: {
-            version: 8,
-            glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-            sources: {
-                satellite: {
-                    type:  'raster',
-                    tiles: [
-                        'https://mt0.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}',
-                        'https://mt1.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}',
-                        'https://mt2.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}',
-                        'https://mt3.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}'
-                    ],
-                    tileSize: 256,
-                    attribution: '© Google Satellite'
-                }
-            },
-            layers: [{
-                id: 'satellite',
-                type: 'raster',
-                source: 'satellite',
-                paint: {
-                    'raster-saturation':      -1,    /* noir et blanc */
-                    'raster-brightness-min':   0.0,
-                    'raster-brightness-max':   0.62,  /* plus sombre */
-                    'raster-contrast':         0.25
-                }
-            }]
-        },
-        center:  [GPS_LNG, GPS_LAT],
-        zoom:    14,
-        pitch:   0,
-        bearing: -15,
-        antialias: true
+    /* Renderer */
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.outputEncoding   = THREE.sRGBEncoding;
+    renderer.toneMapping      = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+
+    /* Scène */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07050f);
+    scene.fog        = new THREE.Fog(0x07050f, 600, 1400);
+
+    /* Caméra — vue de dessus légèrement inclinée, centrée sur le modèle */
+    const camera = new THREE.PerspectiveCamera(52, W / H, 1, 3000);
+    camera.position.set(52, 280, 320);
+
+    /* Éclairage Sahel */
+    scene.add(new THREE.AmbientLight(0xfff5e0, 1.1));
+    const sun = new THREE.DirectionalLight(0xffe8c0, 2.2);
+    sun.position.set(80, 200, 100);
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0xc8d8ff, 0.5);
+    fill.position.set(-60, 80, -80);
+    scene.add(fill);
+
+    /* Carte satellite (plan horizontal 880×880 m) */
+    new THREE.TextureLoader().load('assets/images/satellite_gao.jpg', tex => {
+        tex.encoding = THREE.sRGBEncoding;
+        const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(880, 880),
+            new THREE.MeshBasicMaterial({ map: tex })
+        );
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -0.5;
+        scene.add(plane);
     });
 
-    /* ── Transform mercator du modèle (mutable pour l'éditeur) ── */
-    let editLng = GPS_LNG, editLat = GPS_LAT, editAlt = GPS_ALT;
-    let editScale = 1.0, editZOffset = 0;
-    let origin = maplibregl.MercatorCoordinate.fromLngLat([editLng, editLat], editAlt);
-    let mScale = origin.meterInMercatorCoordinateUnits();
+    /* Modèle GLB avec Draco */
+    const draco = new THREE.DRACOLoader();
+    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    const loader = new THREE.GLTFLoader();
+    loader.setDRACOLoader(draco);
 
-    function updateOrigin() {
-        origin = maplibregl.MercatorCoordinate.fromLngLat([editLng, editLat], editAlt);
-        mScale = origin.meterInMercatorCoordinateUnits();
-        if (window._tombeau_map) window._tombeau_map.triggerRepaint();
-        document.getElementById('ed-lat').textContent = editLat.toFixed(6);
-        document.getElementById('ed-lng').textContent = editLng.toFixed(6);
-        document.getElementById('ed-alt').textContent = Math.round(editAlt) + ' m';
-    }
+    loader.load('assets/3d/Tombeaux_des_Askia.glb', gltf => {
+        const model = gltf.scene;
+        /* Pose la base exactement sur la carte */
+        const box = new THREE.Box3().setFromObject(model);
+        model.position.y -= box.min.y;
+        scene.add(model);
 
-    function updateModelTransform() {
-        const m = window._editModel;
-        if (!m) return;
-        m.scale.set(editScale, editScale, editScale);
-        m.position.z = (window._editBaseZ || 0) + editZOffset;
-        if (window._tombeau_map) window._tombeau_map.triggerRepaint();
-        const sv = document.getElementById('ed-scale-val');
-        const zv = document.getElementById('ed-z-val');
-        if (sv) sv.textContent = editScale.toFixed(2) + '×';
-        if (zv) zv.textContent = (editZOffset >= 0 ? '+' : '') + editZOffset.toFixed(1);
-    }
-    /* Setters globaux pour les sliders HTML */
-    window._edSetScale = v => { editScale = v; updateModelTransform(); };
-    window._edSetZ     = v => { editZOffset = v; updateModelTransform(); };
+        /* Cible OrbitControls = centre du modèle */
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        center.y = 0;
+        controls.target.copy(center);
+        controls.update();
 
-    updateOrigin();
+        window._modelLoaded = true;
+    }, undefined, err => console.warn('GLB:', err));
 
-    /* Rotation Blender → WebGL (Z-up → Y-up) */
-    const ROTATE_X = Math.PI / 2;
+    /* OrbitControls */
+    const controls = new THREE.OrbitControls(camera, canvas);
+    controls.target.set(52, 0, 46);
+    controls.minPolarAngle   = Math.PI / 8;
+    controls.maxPolarAngle   = Math.PI / 2.1;
+    controls.minDistance     = 40;
+    controls.maxDistance     = 700;
+    controls.enableDamping   = true;
+    controls.dampingFactor   = 0.06;
+    controls.update();
 
-    /* ── Custom layer Three.js ── */
-    let tScene, tCamera, tRenderer;
-
-    const customLayer = {
-        id:            '3d-tombeau',
-        type:          'custom',
-        renderingMode: '3d',
-
-        onAdd(map, gl) {
-            tCamera = new THREE.Camera();
-            tScene  = new THREE.Scene();
-
-            /* Éclairage naturel Sahel */
-            tScene.add(new THREE.AmbientLight(0xfff5e0, 1.0));
-            const sun = new THREE.DirectionalLight(0xffe8c0, 1.8);
-            sun.position.set(10, 20, 15);
-            tScene.add(sun);
-            const fill = new THREE.DirectionalLight(0xc8d8ff, 0.4);
-            fill.position.set(-8, 5, -10);
-            tScene.add(fill);
-
-            /* Chargement GLB */
-            const draco = new THREE.DRACOLoader();
-            draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-
-            const loader = new THREE.GLTFLoader();
-            loader.setDRACOLoader(draco);
-            loader.load(
-                'assets/3d/Tombeaux_des_Askia.glb',
-                gltf => {
-                    const model = gltf.scene;
-                    const box = new THREE.Box3().setFromObject(model);
-                    const baseZ = -box.min.z;
-                    model.position.z = baseZ;
-                    window._editModel  = model;
-                    window._editBaseZ  = baseZ;
-                    tScene.add(model);
-                },
-                undefined,
-                err  => console.warn('GLB:', err)
-            );
-
-            tRenderer = new THREE.WebGLRenderer({
-                canvas:    map.getCanvas(),
-                context:   gl,
-                antialias: true
-            });
-            tRenderer.autoClear = false;
-            this._map = map;
-        },
-
-        render(gl, matrix) {
-            const rotX = new THREE.Matrix4().makeRotationAxis(
-                new THREE.Vector3(1, 0, 0), ROTATE_X
-            );
-            const m = new THREE.Matrix4().fromArray(matrix);
-            const l = new THREE.Matrix4()
-                .makeTranslation(origin.x, origin.y, origin.z)
-                .scale(new THREE.Vector3(mScale, -mScale, mScale))
-                .multiply(rotX);
-
-            tCamera.projectionMatrix = m.multiply(l);
-            tRenderer.resetState();
-            tRenderer.render(tScene, tCamera);
-            this._map.triggerRepaint();
-        }
-    };
-
-    map.on('load', () => {
-        map.addLayer(customLayer);
-
-        /* ── ÉDITEUR : interactions ── */
-        if (EDIT_MODE) {
-            /* Clic sur la carte → repositionne le modèle */
-            map.on('click', e => {
-                editLng = e.lngLat.lng;
-                editLat = e.lngLat.lat;
-                updateOrigin();
-            });
-
-            /* Touches → position / scale / Z */
-            document.addEventListener('keydown', e => {
-                const tag = e.target.tagName;
-                if (tag === 'INPUT' || tag === 'SELECT') return;
-                const step = parseFloat(document.getElementById('ed-step').value);
-                /* Position */
-                if (e.key === 'ArrowUp')    { editLat += step; updateOrigin(); e.preventDefault(); }
-                if (e.key === 'ArrowDown')  { editLat -= step; updateOrigin(); e.preventDefault(); }
-                if (e.key === 'ArrowRight') { editLng += step; updateOrigin(); e.preventDefault(); }
-                if (e.key === 'ArrowLeft')  { editLng -= step; updateOrigin(); e.preventDefault(); }
-                /* Scale : [ diminue, ] augmente */
-                if (e.key === '[') { editScale = Math.max(0.05, +(editScale - 0.1).toFixed(2)); document.getElementById('ed-scale').value = editScale; updateModelTransform(); e.preventDefault(); }
-                if (e.key === ']') { editScale = Math.min(50,   +(editScale + 0.1).toFixed(2)); document.getElementById('ed-scale').value = editScale; updateModelTransform(); e.preventDefault(); }
-                /* Axe Z : Q monte, E descend */
-                if (e.key === 'q' || e.key === 'Q') { editZOffset = +(editZOffset + 1).toFixed(1); document.getElementById('ed-z').value = editZOffset; updateModelTransform(); e.preventDefault(); }
-                if (e.key === 'e' || e.key === 'E') { editZOffset = +(editZOffset - 1).toFixed(1); document.getElementById('ed-z').value = editZOffset; updateModelTransform(); e.preventDefault(); }
-            });
-
-            /* Molette → altitude de la carte */
-            document.getElementById('map').addEventListener('wheel', e => {
-                if (!e.altKey) return;
-                editAlt += e.deltaY > 0 ? -1 : 1;
-                updateOrigin();
-                e.preventDefault();
-            }, { passive: false });
-        }
+    /* Resize */
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    /* Stocke la map pour le fly-in */
-    window._tombeau_map = map;
+    /* Boucle */
+    (function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    })();
+
+    window._controls = controls;
+    window._camera   = camera;
 }
 
-/* ── Copier toutes les valeurs dans le presse-papier ── */
-function editorCopy() {
-    const lng   = document.getElementById('ed-lng').textContent;
-    const lat   = document.getElementById('ed-lat').textContent;
-    const alt   = document.getElementById('ed-alt').textContent.replace(' m','');
-    const scale = document.getElementById('ed-scale').value;
-    const zOff  = document.getElementById('ed-z').value;
-    const txt =
-        `// GPS\n` +
-        `const GPS_LNG = ${lng};\n` +
-        `const GPS_LAT =  ${lat};\n` +
-        `const GPS_ALT =  ${alt};\n\n` +
-        `// Modèle\n` +
-        `const MODEL_SCALE   = ${parseFloat(scale).toFixed(2)};   // taille\n` +
-        `const MODEL_Z_OFFSET = ${parseFloat(zOff).toFixed(1)};  // hauteur Z`;
-    navigator.clipboard.writeText(txt).then(() => {
-        const el = document.getElementById('ed-copied');
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 2500);
-    });
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   DÉMARRAGE — FLY-IN + RÉVÉLATION HUD
-══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   DÉMARRAGE — intro → fly-in → HUD
+═══════════════════════════════════════════════════════════ */
 function startExperience() {
     document.getElementById('intro-overlay').classList.add('out');
+    document.getElementById('loader').classList.add('on');
 
-    if (!IS_MOBILE) {
-        document.getElementById('loader').classList.add('on');
+    /* Attend que le modèle soit chargé */
+    const wait = setInterval(() => {
+        if (!window._modelLoaded) return;
+        clearInterval(wait);
+        document.getElementById('loader').classList.remove('on');
 
-        /* Attend que la map soit prête */
-        const waitMap = setInterval(() => {
-            const map = window._tombeau_map;
-            if (!map) return;
-            clearInterval(waitMap);
+        /* Fly-in animé vers le modèle */
+        flyIn();
+    }, 100);
+}
 
-            setTimeout(() => {
-                map.flyTo({
-                    center:   [GPS_LNG, GPS_LAT],
-                    zoom:     17.5,
-                    pitch:    EDIT_MODE ? 30 : 62,
-                    bearing:  -20,
-                    duration: EDIT_MODE ? 1200 : 5500,
-                    essential: true,
-                    easing: t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2
-                });
-                document.getElementById('loader').classList.remove('on');
-            }, 300);
-        }, 100);
-    }
+function flyIn() {
+    const cam = window._camera;
+    const ctrl = window._controls;
+    if (!cam || !ctrl) return;
 
-    /* Révèle le HUD après l'animation */
-    setTimeout(revealHUD, IS_MOBILE ? 600 : 6000);
+    /* Position de départ : vue haute */
+    cam.position.set(52, 280, 320);
+    ctrl.target.set(52, 0, 46);
+    ctrl.update();
+
+    /* Anime vers une vue rapprochée inclinée */
+    const startPos = cam.position.clone();
+    const endPos   = new THREE.Vector3(52, 100, 160);
+    const startTgt = ctrl.target.clone();
+    const endTgt   = new THREE.Vector3(52, 0, 46);
+    const duration = 4000;
+    const start    = performance.now();
+
+    function ease(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+
+    (function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const e = ease(t);
+        cam.position.lerpVectors(startPos, endPos, e);
+        ctrl.target.lerpVectors(startTgt, endTgt, e);
+        ctrl.update();
+        if (t < 1) requestAnimationFrame(tick);
+        else revealHUD();
+    })(start);
 }
 
 function revealHUD() {
     document.querySelectorAll('.hud-corner').forEach(el => el.classList.add('on'));
     document.getElementById('hud-data').classList.add('on');
-    document.getElementById('scan-line').classList.add('on');
     document.getElementById('info-panel').classList.add('on');
     document.getElementById('back-btn').classList.add('on');
 }
