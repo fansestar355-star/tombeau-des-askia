@@ -519,131 +519,16 @@
                 transparent 70%);
             filter: blur(55px);
         }
+        /* Bouton 3D satellite : visible uniquement en ch5 */
+        .btn-3d { display: none !important; }
+        body.ch5 .btn-3d { display: inline-flex !important; }
+        body.ch5 #btn-personnage { display: none; }
+
         body.ch5 .model-toggle { opacity: 0; pointer-events: none; }
         body.ch5 .hero-gao { font-size: clamp(5rem, 14vw, 14rem); letter-spacing: -0.03em; }
         @media (max-width: 768px) {
             .ch5-tombeau { width: 105%; right: -3%; bottom: 35%; opacity: 0.55; }
             body.ch5 .hero-gao { font-size: clamp(2.8rem, 10vw, 5rem); letter-spacing: -0.02em; }
-        }
-
-        /* ══ CHAPITRE 6 — Modèle 3D Tombeau (style Toguna) ══ */
-        #ch6-overlay {
-            position: fixed; inset: 0; z-index: 6;
-            pointer-events: none; opacity: 0;
-            transition: opacity 1s ease;
-            background: #07050f;
-        }
-        #ch6-overlay.visible { opacity: 1; pointer-events: all; }
-        #mv-tombeau {
-            width: 100%; height: 100%;
-            --poster-color: transparent;
-            background: transparent;
-            display: block;
-        }
-        /* Hologram stage */
-        .ch6-hologram-stage {
-            position: absolute; inset: 0;
-            pointer-events: none; overflow: hidden; z-index: 0;
-        }
-        .ch6-grid-floor {
-            position: absolute; bottom: 0; left: -50%;
-            width: 200%; height: 42%;
-            background-image:
-                linear-gradient(rgba(249,213,139,0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(249,213,139,0.07) 1px, transparent 1px);
-            background-size: 55px 55px;
-            transform: perspective(450px) rotateX(72deg);
-            transform-origin: bottom center;
-            animation: ch6GridPulse 5s ease-in-out infinite;
-        }
-        @keyframes ch6GridPulse { 0%,100%{opacity:.35} 50%{opacity:.7} }
-        .ch6-light-beam {
-            position: absolute; bottom: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 3px; height: 58%;
-            background: linear-gradient(to top, rgba(249,213,139,0.55) 0%, transparent 100%);
-            filter: blur(5px);
-            animation: ch6BeamPulse 3.5s ease-in-out infinite;
-        }
-        @keyframes ch6BeamPulse {
-            0%,100%{opacity:.45;height:52%} 50%{opacity:.9;height:62%}
-        }
-        .ch6-rings {
-            position: absolute; bottom: 22%; left: 50%;
-            transform: translateX(-50%); width: 0; height: 0;
-        }
-        .ch6-ring {
-            position: absolute; left: 50%; top: 0;
-            border-radius: 50%;
-            border: 1px solid rgba(249,213,139,0.2);
-            animation: ch6RingExpand 4.5s ease-out infinite;
-        }
-        .ch6-ring:nth-child(1){width:160px;height:40px;margin-left:-80px;animation-delay:0s}
-        .ch6-ring:nth-child(2){width:260px;height:65px;margin-left:-130px;animation-delay:1.5s}
-        .ch6-ring:nth-child(3){width:360px;height:90px;margin-left:-180px;animation-delay:3s}
-        @keyframes ch6RingExpand {
-            0%{opacity:0;transform:translateX(-50%) scaleX(.6)} 25%{opacity:.9} 100%{opacity:0}
-        }
-        /* HUD */
-        .ch6-hud {
-            position: absolute; inset: 0;
-            pointer-events: none; z-index: 2;
-        }
-        .ch6-corner {
-            position: absolute; width: 36px; height: 36px;
-            border-color: rgba(249,213,139,0.5); border-style: solid;
-        }
-        .ch6-tl{top:22px;left:22px;border-width:2px 0 0 2px}
-        .ch6-tr{top:22px;right:22px;border-width:2px 2px 0 0}
-        .ch6-bl{bottom:22px;left:22px;border-width:0 0 2px 2px}
-        .ch6-br{bottom:22px;right:22px;border-width:0 2px 2px 0}
-        .ch6-hud-data {
-            position: absolute; top: 30px; left: 70px;
-            font-size: 0.55rem; letter-spacing: 0.28em;
-            color: rgba(249,213,139,0.5);
-            text-transform: uppercase; line-height: 2;
-        }
-        .ch6-hud-label {
-            position: absolute; bottom: 30px; right: 70px;
-            font-size: 0.52rem; letter-spacing: 0.3em;
-            color: rgba(249,213,139,0.35);
-            text-transform: uppercase; text-align: right;
-        }
-        /* Surcharge opacity du model-viewer global (le #mv-tombeau n'a pas de classe .loaded) */
-        #mv-tombeau {
-            opacity: 1 !important;
-            height: 100vh;
-            width: 100vw;
-            position: absolute;
-            top: 0; left: 0;
-            z-index: 1;
-        }
-        /* Bouton AR */
-        #ch6-ar-btn {
-            position: absolute; bottom: 44px; left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 30px;
-            background: transparent;
-            border: 1px solid rgba(249,213,139,0.55);
-            color: var(--gold);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.6rem; letter-spacing: 0.38em;
-            text-transform: uppercase; cursor: pointer;
-            transition: background 0.3s, border-color 0.3s;
-            z-index: 10;
-        }
-        #ch6-ar-btn:hover { background: rgba(249,213,139,0.08); border-color: var(--gold); }
-        /* Masquer l'UI principale en ch6 */
-        body.ch6 .top-bar    { opacity: 0; transition: opacity 0.5s; pointer-events: none; }
-        body.ch6 .bottom-bar { opacity: 0; transition: opacity 0.5s; }
-        body.ch6 .hero-gao   { opacity: 0 !important; }
-        body.ch6 .hero-text  { opacity: 0 !important; pointer-events: none; }
-        body.ch6 .scroll-hint  { opacity: 0; }
-        body.ch6 .model-toggle { opacity: 0; pointer-events: none; }
-        @media (max-width: 768px) {
-            .ch6-hud-data { font-size: 0.48rem; left: 58px; top: 24px; }
-            .ch6-hud-label { display: none; }
-            #ch6-ar-btn { font-size: 0.55rem; padding: 10px 22px; bottom: 36px; }
         }
 
         /* ── Taille hero-gao adaptée au chapitre 4 (mot long) ── */
@@ -936,7 +821,8 @@
             </h1>
             <div class="title-divider" id="ch-divider" style="width:200px;"></div>
             <p class="hero-desc" id="ch-desc">L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.</p>
-            <a class="btn-experience" href="experience-personnage.html">Explorer le personnage</a>
+            <a class="btn-experience" id="btn-personnage" href="experience-personnage.html">Explorer le personnage</a>
+            <a class="btn-experience btn-3d" href="tombeau-3d.html">Explorer le Monument →</a>
             <div class="nav-dots" id="nav-dots"></div>
         </div>
 
@@ -965,48 +851,6 @@
     <img class="ch5-tombeau" src="assets/images/tombeaux.png" alt="Tombeau des Askia" />
 </div>
 
-<!-- ══ OVERLAY CHAPITRE 6 : MODÈLE 3D TOMBEAU ══ -->
-<div id="ch6-overlay">
-    <div class="ch6-hologram-stage">
-        <div class="ch6-grid-floor"></div>
-        <div class="ch6-light-beam"></div>
-        <div class="ch6-rings">
-            <div class="ch6-ring"></div>
-            <div class="ch6-ring"></div>
-            <div class="ch6-ring"></div>
-        </div>
-    </div>
-
-    <model-viewer
-        id="mv-tombeau"
-        src="assets/3d/Tombeaux_des_Askia.glb"
-        ar
-        ar-modes="webxr scene-viewer quick-look"
-        camera-controls
-        shadow-intensity="1.5"
-        auto-rotate
-        auto-rotate-delay="1000"
-        exposure="1.1"
-        tone-mapping="commerce"
-    >
-        <div class="ch6-hud">
-            <div class="ch6-corner ch6-tl"></div>
-            <div class="ch6-corner ch6-tr"></div>
-            <div class="ch6-corner ch6-bl"></div>
-            <div class="ch6-corner ch6-br"></div>
-            <div class="ch6-hud-data">
-                PATRIMOINE UNESCO · 2004<br>
-                TOMBEAU DES ASKIA · GAO<br>
-                GPS : 16.2872°N · 0.0400°W<br>
-                BANCO · ARGILE · BOIS DE RÔNIER
-            </div>
-            <div class="ch6-hud-label">
-                XVe SIÈCLE · EMPIRE SONGHAÏ
-            </div>
-        </div>
-        <button slot="ar-button" id="ch6-ar-btn">MATÉRIALISER EN AR</button>
-    </model-viewer>
-</div>
 
 <!-- Scroll progress bar droite -->
 <div class="scroll-hint" id="scroll-hint">
@@ -1070,15 +914,6 @@ const CHAPTERS = [
         btn:    false,
         year:   "XVe–XVIe siècle · Gao · Mali"
     },
-    {
-        gao:    "3D",
-        tag:    "Modèle Numérique",
-        camera: "60deg 84deg 2.3m",
-        lines:  ["Explorer", "en 3D"],
-        desc:   "Matérialisez le Tombeau des Askia. Tournez, zoomez, explorez la tour pyramidale en banco depuis tous les angles — ou matérialisez-la en AR.",
-        btn:    false,
-        year:   "Tombeau des Askia · Gao · Mali"
-    },
 ];
 
 /* ══════════════════════════════════════════════
@@ -1101,7 +936,6 @@ const sbProgress  = document.getElementById('sb-progress');
 const sbDot       = document.getElementById('sb-dot');
 const ch4Overlay  = document.getElementById('ch4-overlay');
 const ch5Overlay  = document.getElementById('ch5-overlay');
-const ch6Overlay  = document.getElementById('ch6-overlay');
 
 function setCh4(active) {
     ch4Overlay.classList.toggle('visible', active);
@@ -1127,25 +961,6 @@ function setCh5(active) {
 
         gsap.to('.ch5-glow',    { opacity: 1,    duration: 2.0, ease: 'power2.out',  delay: 0.2 });
         gsap.to('.ch5-tombeau', { x: 0, opacity: 0.88, duration: 2.2, ease: 'power3.out', delay: 0.5 });
-    }
-}
-function setCh6(active) {
-    ch6Overlay.classList.toggle('visible', active);
-    document.body.classList.toggle('ch6', active);
-
-    if (active) {
-        gsap.fromTo('.ch6-corner',
-            { opacity: 0, scale: 0.5 },
-            { opacity: 1, scale: 1, stagger: 0.08, duration: 0.6, ease: 'power3.out', delay: 0.4 });
-        gsap.fromTo('.ch6-hud-data, .ch6-hud-label',
-            { opacity: 0, y: -8 },
-            { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.7 });
-        gsap.fromTo('.ch6-grid-floor',
-            { opacity: 0 },
-            { opacity: 1, duration: 1.5, ease: 'power2.out', delay: 0.2 });
-        gsap.fromTo('.ch6-light-beam',
-            { opacity: 0, scaleY: 0 },
-            { opacity: 1, scaleY: 1, duration: 1.2, ease: 'power3.out', transformOrigin: 'bottom center', delay: 0.5 });
     }
 }
 
@@ -1229,13 +1044,12 @@ function goTo(index) {
         current = index;
         updateScrollBar(index);
         /* Masquer le modèle 3D pour les chapitres avec overlay image */
-        const useOverlay = (index === 3 || index === 4 || index === 5);
+        const useOverlay = (index === 3 || index === 4);
         mv.style.transition = 'opacity 0.9s ease';
         mv.style.opacity    = useOverlay ? '0' : '';
         document.querySelector('.bg-glow').style.opacity = useOverlay ? '0' : '';
         setCh4(index === 3);
         setCh5(index === 4);
-        setCh6(index === 5);
     });
 
     /* ─── ENTRÉE ─── */
