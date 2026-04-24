@@ -105,10 +105,55 @@
         }
         #start-btn:hover { background:rgba(249,213,139,0.14); transform:scale(1.03); }
 
+        /* ── Annotations 3D ── */
+        #annotations { position:fixed; inset:0; pointer-events:none; z-index:40; }
+
+        .ann {
+            position:absolute; top:0; left:0;
+            transform:translate(-50%, -50%);
+            opacity:0; transition:opacity 0.6s ease;
+            pointer-events:none;
+        }
+        .ann.visible { pointer-events:auto; }
+
+        .ann-dot {
+            width:8px; height:8px; border-radius:50%;
+            background:var(--gold); box-shadow:0 0 8px rgba(249,213,139,0.8);
+            position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            transition:transform 0.2s;
+        }
+        .ann:hover .ann-dot { transform:translate(-50%,-50%) scale(1.6); }
+
+        .ann-line {
+            position:absolute; bottom:calc(50% + 4px); left:50%;
+            width:1px; background:linear-gradient(to top, rgba(249,213,139,0.6), transparent);
+            transform-origin:bottom center;
+            height:28px;
+        }
+
+        .ann-box {
+            position:absolute; bottom:calc(50% + 34px); left:50%;
+            transform:translateX(-50%);
+            background:rgba(7,5,15,0.78); border:1px solid rgba(249,213,139,0.3);
+            backdrop-filter:blur(8px);
+            padding:6px 12px; border-radius:4px; white-space:nowrap;
+            text-align:center;
+        }
+        .ann-name {
+            font-size:0.58rem; letter-spacing:0.18em; text-transform:uppercase;
+            color:var(--gold); font-weight:500;
+        }
+        .ann-sub {
+            font-size:0.5rem; color:rgba(240,234,248,0.5);
+            letter-spacing:0.1em; margin-top:2px;
+        }
+        .ann:hover .ann-box { border-color:rgba(249,213,139,0.7); }
+
         @media (max-width:768px) {
             #hud-data { display:none; }
             #info-panel { padding:40px 20px 24px; }
             .panel-desc { font-size:0.74rem; }
+            .ann-box { display:none; }
         }
     </style>
 </head>
@@ -136,6 +181,7 @@
     <div class="panel-hint">← Glissez pour explorer · Molette pour zoomer</div>
 </div>
 
+<div id="annotations"></div>
 <a href="index.html" id="back-btn">← Retour</a>
 
 <div id="loader">
@@ -245,19 +291,14 @@ function initScene() {
 
         scene.add(scene3d);
 
-        /* Centre caméra sur le tombeau (sans la carte satellite) */
-        const modelBox = new THREE.Box3();
-        scene3d.traverse(obj => {
-            if (obj.isMesh && obj.name !== 'Carte_Satellite') {
-                modelBox.expandByObject(obj);
-            }
-        });
-        const center = new THREE.Vector3();
-        modelBox.getCenter(center);
-        center.y = 0;
+        /* Caméra centrée sur l'origine de la carte satellite = (0,0,0) Blender */
+        const center = new THREE.Vector3(0, 0, 0);
         controls.target.copy(center);
         window._modelCenter = center.clone();
         controls.update();
+
+        /* Annotations sur les parties du modèle */
+        buildAnnotations(scene3d, camera, renderer);
 
         window._modelLoaded = true;
     }, undefined, err => console.warn('GLB:', err));
@@ -290,10 +331,87 @@ function initScene() {
         requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);
+        updateAnnotations();
     })();
 
     window._controls = controls;
     window._camera   = camera;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANNOTATIONS 3D → 2D
+═══════════════════════════════════════════════════════════ */
+const ANN_DATA = [
+    { mesh:'Tombeaux',           name:'La Tour Pyramidale', sub:'~17 m · banco' },
+    { mesh:'La_base ',           name:'Enceinte Principale', sub:'Cour intérieure' },
+    { mesh:'Espace_des_femmes',  name:'Espace des Femmes',  sub:'Salle de prière' },
+    { mesh:'Espace_des_hommes',  name:'Espace des Hommes',  sub:'Salle de prière' },
+    { mesh:'Branche',            name:'Les Piquets',         sub:'Bois de rônier' },
+    { mesh:'Haute_parleur',      name:'Minaret',             sub:'Haut-parleur' },
+    { mesh:'cimtière',           name:'Cimetière',           sub:'Askia Mohamed I' },
+];
+
+let _annotations = [];
+
+function buildAnnotations(scene3d, camera, renderer) {
+    const container = document.getElementById('annotations');
+    container.innerHTML = '';
+    _annotations = [];
+
+    ANN_DATA.forEach(({ mesh, name, sub }) => {
+        let found = null;
+        scene3d.traverse(obj => { if (obj.name.trim() === mesh.trim()) found = obj; });
+        if (!found) return;
+
+        /* Position monde = centre du bounding box du mesh */
+        const box3 = new THREE.Box3().setFromObject(found);
+        const pos  = new THREE.Vector3();
+        box3.getCenter(pos);
+        pos.y = box3.max.y; /* accroche au sommet du mesh */
+
+        /* Élément DOM */
+        const el = document.createElement('div');
+        el.className = 'ann';
+        el.innerHTML = `
+            <div class="ann-box">
+                <div class="ann-name">${name}</div>
+                <div class="ann-sub">${sub}</div>
+            </div>
+            <div class="ann-line"></div>
+            <div class="ann-dot"></div>`;
+        container.appendChild(el);
+
+        _annotations.push({ el, pos, camera, renderer });
+    });
+
+    window._annotations = _annotations;
+    window._annCamera   = camera;
+    window._annRenderer = renderer;
+}
+
+function updateAnnotations() {
+    if (!window._annotations || !window._annCamera) return;
+    const cam = window._annCamera;
+    const rdr = window._annRenderer;
+    const W   = rdr.domElement.clientWidth;
+    const H   = rdr.domElement.clientHeight;
+
+    window._annotations.forEach(({ el, pos }) => {
+        const v = pos.clone().project(cam);
+        const x = ( v.x * 0.5 + 0.5) * W;
+        const y = (-v.y * 0.5 + 0.5) * H;
+        const inFront = v.z < 1.0;
+
+        el.style.left = x + 'px';
+        el.style.top  = y + 'px';
+
+        /* Distance caméra → annotation */
+        const dist = cam.position.distanceTo(pos);
+        const fade = inFront && dist > 30 && dist < 400;
+        el.style.opacity = fade ? Math.min(1, (dist - 30) / 60) : '0';
+        if (fade) el.classList.add('visible');
+        else      el.classList.remove('visible');
+    });
 }
 
 /* ═══════════════════════════════════════════════════════════
