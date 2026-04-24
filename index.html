@@ -9,12 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg:      #07050f;
+            --bg:      #55415d;
             --accent:  #6c63ff;
             --accent2: #c4aff8;
             --gold:    #f9d58b;
-            --text:    #f0eaf8;
-            --muted:   #9490b8;
+            --text:    #f9d58b;
+            --muted:   rgba(249,213,139,0.52);
         }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -153,7 +153,7 @@
             font-weight: 900;
             line-height: 0.95;
             letter-spacing: -0.01em;
-            color: #fff;
+            color: var(--text);
             text-transform: uppercase;
             overflow: hidden;
             min-height: 3em;
@@ -210,7 +210,7 @@
         .btn-enquete:hover {
             background: rgba(108,99,255,0.3);
             border-color: var(--accent2);
-            color: #fff;
+            color: var(--text);
             box-shadow: 0 0 24px rgba(108,99,255,0.3);
         }
         .btn-enquete::before {
@@ -243,7 +243,7 @@
         .btn-experience:hover {
             background: rgba(249,213,139,0.18);
             border-color: var(--gold);
-            color: #fff;
+            color: var(--text);
             box-shadow: 0 0 24px rgba(249,213,139,0.2);
         }
         .btn-experience::before {
@@ -331,12 +331,12 @@
             font-size: 0.65rem;
             letter-spacing: 0.3em;
             text-transform: uppercase;
-            color: rgba(148,163,184,0.5);
+            color: rgba(249,213,139,0.4);
         }
         .bottom-year {
             font-family: 'Playfair Display', serif;
             font-size: 0.75rem;
-            color: rgba(249,213,139,0.5);
+            color: var(--gold);
             letter-spacing: 0.25em;
             transition: all 0.5s ease;
         }
@@ -511,8 +511,8 @@
                 max-width: 100%;
                 padding: 100px 22px 18px;
                 background: linear-gradient(to top,
-                    rgba(7,5,15,1.0)  52%,
-                    rgba(7,5,15,0.65) 74%,
+                    rgba(85,65,93,1.0)  52%,
+                    rgba(85,65,93,0.65) 74%,
                     transparent       100%);
                 z-index: 5;
             }
@@ -537,7 +537,7 @@
 
             .bottom-bar {
                 padding: 0 20px 14px;
-                background: rgba(7,5,15,0.85);
+                background: rgba(85,65,93,0.85);
             }
             .bottom-label { font-size: 0.55rem; letter-spacing: 0.2em; }
             .scroll-hint  { right: 10px; }
@@ -564,7 +564,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(7,5,15,0.95);
+            background: #55415d;
             backdrop-filter: blur(10px);
             cursor: pointer;
             transition: opacity 0.8s ease;
@@ -585,7 +585,7 @@
         .si-title {
             font-family: 'Playfair Display', serif;
             font-size: clamp(1.8rem,5vw,3.4rem);
-            color: #f0eaf8;
+            color: var(--text);
             text-align: center;
             letter-spacing: 0.04em;
             margin-bottom: 10px;
