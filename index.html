@@ -545,23 +545,33 @@
             background-size: 56px 56px;
         }
 
-        /* SVG wireframe */
-        .ch4-svg {
+        /* Canvas pyramide 3D */
+        #pyramid-canvas {
+            position: fixed; inset: 0;
+            z-index: 5; pointer-events: none;
+            display: none;
+        }
+
+        /* Conteneur blueprint (coin haut-droit) */
+        .ch4-blueprint {
             position: absolute;
-            right: 4%;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 48vw;
-            max-width: 520px;
+            top: 5%;
+            right: 2%;
+            width: clamp(120px, 16vw, 190px);
+            pointer-events: none;
+        }
+        .ch4-svg {
+            width: 100%;
             height: auto;
             overflow: visible;
+            display: block;
         }
 
         /* Labels de mesure */
         .ch4-msr {
             position: absolute;
             font-family: 'Courier New', monospace;
-            font-size: 0.44rem;
+            font-size: 0.42rem;
             letter-spacing: 0.14em;
             text-transform: uppercase;
             color: rgba(249,213,139,0.85);
@@ -569,19 +579,18 @@
             pointer-events: none;
         }
         .ch4-msr-h {
-            right: 3.5%;
-            top: 50%;
-            transform: translateY(-50%);
+            right: -18px;
+            top: 18%;
             writing-mode: vertical-rl;
             letter-spacing: 0.18em;
         }
         .ch4-msr-b {
-            right: 26%;
-            bottom: 20%;
+            left: 0;
+            bottom: -18px;
         }
         .ch4-msr-a {
-            right: 46%;
-            bottom: 30%;
+            right: 0;
+            bottom: -18px;
         }
 
         /* Comparaison pyramides */
@@ -793,145 +802,6 @@
                 exposure="1.0"
                 tone-mapping="commerce">
 
-                <!-- Annotations chapitre 4 — style H-LAND -->
-                <button class="hotspot" slot="hotspot-tower"
-                    data-position="-7.029m 1.225m -4.547m" data-normal="0 1 0"
-                    data-visibility-attribute="visible">
-                    <div class="annotation">
-                        <div class="ann-head">
-                            <div class="ann-id">TOMBEAU #1</div>
-                            <div class="ann-sub">tour pyramidale</div>
-                        </div>
-                        <div class="ann-num">17</div>
-                        <div class="ann-body">
-                            <div class="ann-row"><span class="ann-key">HAUTEUR [M]</span><span class="ann-val">17</span></div>
-                            <div class="ann-row"><span class="ann-key">MATÉRIAU</span><span class="ann-val">BANCO</span></div>
-                            <div class="ann-row"><span class="ann-key">CONSTRUIT</span><span class="ann-val">1495</span></div>
-                        </div>
-                        <div class="ann-bar-wrap">
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                        </div>
-                    </div>
-                </button>
-                <button class="hotspot" slot="hotspot-men"
-                    data-position="-5.127m 0.447m -4.666m" data-normal="0 1 0"
-                    data-visibility-attribute="visible">
-                    <div class="annotation">
-                        <div class="ann-head">
-                            <div class="ann-id">TOMBEAU #2</div>
-                            <div class="ann-sub">espace des hommes</div>
-                        </div>
-                        <div class="ann-num">180</div>
-                        <div class="ann-body">
-                            <div class="ann-row"><span class="ann-key">SURFACE [M²]</span><span class="ann-val">180</span></div>
-                            <div class="ann-row"><span class="ann-key">ACCÈS</span><span class="ann-val">EST</span></div>
-                            <div class="ann-row"><span class="ann-key">USAGE</span><span class="ann-val">PRIÈRE</span></div>
-                        </div>
-                        <div class="ann-bar-wrap">
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                        </div>
-                    </div>
-                </button>
-                <button class="hotspot" slot="hotspot-women"
-                    data-position="-8.349m 0.455m -4.598m" data-normal="0 1 0"
-                    data-visibility-attribute="visible">
-                    <div class="annotation">
-                        <div class="ann-head">
-                            <div class="ann-id">TOMBEAU #3</div>
-                            <div class="ann-sub">espace des femmes</div>
-                        </div>
-                        <div class="ann-num">120</div>
-                        <div class="ann-body">
-                            <div class="ann-row"><span class="ann-key">SURFACE [M²]</span><span class="ann-val">120</span></div>
-                            <div class="ann-row"><span class="ann-key">ACCÈS</span><span class="ann-val">OUEST</span></div>
-                            <div class="ann-row"><span class="ann-key">USAGE</span><span class="ann-val">PRIÈRE</span></div>
-                        </div>
-                        <div class="ann-bar-wrap">
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                        </div>
-                    </div>
-                </button>
-                <button class="hotspot" slot="hotspot-entrance"
-                    data-position="-6.564m 0.447m -2.689m" data-normal="0 0 1"
-                    data-visibility-attribute="visible">
-                    <div class="annotation">
-                        <div class="ann-head">
-                            <div class="ann-id">TOMBEAU #4</div>
-                            <div class="ann-sub">entrée principale</div>
-                        </div>
-                        <div class="ann-num">3.2</div>
-                        <div class="ann-body">
-                            <div class="ann-row"><span class="ann-key">LARGEUR [M]</span><span class="ann-val">3.2</span></div>
-                            <div class="ann-row"><span class="ann-key">ORIENT.</span><span class="ann-val">NORD</span></div>
-                            <div class="ann-row"><span class="ann-key">ÉPOQUE</span><span class="ann-val">1495</span></div>
-                        </div>
-                        <div class="ann-bar-wrap">
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                        </div>
-                    </div>
-                </button>
-                <button class="hotspot" slot="hotspot-cemetery"
-                    data-position="-8.0m 0.4m -3.0m" data-normal="0 1 0"
-                    data-visibility-attribute="visible">
-                    <div class="annotation">
-                        <div class="ann-head">
-                            <div class="ann-id">TOMBEAU #5</div>
-                            <div class="ann-sub">cimetière de la mosquée</div>
-                        </div>
-                        <div class="ann-num">50</div>
-                        <div class="ann-body">
-                            <div class="ann-row"><span class="ann-key">TOMBES</span><span class="ann-val">50+</span></div>
-                            <div class="ann-row"><span class="ann-key">SUPERFICIE [M²]</span><span class="ann-val">400</span></div>
-                            <div class="ann-row"><span class="ann-key">UNESCO</span><span class="ann-val">2004</span></div>
-                        </div>
-                        <div class="ann-bar-wrap">
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                            <div class="ann-bar-seg"></div><div class="ann-bar-seg"></div>
-                        </div>
-                    </div>
-                </button>
-                <button class="hotspot" slot="hotspot-mosque"
-                    data-position="-5.0m 0.5m -4.0m" data-normal="0 1 0"
-                    data-visibility-attribute="visible">
-                    <div class="annotation">
-                        <div class="ann-head">
-                            <div class="ann-id">TOMBEAU #6</div>
-                            <div class="ann-sub">mosquée</div>
-                        </div>
-                        <div class="ann-num">25</div>
-                        <div class="ann-body">
-                            <div class="ann-row"><span class="ann-key">CAPACITÉ</span><span class="ann-val">200+</span></div>
-                            <div class="ann-row"><span class="ann-key">STYLE</span><span class="ann-val">SOUDANAIS</span></div>
-                            <div class="ann-row"><span class="ann-key">STATUT</span><span class="ann-val">ACTIF</span></div>
-                        </div>
-                        <div class="ann-bar-wrap">
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg on"></div>
-                            <div class="ann-bar-seg on"></div><div class="ann-bar-seg"></div>
-                        </div>
-                    </div>
-                </button>
             </model-viewer>
 
             <!-- Lumière violette depuis la droite -->
@@ -973,53 +843,46 @@
 
 </div>
 
+<!-- Canvas pyramide 3D -->
+<canvas id="pyramid-canvas"></canvas>
+
 <!-- Chapitre 4 — Overlay Pyramide -->
 <div id="ch4-overlay">
     <div class="ch4-grid"></div>
 
-    <svg class="ch4-svg" viewBox="0 0 460 390" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Triangle principal -->
-        <polygon id="ch4-tri1" points="230,12 448,372 12,372"
-            stroke="rgba(249,213,139,0.7)" stroke-width="1.6"
-            fill="rgba(249,213,139,0.018)"
-            stroke-dasharray="980" stroke-dashoffset="980"/>
-        <!-- Triangle intérieur décoratif -->
-        <polygon id="ch4-tri2" points="230,72 396,348 64,348"
-            stroke="rgba(249,213,139,0.2)" stroke-width="0.9"
-            fill="none"
-            stroke-dasharray="740" stroke-dashoffset="740"/>
-        <!-- Triangle intérieur 2 -->
-        <polygon id="ch4-tri3" points="230,132 344,324 116,324"
-            stroke="rgba(249,213,139,0.1)" stroke-width="0.6"
-            fill="none"
-            stroke-dasharray="500" stroke-dashoffset="500"/>
-        <!-- Ligne centrale (hauteur) -->
-        <line id="ch4-lh" x1="230" y1="12" x2="230" y2="372"
-            stroke="rgba(249,213,139,0.28)" stroke-width="0.8"
-            stroke-dasharray="5 4" opacity="0"/>
-        <!-- Cote hauteur (droite du triangle) -->
-        <line id="ch4-ch" x1="458" y1="12" x2="458" y2="372"
-            stroke="rgba(249,213,139,0.45)" stroke-width="0.8" opacity="0"/>
-        <line id="ch4-ch2" x1="448" y1="12"  x2="462" y2="12"
-            stroke="rgba(249,213,139,0.45)" stroke-width="0.8" opacity="0"/>
-        <line id="ch4-ch3" x1="448" y1="372" x2="462" y2="372"
-            stroke="rgba(249,213,139,0.45)" stroke-width="0.8" opacity="0"/>
-        <!-- Cote base -->
-        <line id="ch4-cb" x1="12" y1="382" x2="448" y2="382"
-            stroke="rgba(249,213,139,0.55)" stroke-width="1"
-            stroke-dasharray="440" stroke-dashoffset="440"/>
-        <line x1="12"  y1="375" x2="12"  y2="389" stroke="rgba(249,213,139,0.55)" stroke-width="0.8"/>
-        <line x1="448" y1="375" x2="448" y2="389" stroke="rgba(249,213,139,0.55)" stroke-width="0.8"/>
-        <!-- Angle sommet -->
-        <path id="ch4-angle" d="M 215,38 A 22,22 0 0,1 245,38"
-            stroke="rgba(249,213,139,0.45)" stroke-width="0.9"
-            fill="none" opacity="0"/>
-    </svg>
-
-    <!-- Labels mesures -->
-    <div class="ch4-msr ch4-msr-h" id="ch4-lbl-h">17 M</div>
-    <div class="ch4-msr ch4-msr-b" id="ch4-lbl-b">BASE · 12 M</div>
-    <div class="ch4-msr ch4-msr-a" id="ch4-lbl-a">∠ 72°</div>
+    <!-- Blueprint architectural (coin haut-droit) -->
+    <div class="ch4-blueprint">
+        <svg class="ch4-svg" viewBox="0 0 200 175" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon id="ch4-tri1" points="100,6 194,168 6,168"
+                stroke="rgba(249,213,139,0.75)" stroke-width="1.4"
+                fill="rgba(249,213,139,0.02)"
+                stroke-dasharray="440" stroke-dashoffset="440"/>
+            <polygon id="ch4-tri2" points="100,30 174,150 26,150"
+                stroke="rgba(249,213,139,0.22)" stroke-width="0.8"
+                fill="none"
+                stroke-dasharray="336" stroke-dashoffset="336"/>
+            <polygon id="ch4-tri3" points="100,55 154,132 46,132"
+                stroke="rgba(249,213,139,0.1)" stroke-width="0.6"
+                fill="none"
+                stroke-dasharray="232" stroke-dashoffset="232"/>
+            <line id="ch4-lh" x1="100" y1="6" x2="100" y2="168"
+                stroke="rgba(249,213,139,0.3)" stroke-width="0.7"
+                stroke-dasharray="4 3" opacity="0"/>
+            <line id="ch4-ch"  x1="202" y1="6"   x2="202" y2="168" stroke="rgba(249,213,139,0.45)" stroke-width="0.7" opacity="0"/>
+            <line id="ch4-ch2" x1="194" y1="6"   x2="208" y2="6"   stroke="rgba(249,213,139,0.45)" stroke-width="0.7" opacity="0"/>
+            <line id="ch4-ch3" x1="194" y1="168" x2="208" y2="168" stroke="rgba(249,213,139,0.45)" stroke-width="0.7" opacity="0"/>
+            <line id="ch4-cb" x1="6" y1="178" x2="194" y2="178"
+                stroke="rgba(249,213,139,0.55)" stroke-width="0.9"
+                stroke-dasharray="192" stroke-dashoffset="192"/>
+            <line x1="6"   y1="172" x2="6"   y2="184" stroke="rgba(249,213,139,0.55)" stroke-width="0.7"/>
+            <line x1="194" y1="172" x2="194" y2="184" stroke="rgba(249,213,139,0.55)" stroke-width="0.7"/>
+            <path id="ch4-angle" d="M 92,22 A 12,12 0 0,1 108,22"
+                stroke="rgba(249,213,139,0.45)" stroke-width="0.8" fill="none" opacity="0"/>
+        </svg>
+        <div class="ch4-msr ch4-msr-h" id="ch4-lbl-h">17 M</div>
+        <div class="ch4-msr ch4-msr-b" id="ch4-lbl-b">BASE 12 M</div>
+        <div class="ch4-msr ch4-msr-a" id="ch4-lbl-a">∠ 72°</div>
+    </div>
 
     <!-- Tag technique -->
     <div class="ch4-tag-banco" id="ch4-tag">
@@ -1162,34 +1025,212 @@ mv.addEventListener('load', () => {
 });
 
 /* ══════════════════════════════════════════════
+   PYRAMIDE 3D — CANVAS RENDERER
+══════════════════════════════════════════════ */
+const pyramidCanvas = document.getElementById('pyramid-canvas');
+let   pyramidAnim   = null;
+
+function initPyramid() {
+    pyramidCanvas.width  = window.innerWidth;
+    pyramidCanvas.height = window.innerHeight;
+    pyramidCanvas.style.display = 'block';
+    const ctx = pyramidCanvas.getContext('2d');
+    const W = pyramidCanvas.width, H = pyramidCanvas.height;
+
+    /* Proportions Tombeau des Askia : h=17m, base=12m → ratio 1.42 */
+    const S  = Math.min(W, H) * 0.21;
+    const bH = S;          /* demi-base */
+    const pH = S * 1.42;   /* hauteur   */
+
+    /* Vertices : apex + 4 coins base */
+    const V0 = [
+        [ 0,       pH * 0.62,  0   ],   /* 0 apex          */
+        [-bH,     -pH * 0.38, -bH  ],   /* 1 avant-gauche  */
+        [ bH,     -pH * 0.38, -bH  ],   /* 2 avant-droit   */
+        [ bH,     -pH * 0.38,  bH  ],   /* 3 arrière-droit */
+        [-bH,     -pH * 0.38,  bH  ],   /* 4 arrière-gauche*/
+    ];
+    const FACES = [
+        {v:[0,1,2], br:0.90},
+        {v:[0,2,3], br:0.65},
+        {v:[0,3,4], br:0.40},
+        {v:[0,4,1], br:0.55},
+    ];
+    const EDGES  = [[0,1],[0,2],[0,3],[0,4],[1,2],[2,3],[3,4],[4,1]];
+    const CX = W * (isMobile ? 0.5 : 0.60);
+    const CY = H * 0.46;
+    const FOV = 660;
+    let   rot  = 0.45;
+
+    function ry(v, a) {
+        return [v[0]*Math.cos(a)-v[2]*Math.sin(a), v[1], v[0]*Math.sin(a)+v[2]*Math.cos(a)];
+    }
+    function rx(v, a) {
+        return [v[0], v[1]*Math.cos(a)-v[2]*Math.sin(a), v[1]*Math.sin(a)+v[2]*Math.cos(a)];
+    }
+    function proj(v) {
+        const z = v[2] + FOV * 1.5;
+        const f = FOV / z;
+        return [CX + v[0]*f, CY - v[1]*f, v[2]];
+    }
+    function isVis(f, pt) {
+        const [a,b,c] = f.map(i => pt[i]);
+        return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]) < 0;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        const tiltX = 0.42;
+        const vt = V0.map(v => rx(ry(v, rot), tiltX));
+        const pt = vt.map(v => proj(v));
+
+        /* ── Base ── */
+        ctx.save();
+        ctx.beginPath();
+        [1,2,3,4].forEach((i,j) => j===0 ? ctx.moveTo(pt[i][0],pt[i][1]) : ctx.lineTo(pt[i][0],pt[i][1]));
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(249,213,139,0.025)';
+        ctx.fill();
+        ctx.restore();
+
+        /* ── Faces (peinter's algo) ── */
+        [...FACES].sort((a,b) =>
+            a.v.reduce((s,i)=>s+vt[i][2],0) - b.v.reduce((s,i)=>s+vt[i][2],0)
+        ).forEach(face => {
+            if (!isVis(face.v, pt)) return;
+            const p = face.v.map(i => pt[i]);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(p[0][0],p[0][1]);
+            ctx.lineTo(p[1][0],p[1][1]);
+            ctx.lineTo(p[2][0],p[2][1]);
+            ctx.closePath();
+
+            /* Léger fill doré selon exposition */
+            ctx.fillStyle = `rgba(249,213,139,${0.015 + 0.055 * face.br})`;
+            ctx.fill();
+
+            /* Scan-line dorée qui descend */
+            const minY = Math.min(p[0][1],p[1][1],p[2][1]);
+            const maxY = Math.max(p[0][1],p[1][1],p[2][1]);
+            const scan = pt[0][1] + ((Date.now() / 2200) % 1) * (maxY - pt[0][1]);
+            if (scan > minY && scan < maxY) {
+                ctx.clip();
+                const g = ctx.createLinearGradient(0, scan-6, 0, scan+6);
+                g.addColorStop(0,   'rgba(249,213,139,0)');
+                g.addColorStop(0.5, 'rgba(249,213,139,0.22)');
+                g.addColorStop(1,   'rgba(249,213,139,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, scan-6, W, 12);
+            }
+            ctx.restore();
+        });
+
+        /* ── Arêtes : glow puis trait net ── */
+        [
+            {lw:5, alpha:0.22, blur:22, color:'249,213,139'},
+            {lw:1.4, alpha:0.88, blur:0,  color:'249,213,139'},
+        ].forEach(({lw, alpha, blur, color}) => {
+            ctx.save();
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = `rgba(${color},0.7)`;
+            ctx.strokeStyle = `rgba(${color},${alpha})`;
+            ctx.lineWidth = lw;
+            EDGES.forEach(([a,b]) => {
+                ctx.beginPath();
+                ctx.moveTo(pt[a][0],pt[a][1]);
+                ctx.lineTo(pt[b][0],pt[b][1]);
+                ctx.stroke();
+            });
+            ctx.restore();
+        });
+
+        /* ── Apex ── */
+        ctx.save();
+        ctx.shadowBlur = 28; ctx.shadowColor = 'rgba(249,213,139,1)';
+        ctx.fillStyle  = 'rgba(249,213,139,1)';
+        ctx.beginPath(); ctx.arc(pt[0][0],pt[0][1],4.5,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+
+        /* ── Coins base ── */
+        [1,2,3,4].forEach(i => {
+            ctx.save();
+            ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(249,213,139,0.7)';
+            ctx.fillStyle  = 'rgba(249,213,139,0.65)';
+            ctx.beginPath(); ctx.arc(pt[i][0],pt[i][1],2.5,0,Math.PI*2); ctx.fill();
+            ctx.restore();
+        });
+
+        /* ── Halo de sol sous la pyramide ── */
+        const baseY  = Math.max(...[1,2,3,4].map(i=>pt[i][1]));
+        const baseX  = pt.slice(1).reduce((s,p)=>s+p[0],0)/4;
+        const haloR  = bH * (FOV / (V0[1][2] + FOV*1.5)) * 1.3;
+        const halo   = ctx.createRadialGradient(baseX,baseY,0,baseX,baseY,haloR);
+        halo.addColorStop(0,   'rgba(249,213,139,0.06)');
+        halo.addColorStop(0.5, 'rgba(249,213,139,0.02)');
+        halo.addColorStop(1,   'rgba(249,213,139,0)');
+        ctx.save();
+        ctx.fillStyle = halo;
+        ctx.beginPath(); ctx.ellipse(baseX, baseY, haloR, haloR*0.28, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        rot += 0.004;
+        pyramidAnim = requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+function stopPyramid() {
+    if (pyramidAnim) { cancelAnimationFrame(pyramidAnim); pyramidAnim = null; }
+    pyramidCanvas.style.display = 'none';
+    pyramidCanvas.getContext('2d').clearRect(0,0,pyramidCanvas.width,pyramidCanvas.height);
+}
+
+/* ══════════════════════════════════════════════
    HELPERS OVERLAY PYRAMIDE
 ══════════════════════════════════════════════ */
+const modelWrap = document.querySelector('.model-wrap');
+const bgGlow    = document.querySelector('.bg-glow');
+
 function showPyramidOverlay() {
+    /* Masquer le model-viewer */
+    modelWrap.style.opacity       = '0';
+    modelWrap.style.pointerEvents = 'none';
+    bgGlow.style.background = 'radial-gradient(ellipse 70% 60% at 58% 44%,' +
+        'rgba(140,100,5,0.35) 0%,rgba(80,55,2,0.18) 30%,transparent 65%)';
+    /* Lancer la pyramide 3D */
+    initPyramid();
+    /* Overlay design */
     ch4Overlay.classList.add('visible');
-    gsap.fromTo('#ch4-tri1',  {strokeDashoffset: 980}, {strokeDashoffset: 0, duration: 1.6, ease: 'power2.out', delay: 0.3});
-    gsap.fromTo('#ch4-tri2',  {strokeDashoffset: 740}, {strokeDashoffset: 0, duration: 1.3, ease: 'power2.out', delay: 0.65});
-    gsap.fromTo('#ch4-tri3',  {strokeDashoffset: 500}, {strokeDashoffset: 0, duration: 1.1, ease: 'power2.out', delay: 0.9});
-    gsap.fromTo('#ch4-lh',    {opacity: 0}, {opacity: 1, duration: 0.5, delay: 1.0});
-    gsap.fromTo(['#ch4-ch','#ch4-ch2','#ch4-ch3'], {opacity: 0}, {opacity: 1, stagger: 0.08, duration: 0.4, delay: 1.1});
-    gsap.fromTo('#ch4-cb',    {strokeDashoffset: 440}, {strokeDashoffset: 0, duration: 0.8, ease: 'power2.out', delay: 0.95});
-    gsap.fromTo('#ch4-angle', {opacity: 0}, {opacity: 1, duration: 0.4, delay: 1.4});
-    gsap.fromTo('.ch4-msr',   {opacity: 0, y: 6}, {opacity: 1, y: 0, stagger: 0.12, duration: 0.45, delay: 1.3});
-    gsap.fromTo('#ch4-tag',   {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.5, delay: 1.5});
-    gsap.fromTo('#ch4-compare',{opacity: 0, y: 14},{opacity: 1, y: 0, duration: 0.6, delay: 1.8});
+    gsap.fromTo('#ch4-tri1',  {strokeDashoffset:440}, {strokeDashoffset:0, duration:1.5, ease:'power2.out', delay:0.3});
+    gsap.fromTo('#ch4-tri2',  {strokeDashoffset:336}, {strokeDashoffset:0, duration:1.2, ease:'power2.out', delay:0.6});
+    gsap.fromTo('#ch4-tri3',  {strokeDashoffset:232}, {strokeDashoffset:0, duration:1.0, ease:'power2.out', delay:0.85});
+    gsap.fromTo('#ch4-lh',    {opacity:0},{opacity:1, duration:0.5, delay:1.0});
+    gsap.fromTo(['#ch4-ch','#ch4-ch2','#ch4-ch3'], {opacity:0},{opacity:1, stagger:0.07, duration:0.35, delay:1.1});
+    gsap.fromTo('#ch4-cb',    {strokeDashoffset:192},{strokeDashoffset:0, duration:0.7, ease:'power2.out', delay:0.95});
+    gsap.fromTo('#ch4-angle', {opacity:0},{opacity:1, duration:0.35, delay:1.4});
+    gsap.fromTo('.ch4-msr',   {opacity:0,y:5},{opacity:1,y:0, stagger:0.1, duration:0.4, delay:1.3});
+    gsap.fromTo('#ch4-tag',   {opacity:0,y:8},{opacity:1,y:0, duration:0.5, delay:1.5});
+    gsap.fromTo('#ch4-compare',{opacity:0,y:14},{opacity:1,y:0, duration:0.6, delay:1.8});
 }
 
 function hidePyramidOverlay() {
+    stopPyramid();
+    modelWrap.style.opacity       = '1';
+    modelWrap.style.pointerEvents = 'auto';
+    bgGlow.style.background = '';
     ch4Overlay.classList.remove('visible');
-    gsap.set('#ch4-tri1',  {strokeDashoffset: 980});
-    gsap.set('#ch4-tri2',  {strokeDashoffset: 740});
-    gsap.set('#ch4-tri3',  {strokeDashoffset: 500});
-    gsap.set('#ch4-lh',    {opacity: 0});
-    gsap.set(['#ch4-ch','#ch4-ch2','#ch4-ch3'], {opacity: 0});
-    gsap.set('#ch4-cb',    {strokeDashoffset: 440});
-    gsap.set('#ch4-angle', {opacity: 0});
-    gsap.set('.ch4-msr',   {opacity: 0, y: 6});
-    gsap.set('#ch4-tag',   {opacity: 0, y: 8});
-    gsap.set('#ch4-compare',{opacity: 0, y: 14});
+    gsap.set('#ch4-tri1',  {strokeDashoffset:440});
+    gsap.set('#ch4-tri2',  {strokeDashoffset:336});
+    gsap.set('#ch4-tri3',  {strokeDashoffset:232});
+    gsap.set('#ch4-lh',    {opacity:0});
+    gsap.set(['#ch4-ch','#ch4-ch2','#ch4-ch3'], {opacity:0});
+    gsap.set('#ch4-cb',    {strokeDashoffset:192});
+    gsap.set('#ch4-angle', {opacity:0});
+    gsap.set('.ch4-msr',   {opacity:0, y:5});
+    gsap.set('#ch4-tag',   {opacity:0, y:8});
+    gsap.set('#ch4-compare',{opacity:0, y:14});
 }
 
 /* ══════════════════════════════════════════════
@@ -1215,23 +1256,17 @@ function goTo(index) {
 
     /* ─── MISE À JOUR ─── */
     tl.call(() => {
-        const hotspots = mv.querySelectorAll('.hotspot');
         if (toTombeau) {
-            mv.classList.remove('loaded');
-            mv.src = 'assets/3d/Tombeaux_des_Askia.glb';
-            mv.setAttribute('exposure', '1.1');
-            mv.removeAttribute('interaction-prompt');
-            mv.addEventListener('load', () => {
-                mv.classList.add('loaded');
-                mv.setAttribute('camera-orbit', next.camera);
-                mv.setAttribute('camera-target', 'auto');
-            }, { once: true });
-            modelToggle.style.opacity = '0';
+            /* Chapitre pyramide : pas de GLB, on cache le model-viewer */
+            modelToggle.style.opacity       = '0';
             modelToggle.style.pointerEvents = 'none';
-            hotspots.forEach(h => h.style.display = 'block');
             showPyramidOverlay();
         } else {
             if (fromTombeau) {
+                /* Retour depuis pyramide : recharge le modèle personnage */
+                modelToggle.style.opacity       = '1';
+                modelToggle.style.pointerEvents = 'auto';
+                hidePyramidOverlay();
                 mv.classList.remove('loaded');
                 mv.src = models[modelIdx];
                 mv.setAttribute('exposure', modelIdx === 0 ? '0.65' : '1.0');
@@ -1241,10 +1276,6 @@ function goTo(index) {
                     if (isMobile) applyMobileCamera(next.camera);
                     else mv.setAttribute('camera-orbit', next.camera);
                 }, { once: true });
-                modelToggle.style.opacity = '1';
-                modelToggle.style.pointerEvents = 'auto';
-                hotspots.forEach(h => h.style.display = 'none');
-                hidePyramidOverlay();
             } else {
                 if (isMobile) applyMobileCamera(next.camera);
                 else mv.setAttribute('camera-orbit', next.camera);
@@ -1291,8 +1322,6 @@ function goTo(index) {
 /* ══════════════════════════════════════════════
    ENTRÉE INITIALE
 ══════════════════════════════════════════════ */
-/* Cacher hotspots au départ */
-mv.querySelectorAll('.hotspot').forEach(h => h.style.display = 'none');
 
 gsap.set(heroGao, { opacity: 0, y: 30 });
 gsap.set(chTag,   { opacity: 0, y: 14 });
