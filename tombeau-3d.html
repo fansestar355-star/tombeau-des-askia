@@ -219,6 +219,12 @@
         }
         #detail-back:hover { color:var(--gold); }
 
+        /* ── Handle drag (mobile) ── */
+        #detail-handle {
+            display:none; width:36px; height:4px; border-radius:2px;
+            background:rgba(249,213,139,0.3); margin:0 auto 20px;
+        }
+
         /* ── Bouton mode sketch ── */
         #sketch-btn {
             position:fixed; top:22px; left:24px; z-index:60;
@@ -256,8 +262,26 @@
             #info-panel { padding:40px 20px 24px; }
             .ann-label-name { font-size:0.42rem; letter-spacing:0.12em; }
             .ann-label-sub  { font-size:0.34rem; }
-            #detail-panel { width:100%; right:-110%; }
-            #detail-panel.on { right:0; }
+
+            /* Panneau détail : bottom sheet sur mobile */
+            #detail-panel {
+                top:auto; right:0; bottom:-85vh;
+                width:100%; height:80vh;
+                border-radius:20px 20px 0 0;
+                padding:16px 24px 40px;
+                background:rgba(7,5,15,0.97);
+                transition:bottom 0.5s cubic-bezier(0.4,0,0.2,1);
+            }
+            #detail-panel.on { bottom:0; right:0; }
+            #detail-handle { display:block; }
+            #detail-close { top:18px; right:20px; font-size:1.2rem; }
+            #detail-tag   { font-size:0.5rem; margin-bottom:10px; }
+            #detail-title { font-size:1.25rem; margin-bottom:8px; }
+            #detail-sub   { font-size:0.5rem; margin-bottom:16px; }
+            #detail-text  { font-size:0.78rem; line-height:1.75; }
+            #detail-back  { margin-top:20px; font-size:0.5rem; }
+            #sketch-btn   { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
+
             #toggle-bar { bottom:18px; }
             #layer-slider { height:120px; }
             #toggle-bar { right:14px; }
@@ -301,6 +325,7 @@
 
 <!-- Panneau détail (clic annotation) -->
 <div id="detail-panel">
+    <div id="detail-handle"></div>
     <div id="detail-close" onclick="closeDetail()">✕</div>
     <div id="detail-tag">Patrimoine UNESCO · Gao, Mali</div>
     <div id="detail-title"></div>
