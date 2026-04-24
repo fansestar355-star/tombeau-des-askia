@@ -762,12 +762,12 @@
 
             <model-viewer
                 id="mv"
-                src="assets/3d/Askia_Mohamed_real.glb"
+                src="assets/3d/Askia_Mohamed_draw.glb"
                 camera-orbit="90deg 85deg 2.2m"
                 interpolation-decay="200"
                 interaction-prompt="none"
                 shadow-intensity="1.2"
-                exposure="1.0"
+                exposure="0.65"
                 tone-mapping="commerce">
 
             </model-viewer>
@@ -1078,11 +1078,9 @@ const models = [
     'assets/3d/Askia_Mohamed_draw.glb',
     'assets/3d/Askia_Mohamed_real.glb'
 ];
-let modelIdx = 1;
+let modelIdx = 0;
 const lblDraw = document.getElementById('lbl-draw');
 const lblReal = document.getElementById('lbl-real');
-lblDraw.classList.remove('active');
-lblReal.classList.add('active');
 
 function switchModel(idx) {
     modelIdx = idx;
