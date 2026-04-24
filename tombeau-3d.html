@@ -349,7 +349,7 @@ const ANN_DATA = [
     { mesh:'Branche',           name:'Les Piquets',         sub:'Bois de rônier', side:'right' },
     { mesh:'Haute_parleur',     name:'Minaret',             sub:'Appel à la prière', side:'left' },
     /* cimtière : position fixe depuis Blender (101.98, 62.18, 1.12) → Three.js */
-    { mesh:null, pos: new THREE.Vector3(101.98, 1.12, -62.18),
+    { mesh:null, pos: [101.98, 1.12, -62.18],
       name:'Cimetière', sub:'Askia Mohamed I', side:'left' },
 ];
 
@@ -372,7 +372,7 @@ function buildAnnotations(scene3d, camera, renderer) {
             box3.getCenter(annPos);
             annPos.y = box3.max.y;
         } else {
-            annPos = pos.clone();
+            annPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
         }
 
         const wrap = document.createElement('div');
