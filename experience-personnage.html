@@ -130,7 +130,7 @@
       line-height: 1.8;
     }
 
-    /* Loading — caché pendant l'intro, affiché si nécessaire après */
+    /* Loading */
     #loading {
       position: fixed;
       inset: 0;
@@ -141,12 +141,9 @@
       background: #0b0f1a;
       z-index: 100;
       gap: 20px;
-      opacity: 0;
-      pointer-events: none;
       transition: opacity 0.6s ease;
     }
-    #loading.visible { opacity: 1; pointer-events: all; }
-    #loading.hidden  { opacity: 0; pointer-events: none; }
+    #loading.hidden { opacity: 0; pointer-events: none; }
     #loading-bar-wrap {
       width: 200px; height: 2px;
       background: rgba(167,139,250,0.15);
@@ -202,334 +199,9 @@
     /* Cacher les touches flèches sur mobile */
     @media (max-width: 768px) { #controls-hud { display: none; } }
 
-    /* ════════════════════════════════════════
-       INTRO OVERLAY
-    ════════════════════════════════════════ */
-    #intro-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      background: #07050f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    #intro-overlay.fade-out {
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.9s ease;
-    }
-
-    /* Particules flottantes */
-    .intro-particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-    .i-particle {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(167,139,250,0.35);
-      animation: floatUp linear infinite;
-    }
-    @keyframes floatUp {
-      0%   { transform: translateY(110vh); opacity: 0; }
-      8%   { opacity: 1; }
-      92%  { opacity: 0.8; }
-      100% { transform: translateY(-40px) translateX(30px); opacity: 0; }
-    }
-
-    /* Lignes dorées décoratives */
-    .i-line {
-      position: absolute;
-      height: 1px;
-      width: 55%;
-      background: linear-gradient(90deg, transparent, rgba(249,213,139,0.35), transparent);
-      animation: linePulse 3.5s ease-in-out infinite;
-    }
-    @keyframes linePulse {
-      0%, 100% { opacity: 0.3; transform: scaleX(0.9); }
-      50%       { opacity: 1;   transform: scaleX(1); }
-    }
-
-    /* Coin décoratif */
-    .i-corner {
-      position: absolute;
-      width: 60px; height: 60px;
-      border-color: rgba(249,213,139,0.25);
-      border-style: solid;
-    }
-    .i-corner.tl { top: 28px; left: 28px; border-width: 1.5px 0 0 1.5px; }
-    .i-corner.tr { top: 28px; right: 28px; border-width: 1.5px 1.5px 0 0; }
-    .i-corner.bl { bottom: 28px; left: 28px; border-width: 0 0 1.5px 1.5px; }
-    .i-corner.br { bottom: 28px; right: 28px; border-width: 0 1.5px 1.5px 0; }
-
-    /* Slides — display + transition ici, opacity/transform gérés en JS */
-    .intro-slide {
-      position: absolute;
-      inset: 0;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      transition: opacity 0.85s cubic-bezier(0.22,1,0.36,1),
-                  transform 0.85s cubic-bezier(0.22,1,0.36,1);
-    }
-
-    /* ── Slide 1 : Logo Kabakoo ── */
-    #slide-logo .logo-wrap {
-      position: relative;
-      width: 190px; height: 190px;
-      margin-bottom: 36px;
-    }
-    .logo-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1.5px solid rgba(249,213,139,0.3);
-      animation: ringBreath 2.2s ease-in-out infinite;
-    }
-    .logo-ring.r1 { inset: -14px; }
-    .logo-ring.r2 { inset: -28px; border-color: rgba(108,99,255,0.2); animation-delay: 0.6s; }
-    .logo-ring.r3 { inset: -44px; border-color: rgba(108,99,255,0.1); animation-delay: 1.2s; }
-    @keyframes ringBreath {
-      0%, 100% { transform: scale(1); opacity: 0.5; }
-      50%       { transform: scale(1.04); opacity: 1; }
-    }
-    #slide-logo .logo-img {
-      width: 190px; height: 190px;
-      border-radius: 50%;
-      border: 2px solid rgba(249,213,139,0.5);
-      box-shadow: 0 0 50px rgba(249,213,139,0.18), 0 0 100px rgba(108,99,255,0.12);
-      object-fit: cover;
-      display: block;
-    }
-    #slide-logo .logo-name {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2rem, 6vw, 3.2rem);
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      color: #f9d58b;
-      text-shadow: 0 0 28px rgba(249,213,139,0.45);
-      margin-bottom: 10px;
-    }
-    #slide-logo .logo-sub {
-      font-size: 0.6rem;
-      letter-spacing: 0.55em;
-      text-transform: uppercase;
-      color: rgba(167,139,250,0.65);
-    }
-
-    /* ── Slide 2 : Présentation ── */
-    #slide-about .s-badge {
-      font-size: 0.55rem;
-      letter-spacing: 0.5em;
-      text-transform: uppercase;
-      color: #a78bfa;
-      border: 1px solid rgba(167,139,250,0.28);
-      padding: 6px 20px;
-      border-radius: 50px;
-      margin-bottom: 26px;
-    }
-    .s-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2rem, 6vw, 4rem);
-      color: #f0eaf8;
-      text-align: center;
-      line-height: 1.15;
-      margin-bottom: 0;
-    }
-    .s-title em { color: #f9d58b; font-style: normal; }
-    .s-divider {
-      width: 56px; height: 1px;
-      background: linear-gradient(90deg, transparent, #f9d58b, transparent);
-      margin: 22px auto 22px;
-    }
-    #slide-about .s-desc {
-      font-size: clamp(0.8rem, 2vw, 0.95rem);
-      color: rgba(240,234,248,0.6);
-      text-align: center;
-      max-width: 540px;
-      line-height: 1.85;
-      padding: 0 28px;
-    }
-
-    /* ── Slide 3 : Contrôles ── */
-    #slide-controls .s-title { font-size: clamp(1.6rem, 4.5vw, 2.8rem); margin-bottom: 8px; }
-    #slide-controls .s-sub {
-      font-size: 0.6rem;
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-      color: rgba(167,139,250,0.55);
-      margin-bottom: 36px;
-    }
-    .ctrl-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      max-width: 540px;
-      width: 90%;
-    }
-    .ctrl-card {
-      background: rgba(11,15,26,0.55);
-      border: 1px solid rgba(167,139,250,0.18);
-      border-radius: 14px;
-      padding: 18px 16px;
-      backdrop-filter: blur(14px);
-      text-align: center;
-      transition: border-color 0.3s ease;
-    }
-    .ctrl-card:hover { border-color: rgba(167,139,250,0.5); }
-    .ctrl-icon { font-size: 1.5rem; margin-bottom: 8px; }
-    .ctrl-label {
-      font-size: 0.52rem;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: #a78bfa;
-      margin-bottom: 6px;
-    }
-    .ctrl-desc {
-      font-size: 0.72rem;
-      color: rgba(240,234,248,0.55);
-      line-height: 1.6;
-    }
-    .ctrl-desc strong { color: rgba(249,213,139,0.8); font-weight: 600; }
-
-    /* ── Navigation dots & skip ── */
-    #intro-nav {
-      position: absolute;
-      bottom: 38px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .i-dot {
-      width: 6px; height: 6px;
-      border-radius: 3px;
-      background: rgba(167,139,250,0.22);
-      transition: all 0.4s ease;
-    }
-    .i-dot.on {
-      width: 22px;
-      background: #f9d58b;
-      box-shadow: 0 0 8px rgba(249,213,139,0.5);
-    }
-    #intro-skip {
-      position: absolute;
-      top: 26px; right: 26px;
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: rgba(167,139,250,0.38);
-      cursor: pointer;
-      padding: 8px 18px;
-      border: 1px solid rgba(167,139,250,0.14);
-      border-radius: 50px;
-      transition: all 0.3s ease;
-      z-index: 10;
-    }
-    #intro-skip:hover { color: rgba(167,139,250,0.8); border-color: rgba(167,139,250,0.4); }
-
-    /* ── Fade-out de l'overlay entier ── */
-    @keyframes overlayFadeOut {
-      from { opacity: 1; }
-      to   { opacity: 0; }
-    }
   </style>
 </head>
 <body>
-
-<!-- ════════════════════════════════════════════
-     INTRO OVERLAY
-════════════════════════════════════════════ -->
-<div id="intro-overlay">
-
-  <!-- Fond animé : particules + lignes -->
-  <div class="intro-particles" id="intro-particles"></div>
-  <div class="i-line" style="top:28%; left:22.5%;"></div>
-  <div class="i-line" style="bottom:26%; left:22.5%; animation-delay:1.8s;"></div>
-
-  <!-- Coins décoratifs -->
-  <div class="i-corner tl"></div>
-  <div class="i-corner tr"></div>
-  <div class="i-corner bl"></div>
-  <div class="i-corner br"></div>
-
-  <!-- ── Slide 1 : Logo Kabakoo ── -->
-  <div class="intro-slide" id="slide-logo">
-    <div class="logo-wrap">
-      <div class="logo-ring r1"></div>
-      <div class="logo-ring r2"></div>
-      <div class="logo-ring r3"></div>
-      <img class="logo-img"
-           src="https://avatars.githubusercontent.com/u/100370045?v=4"
-           alt="Kabakoo" />
-    </div>
-    <div class="logo-name">Kabakoo</div>
-    <div class="logo-sub">Présente</div>
-  </div>
-
-  <!-- ── Slide 2 : Présentation de l'expérience ── -->
-  <div class="intro-slide" id="slide-about">
-    <div class="s-badge">Patrimoine UNESCO · Mali</div>
-    <h2 class="s-title">Tombeau<br/>des <em>Askia</em></h2>
-    <div class="s-divider"></div>
-    <p class="s-desc">
-      Plongez dans l'histoire de l'Empire Songhaï et marchez dans les pas d'Askia Mohamed,
-      l'un des plus grands empereurs d'Afrique de l'Ouest. Explorez en 3D ce site historique
-      classé UNESCO à Gao, au Mali.
-    </p>
-  </div>
-
-  <!-- ── Slide 3 : Guide d'utilisation ── -->
-  <div class="intro-slide" id="slide-controls">
-    <h2 class="s-title">Comment<br/>explorer</h2>
-    <p class="s-sub">Guide d'utilisation</p>
-    <div class="ctrl-grid">
-      <div class="ctrl-card">
-        <div class="ctrl-icon">⌨️</div>
-        <div class="ctrl-label">Clavier</div>
-        <div class="ctrl-desc">
-          Touches <strong>↑ ↓ ← →</strong> ou <strong>W A S D</strong>
-          pour déplacer le personnage
-        </div>
-      </div>
-      <div class="ctrl-card">
-        <div class="ctrl-icon">🖱️</div>
-        <div class="ctrl-label">Caméra</div>
-        <div class="ctrl-desc">
-          <strong>Cliquer + glisser</strong> la souris pour tourner
-          la caméra autour du personnage
-        </div>
-      </div>
-      <div class="ctrl-card">
-        <div class="ctrl-icon">👆</div>
-        <div class="ctrl-label">Mobile — Déplacement</div>
-        <div class="ctrl-desc">
-          Le <strong>joystick virtuel</strong> en bas de l'écran
-          contrôle la marche du personnage
-        </div>
-      </div>
-      <div class="ctrl-card">
-        <div class="ctrl-icon">🔄</div>
-        <div class="ctrl-label">Mobile — Caméra</div>
-        <div class="ctrl-desc">
-          <strong>Glisser l'écran</strong> (hors joystick) pour
-          faire pivoter la caméra à 360°
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Dots de navigation -->
-  <div id="intro-nav">
-    <div class="i-dot on" id="idot-0"></div>
-    <div class="i-dot"    id="idot-1"></div>
-    <div class="i-dot"    id="idot-2"></div>
-  </div>
-
-  <!-- Bouton passer -->
-  <div id="intro-skip" onclick="window.skipIntro()">Passer →</div>
-</div>
 
 <div id="canvas-wrap"></div>
 
@@ -582,122 +254,8 @@
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 
-<script>
-/* ════════════════════════════════════════════
-   INTRO CONTROLLER — approche par transitions CSS
-   Séquence : Logo (3s) → Expérience (5s) → Contrôles (5s)
-════════════════════════════════════════════ */
-(function () {
-  window.introComplete    = false;
-  window.modelLoadComplete = false;
+<!-- L'intro est gérée dans index.html -->
 
-  /* ── Particules flottantes ── */
-  const pcont = document.getElementById('intro-particles');
-  for (let i = 0; i < 50; i++) {
-    const p   = document.createElement('div');
-    p.className = 'i-particle';
-    const sz  = 1 + Math.random() * 2.5;
-    p.style.left              = (Math.random() * 100) + '%';
-    p.style.width             = sz + 'px';
-    p.style.height            = sz + 'px';
-    p.style.animationDuration = (9 + Math.random() * 14) + 's';
-    p.style.animationDelay    = (Math.random() * 12) + 's';
-    p.style.opacity           = (0.15 + Math.random() * 0.5).toFixed(2);
-    pcont.appendChild(p);
-  }
-
-  const SLIDES    = ['slide-logo', 'slide-about', 'slide-controls'];
-  const DURATIONS = [3000, 5000, 5000];
-  const T_IN      = 850;   // ms transition entrée
-  const T_OUT     = 650;   // ms transition sortie
-  let   timer     = null;
-  let   ended     = false;
-
-  function setDot(idx) {
-    SLIDES.forEach(function(_, i) {
-      var d = document.getElementById('idot-' + i);
-      if (d) d.classList.toggle('on', i === idx);
-    });
-  }
-
-  /* ── Affiche un slide avec styles inline (0 conflit CSS) ── */
-  function showSlide(idx) {
-    if (ended) return;
-    setDot(idx);
-
-    var el = document.getElementById(SLIDES[idx]);
-
-    /* 1. Rendre visible et placer à l'état initial */
-    el.style.display    = 'flex';
-    el.style.opacity    = '0';
-    el.style.transform  = (idx === 0) ? 'scale(0.82)' : 'translateY(34px)';
-    el.style.pointerEvents = 'none';
-
-    /* 2. Forcer le reflow pour que le navigateur voit l'état initial */
-    void el.offsetWidth;
-
-    /* 3. Lancer la transition vers l'état final */
-    el.style.opacity   = '1';
-    el.style.transform = (idx === 0) ? 'scale(1)' : 'translateY(0)';
-    el.style.pointerEvents = 'all';
-
-    /* 4. Planifier la sortie après la durée d'affichage */
-    timer = setTimeout(function () {
-      hideSlide(el, function () {
-        var next = idx + 1;
-        if (next < SLIDES.length) showSlide(next);
-        else endIntro();
-      });
-    }, DURATIONS[idx]);
-  }
-
-  /* ── Cache un slide avec la transition de sortie ── */
-  function hideSlide(el, cb) {
-    el.style.opacity   = '0';
-    el.style.transform = 'translateY(-34px)';
-    el.style.pointerEvents = 'none';
-
-    setTimeout(function () {
-      el.style.display = 'none';
-      /* Nettoyer les styles inline pour le prochain affichage éventuel */
-      el.style.opacity = el.style.transform = el.style.pointerEvents = '';
-      if (cb) cb();
-    }, T_OUT);
-  }
-
-  /* ── Ferme l'overlay et révèle l'expérience ── */
-  function endIntro() {
-    if (ended) return;
-    ended = true;
-    clearTimeout(timer);
-
-    var overlay = document.getElementById('intro-overlay');
-    overlay.style.transition = 'opacity 0.9s ease';
-    overlay.style.opacity    = '0';
-
-    setTimeout(function () {
-      overlay.style.display = 'none';
-      window.introComplete  = true;
-
-      var ld = document.getElementById('loading');
-      if (!ld) return;
-      if (window.modelLoadComplete) {
-        /* Modèle prêt : passer directement à l'expérience */
-        ld.classList.remove('visible');
-        ld.classList.add('hidden');
-      } else {
-        /* Modèle en cours : montrer la barre de chargement */
-        ld.classList.add('visible');
-      }
-    }, 900);
-  }
-
-  window.skipIntro = endIntro;
-
-  /* ── Lancement après le premier paint du navigateur ── */
-  setTimeout(function () { showSlide(0); }, 80);
-})();
-</script>
 
 <script type="importmap">
 {
@@ -863,6 +421,106 @@ for (let i = 0; i < 110; i++) {
   addBush(Math.cos(ang)*dist, Math.sin(ang)*dist);
 }
 
+/* ══════════════════════════════════════════
+   PARTICULES DE SABLE — Vent du désert
+   Couche 1 : traînées ras du sol  (rapides, fines)
+   Couche 2 : poussière en altitude (lente, diffuse)
+══════════════════════════════════════════ */
+const SAND1_N = 1400;
+const s1Pos = new Float32Array(SAND1_N * 3);
+const s1Vel = new Float32Array(SAND1_N * 3);
+
+for (let i = 0; i < SAND1_N; i++) {
+  s1Pos[i*3]   = (Math.random() - 0.5) * 110;
+  s1Pos[i*3+1] = Math.random() * 1.4;
+  s1Pos[i*3+2] = (Math.random() - 0.5) * 110;
+  s1Vel[i*3]   = 4.5 + Math.random() * 5.5;
+  s1Vel[i*3+1] = (Math.random() - 0.5) * 0.12;
+  s1Vel[i*3+2] = (Math.random() - 0.5) * 1.8;
+}
+const s1Geo = new THREE.BufferGeometry();
+s1Geo.setAttribute('position', new THREE.BufferAttribute(s1Pos, 3));
+const s1Mat = new THREE.PointsMaterial({
+  color: 0xddb85a, size: 0.045, transparent: true, opacity: 0.55,
+  sizeAttenuation: true, depthWrite: false,
+});
+scene.add(new THREE.Points(s1Geo, s1Mat));
+
+const SAND2_N = 700;
+const s2Pos = new Float32Array(SAND2_N * 3);
+const s2Vel = new Float32Array(SAND2_N * 3);
+
+for (let i = 0; i < SAND2_N; i++) {
+  s2Pos[i*3]   = (Math.random() - 0.5) * 150;
+  s2Pos[i*3+1] = 1.5 + Math.random() * 9.5;
+  s2Pos[i*3+2] = (Math.random() - 0.5) * 150;
+  s2Vel[i*3]   = 1.2 + Math.random() * 2.0;
+  s2Vel[i*3+1] = (Math.random() - 0.5) * 0.06;
+  s2Vel[i*3+2] = (Math.random() - 0.5) * 0.5;
+}
+const s2Geo = new THREE.BufferGeometry();
+s2Geo.setAttribute('position', new THREE.BufferAttribute(s2Pos, 3));
+const s2Mat = new THREE.PointsMaterial({
+  color: 0xc9a04e, size: 0.14, transparent: true, opacity: 0.18,
+  sizeAttenuation: true, depthWrite: false,
+});
+scene.add(new THREE.Points(s2Geo, s2Mat));
+
+let fogTime = 0;
+
+/* ══════════════════════════════════════════
+   AUDIO — Pas dans le sable (Web Audio API)
+══════════════════════════════════════════ */
+let audioCtx  = null;
+let stepTimer = 0;
+const STEP_INTERVAL = 0.42;
+
+function initAudio() {
+  if (audioCtx) return;
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+}
+
+function playSandStep() {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); return; }
+  const now = audioCtx.currentTime;
+  const dur  = 0.068;
+
+  const len = Math.ceil(audioCtx.sampleRate * dur);
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const ch  = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+
+  const src  = audioCtx.createBufferSource();
+  src.buffer = buf;
+
+  const bp = audioCtx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 1100 + Math.random() * 700;
+  bp.Q.value = 0.6;
+
+  const ls = audioCtx.createBiquadFilter();
+  ls.type = 'lowshelf';
+  ls.frequency.value = 180;
+  ls.gain.value = 7;
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.20, now + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+  src.connect(bp);
+  bp.connect(ls);
+  ls.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start(now);
+  src.stop(now + dur + 0.01);
+}
+
+['keydown', 'touchstart', 'mousedown'].forEach(ev =>
+  document.addEventListener(ev, initAudio, { once: true })
+);
+
 /* ═══════════════════════════════════════════
    CHARGEMENT DU MODÈLE
 ═══════════════════════════════════════════ */
@@ -943,15 +601,8 @@ gltfLoader.load(
       walkAction.clampWhenFinished = false;
     }
 
-    // Signaler que le modèle est prêt
-    window.modelLoadComplete = true;
-    if (window.introComplete) {
-      // L'intro est finie : on cache le loading directement
-      const ld = document.getElementById('loading');
-      ld.classList.remove('visible');
-      ld.classList.add('hidden');
-    }
-    // Sinon : l'intro est encore en cours, endIntro() s'en chargera
+    // Masquer le loading
+    document.getElementById('loading').classList.add('hidden');
     document.getElementById('info-anim').textContent = 'Animation : idle';
   },
   (xhr) => {
@@ -1123,7 +774,51 @@ function animate() {
 
     // Info position
     infoPos.textContent = `Position : ${character.position.x.toFixed(1)}, ${character.position.z.toFixed(1)}`;
+
+    // ── Pas dans le sable ──────────────────────
+    if (isWalking) {
+      stepTimer += dt;
+      if (stepTimer >= STEP_INTERVAL) {
+        stepTimer -= STEP_INTERVAL;
+        playSandStep();
+      }
+    } else {
+      stepTimer = STEP_INTERVAL * 0.6;
+    }
   }
+
+  // ── Particules de sable + brouillard ─────────
+  fogTime += dt;
+  const gust = 0.5 + 0.4 * Math.sin(fogTime * 0.09) + 0.15 * Math.sin(fogTime * 0.27);
+  scene.fog.near = 55  + gust * 65;
+  scene.fog.far  = 160 + gust * 190;
+
+  const cx = camera.position.x, cz = camera.position.z;
+  const p1 = s1Geo.attributes.position;
+  for (let i = 0; i < SAND1_N; i++) {
+    p1.array[i*3]   += s1Vel[i*3]   * dt;
+    p1.array[i*3+1] += s1Vel[i*3+1] * dt;
+    p1.array[i*3+2] += s1Vel[i*3+2] * dt;
+    if (p1.array[i*3]   - cx >  55) p1.array[i*3]   = cx - 55 + Math.random() * 4;
+    if (p1.array[i*3]   - cx < -55) p1.array[i*3]   = cx + 55 - Math.random() * 4;
+    if (p1.array[i*3+2] - cz >  55) p1.array[i*3+2] = cz - 55 + Math.random() * 4;
+    if (p1.array[i*3+2] - cz < -55) p1.array[i*3+2] = cz + 55 - Math.random() * 4;
+    if (p1.array[i*3+1] < -0.3 || p1.array[i*3+1] > 1.6) p1.array[i*3+1] = Math.random() * 1.4;
+  }
+  p1.needsUpdate = true;
+
+  const p2 = s2Geo.attributes.position;
+  for (let i = 0; i < SAND2_N; i++) {
+    p2.array[i*3]   += s2Vel[i*3]   * dt;
+    p2.array[i*3+1] += s2Vel[i*3+1] * dt;
+    p2.array[i*3+2] += s2Vel[i*3+2] * dt;
+    if (p2.array[i*3]   - cx >  75) p2.array[i*3]   = cx - 75 + Math.random() * 5;
+    if (p2.array[i*3]   - cx < -75) p2.array[i*3]   = cx + 75 - Math.random() * 5;
+    if (p2.array[i*3+2] - cz >  75) p2.array[i*3+2] = cz - 75 + Math.random() * 5;
+    if (p2.array[i*3+2] - cz < -75) p2.array[i*3+2] = cz + 75 - Math.random() * 5;
+    if (p2.array[i*3+1] < 0.8 || p2.array[i*3+1] > 12.0) p2.array[i*3+1] = 1.5 + Math.random() * 9.5;
+  }
+  p2.needsUpdate = true;
 
   updateCamera();
   renderer.render(scene, camera);

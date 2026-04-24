@@ -552,9 +552,340 @@
             .hero-desc   { font-size: 0.78rem; }
             .btn-enquete, .btn-experience { padding: 10px 18px; font-size: 0.61rem; }
         }
+
+        /* ══════════════════════════════════════════
+           INTRO KABAKOO
+        ══════════════════════════════════════════ */
+        #kab-intro {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: #07050f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Particules */
+        #kab-particles { position: absolute; inset: 0; pointer-events: none; }
+        .kp {
+            position: absolute;
+            border-radius: 50%;
+            animation: kpFloat linear infinite;
+        }
+        @keyframes kpFloat {
+            0%   { transform: translateY(105vh); opacity: 0; }
+            6%   { opacity: 1; }
+            94%  { opacity: 0.7; }
+            100% { transform: translateY(-30px) translateX(20px); opacity: 0; }
+        }
+
+        /* Lignes décoratives */
+        .k-line {
+            position: absolute;
+            height: 1px;
+            width: 50%;
+            left: 25%;
+            background: linear-gradient(90deg, transparent, rgba(249,213,139,0.3), transparent);
+            animation: kLinePulse 3s ease-in-out infinite;
+        }
+        @keyframes kLinePulse {
+            0%,100% { opacity: 0.25; }
+            50%     { opacity: 0.9; }
+        }
+
+        /* Coins dorés */
+        .k-corner {
+            position: absolute;
+            width: 52px; height: 52px;
+            border-color: rgba(249,213,139,0.22);
+            border-style: solid;
+        }
+        .k-corner.tl { top:24px; left:24px;  border-width:1.5px 0 0 1.5px; }
+        .k-corner.tr { top:24px; right:24px; border-width:1.5px 1.5px 0 0; }
+        .k-corner.bl { bottom:24px; left:24px;  border-width:0 0 1.5px 1.5px; }
+        .k-corner.br { bottom:24px; right:24px; border-width:0 1.5px 1.5px 0; }
+
+        /* Slides */
+        .k-slide {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1),
+                        transform 0.9s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        /* ── Slide 1 : Logo Kabakoo ── */
+        .k-logo-outer {
+            position: relative;
+            width: 200px; height: 200px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 40px;
+        }
+        .k-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1.5px solid rgba(249,213,139,0.28);
+            animation: kRing 2.4s ease-in-out infinite;
+        }
+        .k-ring.r1 { inset:-14px; }
+        .k-ring.r2 { inset:-30px; border-color:rgba(108,99,255,0.18); animation-delay:.7s; }
+        .k-ring.r3 { inset:-48px; border-color:rgba(108,99,255,0.09); animation-delay:1.4s; }
+        @keyframes kRing {
+            0%,100% { transform:scale(1);    opacity:.45; }
+            50%     { transform:scale(1.05); opacity:1; }
+        }
+        /* Cercle principal */
+        .k-logo-circle {
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            border: 2px solid rgba(249,213,139,0.45);
+            background: radial-gradient(circle at 40% 35%,
+                rgba(108,99,255,0.25) 0%,
+                rgba(11,15,26,0.9) 60%);
+            box-shadow:
+                0 0 40px rgba(249,213,139,0.12),
+                0 0 80px rgba(108,99,255,0.1),
+                inset 0 0 30px rgba(108,99,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Lettre K en SVG inline */
+        .k-logo-circle svg { width:110px; height:110px; }
+        .k-logo-name {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem,5.5vw,3.4rem);
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            color: #f9d58b;
+            text-shadow: 0 0 32px rgba(249,213,139,0.4);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .k-logo-tagline {
+            font-size: 0.58rem;
+            letter-spacing: 0.55em;
+            text-transform: uppercase;
+            color: rgba(167,139,250,0.6);
+        }
+
+        /* ── Slide 2 : Titre expérience ── */
+        .k-badge {
+            font-size: 0.52rem;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: #a78bfa;
+            border: 1px solid rgba(167,139,250,0.25);
+            padding: 6px 20px;
+            border-radius: 50px;
+            margin-bottom: 28px;
+        }
+        .k-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem,6vw,4.5rem);
+            font-weight: 700;
+            color: #f0eaf8;
+            text-align: center;
+            line-height: 1.12;
+        }
+        .k-title em { color: #f9d58b; font-style: normal; }
+        .k-divider {
+            width: 52px; height: 1px;
+            background: linear-gradient(90deg,transparent,#f9d58b,transparent);
+            margin: 22px auto;
+        }
+        .k-desc {
+            font-size: clamp(0.82rem,2vw,0.95rem);
+            color: rgba(240,234,248,0.55);
+            text-align: center;
+            max-width: 520px;
+            line-height: 1.9;
+            padding: 0 28px;
+        }
+
+        /* ── Slide 3 : Navigation ── */
+        .k-nav-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem,4.5vw,3rem);
+            color: #f0eaf8;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .k-nav-sub {
+            font-size: 0.58rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(167,139,250,0.5);
+            margin-bottom: 40px;
+        }
+        .k-nav-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            max-width: 560px;
+            width: 90%;
+        }
+        .k-nav-card {
+            background: rgba(7,5,15,0.7);
+            border: 1px solid rgba(167,139,250,0.16);
+            border-radius: 16px;
+            padding: 20px 18px;
+            backdrop-filter: blur(16px);
+            text-align: center;
+        }
+        .k-nav-icon { font-size: 1.6rem; margin-bottom: 10px; }
+        .k-nav-label {
+            font-size: 0.5rem;
+            letter-spacing: 0.38em;
+            text-transform: uppercase;
+            color: #a78bfa;
+            margin-bottom: 7px;
+        }
+        .k-nav-text {
+            font-size: 0.73rem;
+            color: rgba(240,234,248,0.52);
+            line-height: 1.65;
+        }
+        .k-nav-text strong { color: rgba(249,213,139,0.8); font-weight:600; }
+
+        /* Dots */
+        #kab-dots {
+            position: absolute;
+            bottom: 36px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .kd {
+            width: 6px; height: 6px;
+            border-radius: 3px;
+            background: rgba(167,139,250,0.2);
+            transition: all 0.4s ease;
+        }
+        .kd.on {
+            width: 24px;
+            background: #f9d58b;
+            box-shadow: 0 0 8px rgba(249,213,139,0.45);
+        }
+
+        /* Bouton passer */
+        #kab-skip {
+            position: absolute;
+            top: 24px; right: 24px;
+            font-size: 0.52rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(167,139,250,0.35);
+            cursor: pointer;
+            padding: 8px 18px;
+            border: 1px solid rgba(167,139,250,0.12);
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        #kab-skip:hover { color:rgba(167,139,250,0.75); border-color:rgba(167,139,250,0.38); }
     </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════
+     INTRO KABAKOO
+══════════════════════════════════════════════ -->
+<div id="kab-intro">
+  <div id="kab-particles"></div>
+  <div class="k-line" style="top:27%;"></div>
+  <div class="k-line" style="bottom:25%; animation-delay:1.6s;"></div>
+  <div class="k-corner tl"></div>
+  <div class="k-corner tr"></div>
+  <div class="k-corner bl"></div>
+  <div class="k-corner br"></div>
+
+  <!-- Slide 1 : Logo Kabakoo (SVG, sans dépendance réseau) -->
+  <div class="k-slide" id="ks-logo">
+    <div class="k-logo-outer">
+      <div class="k-ring r1"></div>
+      <div class="k-ring r2"></div>
+      <div class="k-ring r3"></div>
+      <div class="k-logo-circle">
+        <svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- K stylisé -->
+          <line x1="34" y1="18" x2="34" y2="92" stroke="#f9d58b" stroke-width="8" stroke-linecap="round"/>
+          <line x1="34" y1="55" x2="76" y2="18" stroke="#f9d58b" stroke-width="7" stroke-linecap="round"/>
+          <line x1="34" y1="55" x2="76" y2="92" stroke="#f9d58b" stroke-width="7" stroke-linecap="round"/>
+          <!-- Point lumineux -->
+          <circle cx="34" cy="55" r="4" fill="#a78bfa" opacity="0.8"/>
+        </svg>
+      </div>
+    </div>
+    <div class="k-logo-name">Kabakoo</div>
+    <div class="k-logo-tagline">Présente</div>
+  </div>
+
+  <!-- Slide 2 : Présentation de l'expérience -->
+  <div class="k-slide" id="ks-about">
+    <div class="k-badge">Patrimoine UNESCO · Gao, Mali</div>
+    <h2 class="k-title">Tombeau<br/>des <em>Askia</em></h2>
+    <div class="k-divider"></div>
+    <p class="k-desc">
+      Une expérience digitale immersive dédiée à l'un des plus grands sites
+      historiques d'Afrique de l'Ouest. Découvrez le règne d'Askia Mohamed
+      et l'Empire Songhaï à travers des modèles 3D et une narration historique.
+    </p>
+  </div>
+
+  <!-- Slide 3 : Comment naviguer -->
+  <div class="k-slide" id="ks-nav">
+    <h2 class="k-nav-title">Comment naviguer</h2>
+    <p class="k-nav-sub">Guide d'utilisation</p>
+    <div class="k-nav-grid">
+      <div class="k-nav-card">
+        <div class="k-nav-icon">🖱️</div>
+        <div class="k-nav-label">Défilement</div>
+        <div class="k-nav-text">
+          <strong>Molette de la souris</strong> ou swipe pour changer de chapitre historique
+        </div>
+      </div>
+      <div class="k-nav-card">
+        <div class="k-nav-icon">⚫</div>
+        <div class="k-nav-label">Navigation</div>
+        <div class="k-nav-text">
+          Cliquez sur les <strong>points de navigation</strong> pour sauter directement à un chapitre
+        </div>
+      </div>
+      <div class="k-nav-card">
+        <div class="k-nav-icon">🔄</div>
+        <div class="k-nav-label">Modèle 3D</div>
+        <div class="k-nav-text">
+          Basculez entre vue <strong>Dessin</strong> et vue <strong>Réelle</strong> du personnage
+        </div>
+      </div>
+      <div class="k-nav-card">
+        <div class="k-nav-icon">🚶</div>
+        <div class="k-nav-label">Expérience</div>
+        <div class="k-nav-text">
+          Cliquez sur <strong>Explorer le personnage</strong> pour entrer dans la scène 3D interactive
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dots de navigation -->
+  <div id="kab-dots">
+    <div class="kd on" id="kd-0"></div>
+    <div class="kd"    id="kd-1"></div>
+    <div class="kd"    id="kd-2"></div>
+  </div>
+
+  <div id="kab-skip" onclick="window.kabSkip()">Passer →</div>
+</div>
+
 <div class="scene">
 
     <!-- Top bar -->
@@ -799,7 +1130,8 @@ gsap.set(chDesc, { opacity: 0, y: 16 });
 gsap.set(chDivider, { width: 0, opacity: 0 });
 gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
 
-const intro = gsap.timeline({ delay: 0.3 });
+const intro = gsap.timeline({ paused: true });
+window._kabPlayPage = function () { intro.play(); };
 intro
     .to(heroGao, { opacity: 0.78, y: 0, duration: 1.0, ease: 'power3.out' })
     .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
@@ -879,6 +1211,99 @@ function switchModel(idx) {
 
 document.getElementById('arrow-right').addEventListener('click', () => switchModel(modelIdx === 0 ? 1 : 0));
 document.getElementById('arrow-left').addEventListener('click',  () => switchModel(modelIdx === 0 ? 1 : 0));
+</script>
+
+<script>
+/* ══════════════════════════════════════════════
+   INTRO KABAKOO — index.html
+   Logo (3s) → Expérience (5s) → Navigation (5s)
+══════════════════════════════════════════════ */
+(function () {
+  /* ── Particules ── */
+  var pc = document.getElementById('kab-particles');
+  for (var i = 0; i < 55; i++) {
+    var p  = document.createElement('div');
+    p.className = 'kp';
+    var sz = 1 + Math.random() * 2.8;
+    p.style.left             = (Math.random() * 100) + '%';
+    p.style.width            = sz + 'px';
+    p.style.height           = sz + 'px';
+    p.style.animationDuration= (10 + Math.random() * 14) + 's';
+    p.style.animationDelay   = (Math.random() * 14) + 's';
+    p.style.opacity          = (0.1 + Math.random() * 0.45).toFixed(2);
+    p.style.background       = Math.random() > 0.5
+      ? 'rgba(167,139,250,0.4)' : 'rgba(249,213,139,0.25)';
+    pc.appendChild(p);
+  }
+
+  var SLIDES    = ['ks-logo', 'ks-about', 'ks-nav'];
+  var DURATIONS = [3000, 5000, 5000];
+  var T_OUT     = 680;
+  var timer     = null;
+  var ended     = false;
+
+  function dot(i) {
+    for (var j = 0; j < 3; j++) {
+      var d = document.getElementById('kd-' + j);
+      if (d) d.classList.toggle('on', j === i);
+    }
+  }
+
+  function show(idx) {
+    if (ended) return;
+    dot(idx);
+    var el = document.getElementById(SLIDES[idx]);
+    /* État initial */
+    el.style.display       = 'flex';
+    el.style.opacity       = '0';
+    el.style.transform     = (idx === 0) ? 'scale(0.84)' : 'translateY(36px)';
+    el.style.pointerEvents = 'none';
+    /* Forcer le reflow */
+    void el.offsetWidth;
+    /* Lancer la transition */
+    el.style.opacity       = '1';
+    el.style.transform     = (idx === 0) ? 'scale(1)' : 'translateY(0)';
+    el.style.pointerEvents = 'all';
+    /* Planifier la suite */
+    timer = setTimeout(function () {
+      hide(el, function () {
+        var next = idx + 1;
+        if (next < SLIDES.length) show(next);
+        else end();
+      });
+    }, DURATIONS[idx]);
+  }
+
+  function hide(el, cb) {
+    el.style.opacity       = '0';
+    el.style.transform     = 'translateY(-36px)';
+    el.style.pointerEvents = 'none';
+    setTimeout(function () {
+      el.style.display = 'none';
+      el.style.opacity = el.style.transform = el.style.pointerEvents = '';
+      if (cb) cb();
+    }, T_OUT);
+  }
+
+  function end() {
+    if (ended) return;
+    ended = true;
+    clearTimeout(timer);
+    var ov = document.getElementById('kab-intro');
+    ov.style.transition = 'opacity 0.9s ease';
+    ov.style.opacity    = '0';
+    setTimeout(function () {
+      ov.style.display = 'none';
+      /* Lancer l'animation GSAP de la page principale */
+      if (window._kabPlayPage) window._kabPlayPage();
+    }, 900);
+  }
+
+  window.kabSkip = end;
+
+  /* Démarrer après le premier paint */
+  setTimeout(function () { show(0); }, 80);
+})();
 </script>
 </body>
 </html>
