@@ -217,55 +217,43 @@ function initScene() {
     fill.position.set(-60, 80, -80);
     scene.add(fill);
 
-    /* Carte satellite 4K (plan horizontal 1172×1172 m — zoom 19, 16×16 tuiles) */
-    new THREE.TextureLoader().load('assets/images/satellite_gao.jpg', tex => {
-        tex.encoding  = THREE.sRGBEncoding;
-        tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); /* max netteté */
-        const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(1172, 1172),
-            new THREE.MeshBasicMaterial({ map: tex })
-        );
-        plane.rotation.x = -Math.PI / 2;
-        plane.position.y = -0.5;
-        scene.add(plane);
-    });
-
-    /* Modèle GLB avec Draco */
+    /* Scène complète depuis Blender (satellite + modèle) — alignement garanti */
     const draco = new THREE.DRACOLoader();
     draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     const loader = new THREE.GLTFLoader();
     loader.setDRACOLoader(draco);
 
     loader.load('assets/3d/Tombeaux_des_Askia.glb', gltf => {
-        const model = gltf.scene;
-        /* Ombres + fidélité couleur Blender sur chaque mesh */
-        model.traverse(obj => {
+        const scene3d = gltf.scene;
+
+        scene3d.traverse(obj => {
             if (obj.isMesh) {
-                obj.castShadow    = true;
+                const isSat = obj.name === 'Carte_Satellite';
+                obj.castShadow    = !isSat;
                 obj.receiveShadow = true;
                 if (obj.material) {
                     obj.material.envMapIntensity  = 0;
-                    obj.material.emissiveIntensity = 0;  /* supprime toute émission */
+                    obj.material.emissiveIntensity = 0;
                     obj.material.needsUpdate       = true;
                     if (obj.material.map) {
-                        obj.material.map.encoding  = THREE.sRGBEncoding;
+                        obj.material.map.encoding   = THREE.sRGBEncoding;
                         obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
                     }
                 }
             }
         });
-        /* Réduit la taille du modèle sur la carte */
-        model.scale.set(0.5, 0.5, 0.5);
 
-        /* Pose la base sur la carte sans toucher aux positions Blender */
-        const box = new THREE.Box3().setFromObject(model);
-        model.position.y -= box.min.y;
+        scene.add(scene3d);
 
-        scene.add(model);
-
-        /* Centre caméra sur le centre réel du modèle */
+        /* Centre caméra sur le tombeau (sans la carte satellite) */
+        const modelBox = new THREE.Box3();
+        scene3d.traverse(obj => {
+            if (obj.isMesh && obj.name !== 'Carte_Satellite') {
+                modelBox.expandByObject(obj);
+            }
+        });
         const center = new THREE.Vector3();
-        box.getCenter(center);
+        modelBox.getCenter(center);
         center.y = 0;
         controls.target.copy(center);
         window._modelCenter = center.clone();
@@ -276,7 +264,7 @@ function initScene() {
 
     /* OrbitControls — identique à saydnaya.amnesty.org */
     const controls = new THREE.OrbitControls(camera, canvas);
-    controls.target.set(25, 0, -13); /* centre approx du modèle en Three.js */
+    controls.target.set(25, 0, -13);
     controls.minPolarAngle   = 0.7;   /* ~40° — pas trop haut */
     controls.maxPolarAngle   = 1.1;   /* ~63° — pas de vue rasante */
     controls.enablePan       = false;
