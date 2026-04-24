@@ -584,7 +584,7 @@ function addIllustrations3D(scene, scene3d) {
         const tipLX =  0.4 * pw;
         const tipLY = -0.32 * ph;
         const px = towerBase.x - tipLX * Math.cos(ry);
-        const py = towerBase.y - tipLY;
+        const py = towerBase.y - tipLY + 45;
         const pz = towerBase.z - tipLX * Math.sin(ry);
 
         meshes.push(illusPlane(scene,
