@@ -299,7 +299,17 @@ function createMap() {
                     attribution: '© Google Satellite'
                 }
             },
-            layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
+            layers: [{
+                id: 'satellite',
+                type: 'raster',
+                source: 'satellite',
+                paint: {
+                    'raster-saturation':      -1,    /* noir et blanc */
+                    'raster-brightness-min':   0.0,
+                    'raster-brightness-max':   0.62,  /* plus sombre */
+                    'raster-contrast':         0.25
+                }
+            }]
         },
         center:  [GPS_LNG, GPS_LAT],
         zoom:    14,
