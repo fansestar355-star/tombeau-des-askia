@@ -5,315 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Tombeau des Askia — Vue Satellite 3D</title>
 
-    <!-- MapLibre GL JS (pas de clé API requise) -->
-    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-
-    <!-- Three.js + loaders UMD -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <!-- MapLibre (desktop uniquement, chargé conditionnellement) -->
+    <link id="maplibre-css" rel="stylesheet" href="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
 
     <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         :root {
-            --bg:    #07050f;
-            --gold:  #f9d58b;
-            --text:  #f0eaf8;
-            --muted: #9490b8;
+            --bg:   #07050f;
+            --gold: #f9d58b;
+            --text: #f0eaf8;
+            --muted:#9490b8;
+        }
+        body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; overflow:hidden; }
+
+        /* ══ MAP (desktop) ══ */
+        #map { position:fixed; inset:0; display:none; }
+
+        /* ══ MOBILE MODEL-VIEWER ══ */
+        #mobile-view {
+            position:fixed; inset:0;
+            display:none;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 80%, rgba(180,120,30,0.18) 0%, transparent 60%),
+                linear-gradient(160deg, #07050f 0%, #100d1a 40%, #0b0814 100%);
+        }
+        #mv-mobile {
+            width:100vw; height:100vh;
+            --poster-color:transparent;
+            background:transparent;
         }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
-
-        #map {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        /* Vignette atmosphérique */
+        /* Vignette commune */
         .vignette {
-            position: fixed; inset: 0;
-            background: radial-gradient(ellipse at center,
-                transparent 35%,
-                rgba(7,5,15,0.55) 65%,
-                rgba(7,5,15,0.88) 100%);
-            pointer-events: none;
-            z-index: 10;
+            position:fixed; inset:0;
+            background:radial-gradient(ellipse at center,
+                transparent 30%, rgba(7,5,15,0.5) 60%, rgba(7,5,15,0.85) 100%);
+            pointer-events:none; z-index:10;
         }
 
-        /* ══ INTRO OVERLAY ══ */
-        #intro-overlay {
-            position: fixed; inset: 0;
-            background: var(--bg);
-            z-index: 300;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 1.8s ease;
-        }
-        #intro-overlay.fade-out { opacity: 0; pointer-events: none; }
-
-        .intro-logo {
-            width: clamp(70px, 10vw, 110px);
-            margin-bottom: 48px;
-            opacity: 0.7;
-        }
-        .intro-tag {
-            font-size: 0.58rem;
-            letter-spacing: 0.48em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 18px;
-        }
-        .intro-title {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2.2rem, 5.5vw, 4.5rem);
-            font-weight: 900;
-            color: #fff;
-            text-align: center;
-            letter-spacing: -0.01em;
-            line-height: 1.05;
-            margin-bottom: 10px;
-        }
-        .intro-title em { color: var(--gold); font-style: normal; }
-        .intro-coords {
-            font-size: 0.6rem;
-            letter-spacing: 0.32em;
-            color: rgba(249,213,139,0.45);
-            text-transform: uppercase;
-            margin-bottom: 52px;
-        }
-        .intro-divider {
-            width: 100px; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            margin-bottom: 44px;
-        }
-        #start-btn {
-            padding: 14px 42px;
-            background: transparent;
-            border: 1.5px solid rgba(249,213,139,0.55);
-            border-radius: 50px;
-            color: var(--gold);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.66rem;
-            font-weight: 600;
-            letter-spacing: 0.38em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.35s ease;
-        }
-        #start-btn:hover {
-            background: rgba(249,213,139,0.1);
-            border-color: var(--gold);
-            letter-spacing: 0.48em;
-        }
-
-        /* ══ HUD ══ */
+        /* ══ HUD CORNERS ══ */
         .hud-corner {
-            position: fixed;
-            width: 38px; height: 38px;
-            border-color: rgba(249,213,139,0.45);
-            border-style: solid;
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 1s ease;
-            animation: hudFlicker 5s ease-in-out infinite;
+            position:fixed; width:36px; height:36px;
+            border-color:rgba(249,213,139,0.45); border-style:solid;
+            z-index:50; opacity:0; transition:opacity 1s ease;
+            animation:hudFlicker 6s ease-in-out infinite;
         }
-        .hud-corner.visible { opacity: 1; }
-        .hud-tl { top: 22px; left: 22px; border-width: 2px 0 0 2px; }
-        .hud-tr { top: 22px; right: 22px; border-width: 2px 2px 0 0; }
-        .hud-bl { bottom: 22px; left: 22px; border-width: 0 0 2px 2px; }
-        .hud-br { bottom: 22px; right: 22px; border-width: 0 2px 2px 0; }
+        .hud-corner.on { opacity:1; }
+        .hud-tl { top:20px; left:20px; border-width:2px 0 0 2px; }
+        .hud-tr { top:20px; right:20px; border-width:2px 2px 0 0; }
+        .hud-bl { bottom:20px; left:20px; border-width:0 0 2px 2px; }
+        .hud-br { bottom:20px; right:20px; border-width:0 2px 2px 0; }
         @keyframes hudFlicker {
-            0%,100% { border-color: rgba(249,213,139,0.45); }
-            48%     { border-color: rgba(249,213,139,0.45); }
-            50%     { border-color: rgba(249,213,139,0.15); }
-            52%     { border-color: rgba(249,213,139,0.7); }
-            54%     { border-color: rgba(249,213,139,0.45); }
+            0%,100%{ border-color:rgba(249,213,139,0.45); }
+            49%    { border-color:rgba(249,213,139,0.45); }
+            50%    { border-color:rgba(249,213,139,0.12); }
+            51%    { border-color:rgba(249,213,139,0.7);  }
+            52%    { border-color:rgba(249,213,139,0.45); }
         }
 
         #hud-data {
-            position: fixed;
-            top: 30px; left: 72px;
-            font-size: 0.52rem;
-            letter-spacing: 0.28em;
-            color: rgba(249,213,139,0.5);
-            text-transform: uppercase;
-            line-height: 2.2;
-            z-index: 50;
-            opacity: 0;
-            font-family: 'Courier New', monospace;
-            transition: opacity 1s ease 0.5s;
+            position:fixed; top:28px; left:68px;
+            font-size:0.52rem; letter-spacing:0.28em;
+            color:rgba(249,213,139,0.5); text-transform:uppercase;
+            line-height:2.2; font-family:'Courier New',monospace;
+            z-index:50; opacity:0; transition:opacity 1s ease 0.4s;
         }
-        #hud-data.visible { opacity: 1; }
+        #hud-data.on { opacity:1; }
 
-        /* Ligne de scan */
         #scan-line {
-            position: fixed;
-            left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(249,213,139,0.5), transparent);
-            filter: blur(1px);
-            z-index: 50;
-            opacity: 0;
-            animation: scanAnim 7s linear infinite;
-            transition: opacity 0.8s ease;
+            position:fixed; left:0; width:100%; height:1px;
+            background:linear-gradient(90deg,transparent,rgba(249,213,139,0.4),transparent);
+            filter:blur(0.5px); z-index:50; opacity:0;
+            animation:scanAnim 8s linear infinite;
+            transition:opacity 0.8s ease;
         }
-        #scan-line.visible { opacity: 1; }
-        @keyframes scanAnim {
-            0%   { top: 0%; }
-            100% { top: 100%; }
-        }
+        #scan-line.on { opacity:1; }
+        @keyframes scanAnim { 0%{top:0%} 100%{top:100%} }
 
         /* ══ INFO PANEL ══ */
         #info-panel {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            padding: 60px 48px 32px;
-            background: linear-gradient(to top,
-                rgba(7,5,15,0.96) 0%,
-                rgba(7,5,15,0.72) 55%,
-                transparent 100%);
-            z-index: 30;
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 1.2s ease, transform 1.2s ease;
+            position:fixed; bottom:0; left:0; right:0;
+            padding:60px 48px 30px;
+            background:linear-gradient(to top,
+                rgba(7,5,15,0.97) 0%, rgba(7,5,15,0.7) 55%, transparent 100%);
+            z-index:30; opacity:0; transform:translateY(20px);
+            transition:opacity 1.2s ease, transform 1.2s ease;
         }
-        #info-panel.visible { opacity: 1; transform: translateY(0); }
-
-        .panel-tag {
-            font-size: 0.56rem;
-            letter-spacing: 0.42em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-        .panel-title {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(1.5rem, 3.5vw, 2.4rem);
-            font-weight: 900;
-            color: #fff;
-            margin-bottom: 10px;
-            line-height: 1.1;
-        }
-        .panel-desc {
-            font-size: 0.82rem;
-            line-height: 1.75;
-            color: rgba(240,234,248,0.6);
-            max-width: 520px;
-            font-weight: 300;
-        }
-
-        /* Lien 3D interactif */
-        #panel-ar-hint {
-            margin-top: 18px;
-            font-size: 0.56rem;
-            letter-spacing: 0.3em;
-            color: rgba(249,213,139,0.4);
-            text-transform: uppercase;
-        }
+        #info-panel.on { opacity:1; transform:translateY(0); }
+        .panel-tag  { font-size:0.56rem; letter-spacing:0.42em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+        .panel-title{ font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2.2rem); font-weight:900; color:#fff; margin-bottom:9px; }
+        .panel-desc { font-size:0.8rem; line-height:1.75; color:rgba(240,234,248,0.58); max-width:500px; font-weight:300; }
+        .panel-hint { margin-top:14px; font-size:0.54rem; letter-spacing:0.3em; color:rgba(249,213,139,0.35); text-transform:uppercase; }
 
         /* ══ BOUTON RETOUR ══ */
         #back-btn {
-            position: fixed;
-            top: 22px; right: 72px;
-            padding: 10px 22px;
-            background: rgba(7,5,15,0.65);
-            border: 1px solid rgba(249,213,139,0.3);
-            border-radius: 50px;
-            color: rgba(249,213,139,0.65);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.56rem;
-            font-weight: 500;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            text-decoration: none;
-            cursor: pointer;
-            z-index: 50;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            opacity: 0;
-            transition: opacity 1s ease, background 0.3s, border-color 0.3s, color 0.3s;
+            position:fixed; top:20px; right:70px;
+            padding:9px 20px;
+            background:rgba(7,5,15,0.6);
+            border:1px solid rgba(249,213,139,0.28);
+            border-radius:50px; color:rgba(249,213,139,0.6);
+            font-family:'Inter',sans-serif; font-size:0.56rem;
+            font-weight:500; letter-spacing:0.3em; text-transform:uppercase;
+            text-decoration:none; cursor:pointer; z-index:50;
+            backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+            opacity:0; transition:opacity 1s ease, background 0.3s, color 0.3s, border-color 0.3s;
         }
-        #back-btn.visible { opacity: 1; }
-        #back-btn:hover {
-            background: rgba(249,213,139,0.1);
-            border-color: var(--gold);
-            color: var(--gold);
-        }
+        #back-btn.on { opacity:1; }
+        #back-btn:hover { background:rgba(249,213,139,0.1); border-color:var(--gold); color:var(--gold); }
 
-        /* ══ CHARGEMENT ══ */
-        #loading-bar-wrap {
-            position: fixed;
-            bottom: 50%;
-            left: 50%;
-            transform: translate(-50%, 50%);
-            z-index: 301;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.5s;
+        /* ══ INTRO ══ */
+        #intro-overlay {
+            position:fixed; inset:0; background:var(--bg); z-index:300;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            transition:opacity 1.8s ease;
         }
-        #loading-bar-wrap.visible { opacity: 1; }
-        .loading-text {
-            font-size: 0.55rem;
-            letter-spacing: 0.42em;
-            color: rgba(249,213,139,0.5);
-            text-transform: uppercase;
-            margin-bottom: 14px;
+        #intro-overlay.out { opacity:0; pointer-events:none; }
+        .intro-logo   { width:clamp(65px,10vw,100px); margin-bottom:44px; opacity:0.65; }
+        .intro-tag    { font-size:0.57rem; letter-spacing:0.46em; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+        .intro-title  { font-family:'Playfair Display',serif; font-size:clamp(2rem,5.5vw,4.2rem); font-weight:900; color:#fff; text-align:center; letter-spacing:-0.01em; line-height:1.05; margin-bottom:9px; }
+        .intro-title em { color:var(--gold); font-style:normal; }
+        .intro-coords { font-size:0.59rem; letter-spacing:0.32em; color:rgba(249,213,139,0.42); text-transform:uppercase; margin-bottom:48px; }
+        .intro-divider{ width:90px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin-bottom:40px; }
+        #start-btn {
+            padding:13px 40px; background:transparent;
+            border:1.5px solid rgba(249,213,139,0.52); border-radius:50px;
+            color:var(--gold); font-family:'Inter',sans-serif;
+            font-size:0.65rem; font-weight:600; letter-spacing:0.38em;
+            text-transform:uppercase; cursor:pointer; transition:all 0.35s ease;
         }
-        .loading-bar {
-            width: 180px; height: 1px;
-            background: rgba(249,213,139,0.15);
-            position: relative;
-            overflow: hidden;
-        }
-        .loading-bar::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: var(--gold);
-            animation: loadingAnim 1.6s ease-in-out infinite;
-        }
-        @keyframes loadingAnim {
-            0%   { left: -100%; }
-            100% { left: 100%; }
-        }
+        #start-btn:hover { background:rgba(249,213,139,0.09); border-color:var(--gold); letter-spacing:0.48em; }
 
-        /* Override MapLibre attribution */
-        .maplibregl-ctrl-attrib {
-            background: rgba(7,5,15,0.7) !important;
-            color: rgba(255,255,255,0.35) !important;
-            font-size: 9px !important;
+        /* ══ LOADING ══ */
+        #loader {
+            position:fixed; bottom:46%; left:50%; transform:translate(-50%,50%);
+            text-align:center; z-index:302; opacity:0; transition:opacity 0.5s;
         }
-        .maplibregl-ctrl-attrib a { color: rgba(249,213,139,0.45) !important; }
-        .maplibregl-ctrl-logo { display: none !important; }
+        #loader.on { opacity:1; }
+        .loader-txt { font-size:0.53rem; letter-spacing:0.42em; color:rgba(249,213,139,0.45); text-transform:uppercase; margin-bottom:14px; }
+        .loader-bar { width:160px; height:1px; background:rgba(249,213,139,0.12); overflow:hidden; }
+        .loader-bar::after { content:''; display:block; width:100%; height:100%; background:var(--gold); animation:loadAnim 1.5s ease-in-out infinite; }
+        @keyframes loadAnim { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
 
-        @media (max-width: 768px) {
-            #hud-data { display: none; }
-            #info-panel { padding: 50px 22px 24px; }
-            .panel-desc { font-size: 0.76rem; }
-            #back-btn { top: 14px; right: 14px; font-size: 0.52rem; padding: 9px 18px; }
-            .hud-tl { top: 14px; left: 14px; }
-            .hud-tr { top: 14px; right: 14px; }
-            .hud-bl { bottom: 14px; left: 14px; }
-            .hud-br { bottom: 14px; right: 14px; }
+        /* MapLibre overrides */
+        .maplibregl-ctrl-attrib { background:rgba(7,5,15,0.6)!important; color:rgba(255,255,255,0.3)!important; font-size:9px!important; }
+        .maplibregl-ctrl-attrib a { color:rgba(249,213,139,0.4)!important; }
+        .maplibregl-ctrl-logo { display:none!important; }
+
+        /* ── Mobile tweaks ── */
+        @media (max-width:768px) {
+            #hud-data { display:none; }
+            #info-panel { padding:46px 20px 22px; }
+            .panel-desc { font-size:0.76rem; }
+            #back-btn { top:14px; right:14px; font-size:0.52rem; padding:8px 16px; }
+            .hud-tl,.hud-tr,.hud-bl,.hud-br { width:28px; height:28px; }
+            .hud-tl { top:14px; left:14px; } .hud-tr { top:14px; right:14px; }
+            .hud-bl { bottom:14px; left:14px; } .hud-br { bottom:14px; right:14px; }
         }
     </style>
 </head>
 <body>
 
+<!-- Carte satellite (desktop) -->
 <div id="map"></div>
+
+<!-- Modèle léger (mobile) -->
+<div id="mobile-view">
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <model-viewer
+        id="mv-mobile"
+        src="assets/3d/Tombeaux_des_Askia.glb"
+        camera-controls
+        auto-rotate
+        auto-rotate-delay="1000"
+        shadow-intensity="1.2"
+        exposure="1.1"
+        tone-mapping="commerce"
+        ar
+        ar-modes="webxr scene-viewer quick-look">
+    </model-viewer>
+</div>
+
 <div class="vignette"></div>
 
 <!-- HUD -->
@@ -325,30 +197,24 @@
     LOCALISATION : GAO · MALI<br>
     GPS : 16.2872°N · 0.0400°W<br>
     ALTITUDE : 256 M · SRTM 90M<br>
-    PATRIMOINE MONDIAL UNESCO · 2004
+    PATRIMOINE UNESCO · 2004
 </div>
 <div id="scan-line"></div>
 
-<!-- Panel info bas -->
+<!-- Info panel -->
 <div id="info-panel">
     <div class="panel-tag">Tombeau des Askia · Gao, Mali · XVe siècle</div>
     <div class="panel-title">La Tour Pyramidale de Gao</div>
-    <div class="panel-desc">
-        Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco —
-        argile, paille et bois de rônier — marque le lieu de sépulture de l'un des
-        plus grands empereurs de l'Empire Songhaï. Classée Patrimoine Mondial de
-        l'UNESCO en 2004.
-    </div>
-    <div id="panel-ar-hint">← Glissez pour explorer · Pincez pour zoomer</div>
+    <div class="panel-desc">Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d'un des plus grands empereurs de l'Empire Songhaï. Classée Patrimoine Mondial de l'UNESCO en 2004.</div>
+    <div class="panel-hint" id="panel-hint">← Glissez pour explorer</div>
 </div>
 
-<!-- Bouton retour -->
 <a href="index.html" id="back-btn">← Retour</a>
 
-<!-- Chargement -->
-<div id="loading-bar-wrap">
-    <div class="loading-text">Chargement du modèle 3D</div>
-    <div class="loading-bar"></div>
+<!-- Loader -->
+<div id="loader">
+    <div class="loader-txt">Chargement du modèle 3D</div>
+    <div class="loader-bar"></div>
 </div>
 
 <!-- Intro -->
@@ -362,189 +228,200 @@
 </div>
 
 <script>
-/* ══════════════════════════════════════════════
-   COORDONNÉES GPS DU TOMBEAU DES ASKIA
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   DÉTECTION MOBILE
+══════════════════════════════════════════════════════════════════ */
+const IS_MOBILE = window.innerWidth < 768 ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
 const GPS_LNG = -0.0400;
 const GPS_LAT =  16.2872;
-const GPS_ALT =  256; // mètres
+const GPS_ALT =  256;
 
-/* ══════════════════════════════════════════════
-   CARTE SATELLITE (MapLibre + ESRI World Imagery)
-   Aucune clé API requise
-══════════════════════════════════════════════ */
-const map = new maplibregl.Map({
-    container: 'map',
-    style: {
-        version: 8,
-        sources: {
-            satellite: {
-                type: 'raster',
-                tiles: [
-                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-                ],
-                tileSize: 256,
-                attribution: '© Esri, Maxar, Earthstar Geographics'
-            }
-        },
-        layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
-    },
-    center: [GPS_LNG, GPS_LAT],
-    zoom: 5,
-    pitch: 0,
-    bearing: -15,
-    antialias: true
-});
+/* ══════════════════════════════════════════════════════════════════
+   INIT — selon la plateforme
+══════════════════════════════════════════════════════════════════ */
+if (IS_MOBILE) {
+    document.getElementById('mobile-view').style.display = 'block';
+    document.getElementById('panel-hint').textContent = 'Tournez · Zoomez · Explorez';
+} else {
+    document.getElementById('map').style.display = 'block';
+    initDesktop();
+}
 
-/* ══════════════════════════════════════════════
-   COORDONNÉES MERCATOR DU MODÈLE
-══════════════════════════════════════════════ */
-const mercatorOrigin = maplibregl.MercatorCoordinate.fromLngLat(
-    [GPS_LNG, GPS_LAT], GPS_ALT
-);
-const mercatorScale = mercatorOrigin.meterInMercatorCoordinateUnits();
+/* ══════════════════════════════════════════════════════════════════
+   DESKTOP — MapLibre + Three.js custom layer
+══════════════════════════════════════════════════════════════════ */
+function initDesktop() {
+    /* Chargement dynamique de MapLibre */
+    const css = document.getElementById('maplibre-css');
+    css.href = 'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css';
 
-/* Transformation du modèle 3D dans l'espace mercator */
-const MODEL_SCALE_FACTOR = 1.0; // Ajuster si le modèle est trop grand/petit
-const modelTransform = {
-    translateX: mercatorOrigin.x,
-    translateY: mercatorOrigin.y,
-    translateZ: mercatorOrigin.z,
-    rotateX:    Math.PI / 2,  // Blender Z-up → WebGL Y-up
-    rotateY:    0,
-    rotateZ:    0,
-    scale:      mercatorScale * MODEL_SCALE_FACTOR
-};
+    const s1 = document.createElement('script');
+    s1.src = 'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js';
+    s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+        s2.onload = () => {
+            const s3 = document.createElement('script');
+            s3.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+            s3.onload = () => {
+                const s4 = document.createElement('script');
+                s4.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js';
+                s4.onload = createMap;
+                document.head.appendChild(s4);
+            };
+            document.head.appendChild(s3);
+        };
+        document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+}
 
-/* ══════════════════════════════════════════════
-   COUCHE THREE.JS CUSTOM LAYER
-══════════════════════════════════════════════ */
-let threeScene, threeCamera, threeRenderer, modelReady = false;
-
-const customLayer = {
-    id:            'tombeau-3d',
-    type:          'custom',
-    renderingMode: '3d',
-
-    onAdd(map, gl) {
-        threeCamera = new THREE.Camera();
-        threeScene  = new THREE.Scene();
-
-        /* Éclairage solaire chaud (Sahel) */
-        const ambient = new THREE.AmbientLight(0xfff8e7, 1.8);
-        threeScene.add(ambient);
-
-        const sun = new THREE.DirectionalLight(0xffd090, 3.5);
-        sun.position.set(8, 15, 12);
-        threeScene.add(sun);
-
-        const fill = new THREE.DirectionalLight(0xc4aff8, 1.0);
-        fill.position.set(-5, 5, -8);
-        threeScene.add(fill);
-
-        /* Chargement GLB */
-        const dracoLoader = new THREE.DRACOLoader();
-        dracoLoader.setDecoderPath(
-            'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
-        );
-
-        const loader = new THREE.GLTFLoader();
-        loader.setDRACOLoader(dracoLoader);
-
-        loader.load(
-            'assets/3d/Tombeaux_des_Askia.glb',
-            (gltf) => {
-                threeScene.add(gltf.scene);
-                modelReady = true;
-                document.getElementById('loading-bar-wrap').classList.remove('visible');
+function createMap() {
+    /* ── Carte satellite (Google tiles — couverture mondiale, sans clé API) ── */
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: {
+            version: 8,
+            glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+            sources: {
+                satellite: {
+                    type:  'raster',
+                    tiles: [
+                        'https://mt0.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}',
+                        'https://mt1.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}',
+                        'https://mt2.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}',
+                        'https://mt3.google.com/vt/lyrs=s&hl=fr&x={x}&y={y}&z={z}'
+                    ],
+                    tileSize: 256,
+                    attribution: '© Google Satellite'
+                }
             },
-            undefined,
-            (err) => {
-                console.error('Erreur chargement GLB :', err);
-                document.getElementById('loading-bar-wrap').classList.remove('visible');
-            }
-        );
+            layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
+        },
+        center:  [GPS_LNG, GPS_LAT],
+        zoom:    14,
+        pitch:   0,
+        bearing: -15,
+        antialias: true
+    });
 
-        threeRenderer = new THREE.WebGLRenderer({
-            canvas:    map.getCanvas(),
-            context:   gl,
-            antialias: true
-        });
-        threeRenderer.autoClear = false;
-        this._map = map;
-    },
+    /* ── Transform mercator du modèle ── */
+    const origin = maplibregl.MercatorCoordinate.fromLngLat([GPS_LNG, GPS_LAT], GPS_ALT);
+    const mScale = origin.meterInMercatorCoordinateUnits();
 
-    render(gl, matrix) {
-        const rotX = new THREE.Matrix4().makeRotationAxis(
-            new THREE.Vector3(1, 0, 0), modelTransform.rotateX
-        );
-        const rotY = new THREE.Matrix4().makeRotationAxis(
-            new THREE.Vector3(0, 1, 0), modelTransform.rotateY
-        );
-        const rotZ = new THREE.Matrix4().makeRotationAxis(
-            new THREE.Vector3(0, 0, 1), modelTransform.rotateZ
-        );
+    /* Rotation Blender → WebGL (Z-up → Y-up) */
+    const ROTATE_X = Math.PI / 2;
 
-        const m = new THREE.Matrix4().fromArray(matrix);
-        const l = new THREE.Matrix4()
-            .makeTranslation(
-                modelTransform.translateX,
-                modelTransform.translateY,
-                modelTransform.translateZ
-            )
-            .scale(new THREE.Vector3(
-                modelTransform.scale,
-                -modelTransform.scale,
-                modelTransform.scale
-            ))
-            .multiply(rotX)
-            .multiply(rotY)
-            .multiply(rotZ);
+    /* ── Custom layer Three.js ── */
+    let tScene, tCamera, tRenderer;
 
-        threeCamera.projectionMatrix = m.multiply(l);
-        threeRenderer.resetState();
-        threeRenderer.render(threeScene, threeCamera);
-        this._map.triggerRepaint();
-    }
-};
+    const customLayer = {
+        id:            '3d-tombeau',
+        type:          'custom',
+        renderingMode: '3d',
 
-map.on('load', () => {
-    map.addLayer(customLayer);
-});
+        onAdd(map, gl) {
+            tCamera = new THREE.Camera();
+            tScene  = new THREE.Scene();
 
-/* ══════════════════════════════════════════════
-   DÉMARRAGE — FLY-IN CINÉMATIQUE
-══════════════════════════════════════════════ */
+            /* Éclairage Sahel */
+            tScene.add(new THREE.AmbientLight(0xfff8e7, 2.0));
+            const sun = new THREE.DirectionalLight(0xffd090, 3.5);
+            sun.position.set(8, 15, 12);
+            tScene.add(sun);
+            const fill = new THREE.DirectionalLight(0xc4aff8, 0.8);
+            fill.position.set(-5, 5, -8);
+            tScene.add(fill);
+
+            /* Chargement GLB */
+            const draco = new THREE.DRACOLoader();
+            draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+
+            const loader = new THREE.GLTFLoader();
+            loader.setDRACOLoader(draco);
+            loader.load(
+                'assets/3d/Tombeaux_des_Askia.glb',
+                gltf => { tScene.add(gltf.scene); },
+                undefined,
+                err  => console.warn('GLB:', err)
+            );
+
+            tRenderer = new THREE.WebGLRenderer({
+                canvas:    map.getCanvas(),
+                context:   gl,
+                antialias: true
+            });
+            tRenderer.autoClear = false;
+            this._map = map;
+        },
+
+        render(gl, matrix) {
+            const rotX = new THREE.Matrix4().makeRotationAxis(
+                new THREE.Vector3(1, 0, 0), ROTATE_X
+            );
+            const m = new THREE.Matrix4().fromArray(matrix);
+            const l = new THREE.Matrix4()
+                .makeTranslation(origin.x, origin.y, origin.z)
+                .scale(new THREE.Vector3(mScale, -mScale, mScale))
+                .multiply(rotX);
+
+            tCamera.projectionMatrix = m.multiply(l);
+            tRenderer.resetState();
+            tRenderer.render(tScene, tCamera);
+            this._map.triggerRepaint();
+        }
+    };
+
+    map.on('load', () => {
+        map.addLayer(customLayer);
+    });
+
+    /* Stocke la map pour le fly-in */
+    window._tombeau_map = map;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DÉMARRAGE — FLY-IN + RÉVÉLATION HUD
+══════════════════════════════════════════════════════════════════ */
 function startExperience() {
-    const overlay = document.getElementById('intro-overlay');
-    overlay.classList.add('fade-out');
+    document.getElementById('intro-overlay').classList.add('out');
 
-    document.getElementById('loading-bar-wrap').classList.add('visible');
+    if (!IS_MOBILE) {
+        document.getElementById('loader').classList.add('on');
 
-    /* Vol depuis vue d'Afrique jusqu'au tombeau */
-    setTimeout(() => {
-        map.flyTo({
-            center:   [GPS_LNG, GPS_LAT],
-            zoom:     17.8,
-            pitch:    62,
-            bearing:  -20,
-            duration: 6000,
-            essential: true,
-            easing: t => t < 0.5
-                ? 4 * t * t * t
-                : 1 - Math.pow(-2 * t + 2, 3) / 2
-        });
-    }, 400);
+        /* Attend que la map soit prête */
+        const waitMap = setInterval(() => {
+            const map = window._tombeau_map;
+            if (!map) return;
+            clearInterval(waitMap);
 
-    /* HUD + info après le fly-in */
-    setTimeout(() => {
-        document.querySelectorAll('.hud-corner')
-            .forEach(el => el.classList.add('visible'));
-        document.getElementById('hud-data').classList.add('visible');
-        document.getElementById('scan-line').classList.add('visible');
-        document.getElementById('info-panel').classList.add('visible');
-        document.getElementById('back-btn').classList.add('visible');
-    }, 6200);
+            setTimeout(() => {
+                map.flyTo({
+                    center:   [GPS_LNG, GPS_LAT],
+                    zoom:     17.5,
+                    pitch:    62,
+                    bearing:  -20,
+                    duration: 5500,
+                    essential: true,
+                    easing: t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2
+                });
+                document.getElementById('loader').classList.remove('on');
+            }, 300);
+        }, 100);
+    }
+
+    /* Révèle le HUD après l'animation */
+    setTimeout(revealHUD, IS_MOBILE ? 600 : 6000);
+}
+
+function revealHUD() {
+    document.querySelectorAll('.hud-corner').forEach(el => el.classList.add('on'));
+    document.getElementById('hud-data').classList.add('on');
+    document.getElementById('scan-line').classList.add('on');
+    document.getElementById('info-panel').classList.add('on');
+    document.getElementById('back-btn').classList.add('on');
 }
 </script>
 </body>
