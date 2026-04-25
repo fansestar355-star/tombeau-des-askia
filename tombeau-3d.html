@@ -711,9 +711,14 @@ function zoomToAnnotation(pos) {
     const horiz = new THREE.Vector3(
         cam.position.x - endTgt.x, 0, cam.position.z - endTgt.z
     ).normalize();
+    /* Sur mobile le panneau couvre 56vh du bas — la caméra monte
+       pour que la partie sélectionnée apparaisse dans les 44% visibles */
+    const isMob    = window.innerWidth < 768;
+    const dist     = isMob ? 42 : 55;
+    const yOffset  = isMob ? 30 : 22;
     const endPos = endTgt.clone()
-        .add(horiz.multiplyScalar(55))
-        .add(new THREE.Vector3(0, 22, 0));
+        .add(horiz.multiplyScalar(dist))
+        .add(new THREE.Vector3(0, yOffset, 0));
 
     const dur = 1400, t0 = performance.now();
     function ease(t) { return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
