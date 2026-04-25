@@ -56,23 +56,8 @@
         .panel-desc { font-size:0.78rem; color:rgba(240,234,248,0.65); max-width:520px; line-height:1.75; transition:opacity 0.3s ease; }
         .panel-hint { font-size:0.58rem; letter-spacing:0.18em; color:var(--gold); opacity:0.55; margin-top:14px; text-transform:uppercase; transition:opacity 0.3s ease; }
 
-        /* Titre monté en haut quand une annotation est ouverte */
-        #info-panel.detail-mode {
-            background: none;
-            pointer-events: none;
-            padding: 18px 28px;
-            top: 0; bottom: auto;
-        }
-        #info-panel.detail-mode .panel-title {
-            font-size: clamp(0.9rem, 1.8vw, 1.2rem);
-            color: rgba(249,213,139,0.75);
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            margin-bottom: 0;
-        }
-        #info-panel.detail-mode .panel-tag,
-        #info-panel.detail-mode .panel-desc,
-        #info-panel.detail-mode .panel-hint { display: none; }
+        /* Panneau complètement caché quand une annotation est ouverte */
+        #info-panel.detail-mode { opacity: 0 !important; pointer-events: none; }
 
         /* Bouton retour */
         #back-btn {
