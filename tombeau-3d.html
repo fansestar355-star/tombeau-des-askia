@@ -285,8 +285,24 @@
             .ann-label-name { font-size:0.42rem; letter-spacing:0.12em; }
             .ann-label-sub  { font-size:0.34rem; }
 
-            /* Panneau détail latéral caché sur mobile */
-            #detail-panel { display:none; }
+            /* Panneau détail : bottom sheet sur mobile */
+            #detail-panel {
+                display: block;
+                top: auto;
+                bottom: -100%;
+                right: 0;
+                left: 0;
+                width: 100%;
+                height: auto;
+                max-height: 60vh;
+                border-radius: 18px 18px 0 0;
+                padding: 24px 22px 32px;
+                background: rgba(7,5,15,0.97);
+                transition: bottom 0.5s cubic-bezier(0.4,0,0.2,1);
+            }
+            #detail-panel.on { bottom: 0; right: 0; }
+            #detail-handle { display: block; }
+            #detail-close { top: 16px; right: 18px; }
             #sketch-btn { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
             #toggle-bar { bottom:18px; }
@@ -761,24 +777,20 @@ function openDetail(key, pos) {
     infoPanel.style.pointerEvents = 'none';
 
     setTimeout(() => {
-        /* Le titre reste visible en haut, tout le reste est caché */
+        /* Titre seul visible en haut */
         infoPanel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
         infoPanel.classList.add('detail-mode');
-        infoPanel.style.transition = 'opacity 0.4s ease';
-        infoPanel.style.opacity    = '1';
+        infoPanel.style.transition    = 'opacity 0.4s ease';
+        infoPanel.style.opacity       = '1';
         infoPanel.style.pointerEvents = 'none';
     }, 320);
 
-    if (window.innerWidth < 768) {
-        document.body.classList.add('detail-open');
-    } else {
-        /* Desktop : panneau latéral avec info annotation */
-        document.getElementById('detail-title').textContent = info.title;
-        document.getElementById('detail-sub').textContent   = info.sub;
-        document.getElementById('detail-text').textContent  = info.text;
-        document.getElementById('detail-panel').classList.add('on');
-        document.body.classList.add('detail-open');
-    }
+    /* Panneau descriptif — desktop (côté) + mobile (bottom sheet) */
+    document.getElementById('detail-title').textContent = info.title;
+    document.getElementById('detail-sub').textContent   = info.sub;
+    document.getElementById('detail-text').textContent  = info.text;
+    document.getElementById('detail-panel').classList.add('on');
+    document.body.classList.add('detail-open');
     zoomToAnnotation(pos);
 }
 
