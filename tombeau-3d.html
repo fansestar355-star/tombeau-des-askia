@@ -303,8 +303,8 @@
             #detail-panel { padding: 52px 20px 28px; }
             #detail-close { top: 14px; right: 18px; }
             #detail-text  { font-size: 0.75rem; }
-            #sketch-btn  { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
-            #adhan-btn   { font-size:0.46rem; padding:8px 14px; top:56px; left:16px; }
+            #sketch-btn  { display:none; } /* sketch shader non disponible sur mobile */
+            #adhan-btn   { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
             #toggle-bar { bottom:18px; }
             #layer-slider { height:120px; }
@@ -375,22 +375,43 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   CHARGEMENT THREE.JS (cascade : three → OrbitControls → GLTFLoader → DRACOLoader)
+   DÉTECTION MOBILE — toutes les optimisations en dépendent
 ═══════════════════════════════════════════════════════════ */
-function loadScript(src, cb) {
-    const s = document.createElement('script');
-    s.src = src; s.onload = cb;
-    document.head.appendChild(s);
+const IS_MOBILE = window.innerWidth < 768 ||
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+/* ═══════════════════════════════════════════════════════════
+   CHARGEMENT THREE.JS — parallèle (au lieu de cascade)
+   Sur mobile : on saute les scripts de post-processing
+═══════════════════════════════════════════════════════════ */
+function loadScript(src) {
+    return new Promise(resolve => {
+        const s = document.createElement('script');
+        s.src = src; s.onload = resolve; s.onerror = resolve;
+        document.head.appendChild(s);
+    });
 }
 
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js', () =>
-loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js', initScene))))))));
+const CDN = 'https://cdn.jsdelivr.net/npm/three@0.128.0';
+
+loadScript(CDN + '/build/three.min.js').then(() => {
+    /* Scripts de base — chargés en parallèle */
+    const base = [
+        loadScript(CDN + '/examples/js/controls/OrbitControls.js'),
+        loadScript(CDN + '/examples/js/loaders/GLTFLoader.js'),
+        loadScript(CDN + '/examples/js/loaders/DRACOLoader.js'),
+    ];
+    /* Post-processing uniquement sur desktop */
+    if (!IS_MOBILE) {
+        base.push(
+            loadScript(CDN + '/examples/js/shaders/CopyShader.js'),
+            loadScript(CDN + '/examples/js/postprocessing/EffectComposer.js'),
+            loadScript(CDN + '/examples/js/postprocessing/RenderPass.js'),
+            loadScript(CDN + '/examples/js/postprocessing/ShaderPass.js'),
+        );
+    }
+    return Promise.all(base);
+}).then(initScene);
 
 /* ═══════════════════════════════════════════════════════════
    SCÈNE THREE.JS
@@ -399,14 +420,14 @@ function initScene() {
     const canvas = document.getElementById('c');
     const W = window.innerWidth, H = window.innerHeight;
 
-    /* Renderer */
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    /* Renderer — paramètres allégés sur mobile */
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !IS_MOBILE });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE ? 1.5 : 2));
     renderer.outputEncoding      = THREE.sRGBEncoding;
-    renderer.toneMapping         = THREE.LinearToneMapping; /* couleurs fidèles Blender */
+    renderer.toneMapping         = THREE.LinearToneMapping;
     renderer.toneMappingExposure = 1.0;
-    renderer.shadowMap.enabled   = true;
+    renderer.shadowMap.enabled   = !IS_MOBILE; /* désactivé sur mobile */
     renderer.shadowMap.type      = THREE.PCFSoftShadowMap;
 
     /* Scène */
@@ -426,16 +447,18 @@ function initScene() {
 
     const sun = new THREE.DirectionalLight(0xffffff, 0.9);
     sun.position.set(80, 200, 100);
-    sun.castShadow           = true;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height= 2048;
-    sun.shadow.camera.near   = 1;
-    sun.shadow.camera.far    = 800;
-    sun.shadow.camera.left   = -200;
-    sun.shadow.camera.right  = 200;
-    sun.shadow.camera.top    = 200;
-    sun.shadow.camera.bottom = -200;
-    sun.shadow.bias          = -0.001;
+    if (!IS_MOBILE) {
+        sun.castShadow           = true;
+        sun.shadow.mapSize.width = 1024;
+        sun.shadow.mapSize.height= 1024;
+        sun.shadow.camera.near   = 1;
+        sun.shadow.camera.far    = 800;
+        sun.shadow.camera.left   = -200;
+        sun.shadow.camera.right  = 200;
+        sun.shadow.camera.top    = 200;
+        sun.shadow.camera.bottom = -200;
+        sun.shadow.bias          = -0.001;
+    }
     scene.add(sun);
 
     const fill = new THREE.DirectionalLight(0xc8d8ff, 0.25);
@@ -450,22 +473,21 @@ function initScene() {
 
     loader.load('assets/3d/Tombeaux_des_Askia.glb', gltf => {
         const scene3d = gltf.scene;
-
+        const maxAniso = IS_MOBILE ? 2 : renderer.capabilities.getMaxAnisotropy();
         scene3d.traverse(obj => {
             if (obj.isMesh) {
                 const isSat = obj.name === 'Carte_Satellite';
-                obj.castShadow    = !isSat;
-                obj.receiveShadow = true;
+                obj.castShadow    = !IS_MOBILE && !isSat;
+                obj.receiveShadow = !IS_MOBILE;
                 if (obj.material) {
                     obj.material.envMapIntensity = 0;
-                    obj.material.side = THREE.DoubleSide;
-                    if (!isSat) {
-                        obj.material.emissiveIntensity = 0;
-                    }
+                    /* DoubleSide uniquement sur satellite — coûteux sur mobile */
+                    obj.material.side = isSat ? THREE.DoubleSide : THREE.FrontSide;
+                    if (!isSat) obj.material.emissiveIntensity = 0;
                     obj.material.needsUpdate = true;
                     if (obj.material.map) {
                         obj.material.map.encoding   = THREE.sRGBEncoding;
-                        obj.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                        obj.material.map.anisotropy = maxAniso;
                     }
                 }
             }
@@ -492,7 +514,14 @@ function initScene() {
         setupAdhan(scene, scene3d, camera);
 
         window._modelLoaded = true;
-    }, undefined, err => console.warn('GLB:', err));
+    }, xhr => {
+        /* Progression du téléchargement GLB */
+        if (xhr.total) {
+            const pct = Math.round(xhr.loaded / xhr.total * 100);
+            const txt = document.querySelector('.loader-txt');
+            if (txt) txt.textContent = `Chargement du modèle 3D — ${pct}%`;
+        }
+    }, err => console.warn('GLB:', err));
 
     /* OrbitControls — identique à saydnaya.amnesty.org */
     const controls = new THREE.OrbitControls(camera, canvas);
@@ -509,13 +538,6 @@ function initScene() {
     controls.enableDamping   = true;
     controls.dampingFactor   = 0.05;
     controls.update();
-
-    /* Resize */
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
 
     /* ── Shader dessin au crayon ── */
     const pr = Math.min(devicePixelRatio, 2);
@@ -582,35 +604,44 @@ function initScene() {
         `
     };
 
-    /* ── EffectComposer ── */
-    const composer = new THREE.EffectComposer(renderer);
-    composer.addPass(new THREE.RenderPass(scene, camera));
-    const sketchPass = new THREE.ShaderPass(SketchShader);
-    sketchPass.renderToScreen = true;
-    composer.addPass(sketchPass);
-    /* Fix encodage couleur : les render targets du composer doivent être sRGB */
-    composer.renderTarget1.texture.encoding = THREE.sRGBEncoding;
-    composer.renderTarget2.texture.encoding = THREE.sRGBEncoding;
+    /* ── EffectComposer (desktop uniquement — trop lourd sur mobile) ── */
+    let composer = null, sketchPass = null;
+    if (!IS_MOBILE) {
+        composer  = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        sketchPass = new THREE.ShaderPass(SketchShader);
+        sketchPass.renderToScreen = true;
+        composer.addPass(sketchPass);
+        composer.renderTarget1.texture.encoding = THREE.sRGBEncoding;
+        composer.renderTarget2.texture.encoding = THREE.sRGBEncoding;
+    }
 
     window._composer   = composer;
     window._sketchPass = sketchPass;
     window._sketchOn   = false;
 
-    /* Resize aussi le composer */
+    /* Resize */
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(window.innerWidth, window.innerHeight);
-        const pr2 = Math.min(devicePixelRatio, 2);
-        sketchPass.uniforms.resolution.value.set(window.innerWidth * pr2, window.innerHeight * pr2);
+        if (composer) {
+            composer.setSize(window.innerWidth, window.innerHeight);
+            const pr2 = Math.min(devicePixelRatio, 2);
+            sketchPass.uniforms.resolution.value.set(window.innerWidth * pr2, window.innerHeight * pr2);
+        }
     });
 
     /* Boucle */
     (function animate() {
         requestAnimationFrame(animate);
         controls.update();
-        composer.render();
+        /* Mobile : rendu direct (pas de post-processing) */
+        if (IS_MOBILE || !window._composer) {
+            renderer.render(scene, camera);
+        } else {
+            window._composer.render();
+        }
         updateAnnotations();
 
         /* Met à jour la position du listener audio selon la caméra */
