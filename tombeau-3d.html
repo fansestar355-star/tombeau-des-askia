@@ -1302,21 +1302,26 @@ function addIllustrations3D(scene, scene3d) {
         ctx2.drawImage(img, 0, 0);
         const id = ctx2.getImageData(0, 0, cv2.width, cv2.height);
         const d = id.data;
-        /* Fond blanc → transparent, lignes → blanches avec bon contraste */
+        /* Fond clair → transparent, dessin → blanc opaque bien visible */
         for (let i = 0; i < d.length; i += 4) {
             const br = (d[i] + d[i+1] + d[i+2]) / 3;
-            if (br > 220) { d[i+3] = 0; }
-            else { d[i]=255; d[i+1]=255; d[i+2]=255; d[i+3]=Math.min(255, Math.round((220-br)*2.5)); }
+            if (br > 200) { d[i+3] = 0; }
+            else {
+                d[i]=255; d[i+1]=255; d[i+2]=255;
+                /* Facteur x5 : les traits fins deviennent bien opaques */
+                d[i+3] = Math.min(255, Math.round((200 - br) * 5));
+            }
         }
         ctx2.putImageData(id, 0, 0);
         const tex = new THREE.CanvasTexture(cv2);
         tex.premultiplyAlpha = true;
 
+        /* Taille augmentée (~2× plus grands) pour meilleure visibilité */
         const trees = [
-            illusPlane(scene, tex, 18,30, cx-58,15,cz+10,  0.18),
-            illusPlane(scene, tex, 14,23, cx-72,12,cz-8,   0.25),
-            illusPlane(scene, tex, 11,18, cx-48, 9,cz-22,  0.10),
-            illusPlane(scene, tex, 16,26, cx+45,13,cz+42, -0.30),
+            illusPlane(scene, tex, 36,58, cx-58,29,cz+10,  0.18),
+            illusPlane(scene, tex, 28,45, cx-76,23,cz-10,  0.25),
+            illusPlane(scene, tex, 22,36, cx-50,18,cz-24,  0.10),
+            illusPlane(scene, tex, 32,52, cx+48,26,cz+44, -0.30),
         ];
         const op = window._illusOpacity || 0;
         trees.forEach(m => { m.material.opacity = op; window._illusMeshes.push(m); });
