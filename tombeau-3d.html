@@ -727,15 +727,23 @@ function zoomToAnnotation(pos) {
 function openDetail(key, pos) {
     const info = ANN_INFO[key] || ANN_INFO['__cimetiere__'];
 
+    /* Cache le panneau info général */
+    const infoPanel = document.getElementById('info-panel');
+    infoPanel.style.transition = 'opacity 0.3s ease';
+    infoPanel.style.opacity    = '0';
+    infoPanel.style.pointerEvents = 'none';
+
     if (window.innerWidth < 768) {
-        /* Mobile : remplace le contenu du panneau du bas */
-        const panel = document.getElementById('info-panel');
-        panel.querySelector('.panel-tag').textContent   = 'Patrimoine UNESCO · Gao, Mali';
-        panel.querySelector('.panel-title').textContent = info.title;
-        panel.querySelector('.panel-desc').textContent  = info.text;
-        panel.querySelector('.panel-hint').innerHTML    =
-            '<span style="cursor:pointer;border-bottom:1px solid rgba(249,213,139,0.3);padding-bottom:2px" onclick="closeDetail()">← Retour à la vue générale</span>';
-        panel.classList.add('on');
+        /* Mobile : remplace le contenu du panneau du bas après la transition */
+        setTimeout(() => {
+            infoPanel.querySelector('.panel-tag').textContent   = 'Patrimoine UNESCO · Gao, Mali';
+            infoPanel.querySelector('.panel-title').textContent = info.title;
+            infoPanel.querySelector('.panel-desc').textContent  = info.text;
+            infoPanel.querySelector('.panel-hint').innerHTML    =
+                '<span style="cursor:pointer;border-bottom:1px solid rgba(249,213,139,0.3);padding-bottom:2px" onclick="closeDetail()">← Retour à la vue générale</span>';
+            infoPanel.style.opacity       = '1';
+            infoPanel.style.pointerEvents = 'auto';
+        }, 320);
         document.body.classList.add('detail-open');
     } else {
         /* Desktop : panneau latéral */
@@ -752,14 +760,18 @@ function closeDetail() {
     document.getElementById('detail-panel').classList.remove('on');
     document.body.classList.remove('detail-open');
 
-    /* Mobile : restaure le contenu original du panneau du bas */
-    if (window.innerWidth < 768) {
-        const panel = document.getElementById('info-panel');
-        panel.querySelector('.panel-tag').textContent   = 'Tombeau des Askia · Gao, Mali · XVe siècle';
-        panel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
-        panel.querySelector('.panel-desc').textContent  = 'Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d\'un des plus grands empereurs de l\'Empire Songhaï. Classée Patrimoine Mondial de l\'UNESCO en 2004.';
-        panel.querySelector('.panel-hint').textContent  = '← Glissez pour explorer · Molette pour zoomer';
-    }
+    /* Restaure le panneau info général */
+    const infoPanel = document.getElementById('info-panel');
+    infoPanel.style.opacity    = '0';
+    infoPanel.style.pointerEvents = 'none';
+    setTimeout(() => {
+        infoPanel.querySelector('.panel-tag').textContent   = 'Tombeau des Askia · Gao, Mali · XVe siècle';
+        infoPanel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
+        infoPanel.querySelector('.panel-desc').textContent  = 'Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d\'un des plus grands empereurs de l\'Empire Songhaï. Classée Patrimoine Mondial de l\'UNESCO en 2004.';
+        infoPanel.querySelector('.panel-hint').textContent  = '← Glissez pour explorer · Molette pour zoomer';
+        infoPanel.style.opacity       = '1';
+        infoPanel.style.pointerEvents = 'auto';
+    }, 320);
     const ctrl = window._controls;
     const cam  = window._camera;
     if (!ctrl || !cam) return;
