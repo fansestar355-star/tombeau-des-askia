@@ -263,26 +263,9 @@
             .ann-label-name { font-size:0.42rem; letter-spacing:0.12em; }
             .ann-label-sub  { font-size:0.34rem; }
 
-            /* Panneau détail : bottom sheet sur mobile */
-            #detail-panel {
-                top:auto; right:0; bottom:-58vh;
-                width:100%; height:56vh;
-                border-radius:20px 20px 0 0;
-                padding:14px 20px 32px;
-                background:rgba(7,5,15,0.98);
-                transition:bottom 0.5s cubic-bezier(0.4,0,0.2,1);
-            }
-            #detail-panel.on { bottom:0; right:0; }
-            #detail-handle { display:block; }
-            #detail-close { top:16px; right:18px; font-size:1.1rem; }
-            #detail-tag   { font-size:0.46rem; margin-bottom:8px; }
-            #detail-title { font-size:1.1rem; margin-bottom:6px; }
-            #detail-sub   { font-size:0.46rem; margin-bottom:12px; }
-            #detail-text  { font-size:0.72rem; line-height:1.65; }
-            #detail-back  { margin-top:14px; font-size:0.46rem; }
-            #sketch-btn   { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
-            /* Cache le panneau info du bas quand détail est ouvert */
-            body.detail-open #info-panel { opacity:0 !important; pointer-events:none; }
+            /* Panneau détail latéral caché sur mobile */
+            #detail-panel { display:none; }
+            #sketch-btn { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
             #toggle-bar { bottom:18px; }
             #layer-slider { height:120px; }
@@ -743,17 +726,40 @@ function zoomToAnnotation(pos) {
 /* ── Ouvrir / fermer le panneau détail ── */
 function openDetail(key, pos) {
     const info = ANN_INFO[key] || ANN_INFO['__cimetiere__'];
-    document.getElementById('detail-title').textContent = info.title;
-    document.getElementById('detail-sub').textContent   = info.sub;
-    document.getElementById('detail-text').textContent  = info.text;
-    document.getElementById('detail-panel').classList.add('on');
-    document.body.classList.add('detail-open');
+
+    if (window.innerWidth < 768) {
+        /* Mobile : remplace le contenu du panneau du bas */
+        const panel = document.getElementById('info-panel');
+        panel.querySelector('.panel-tag').textContent   = 'Patrimoine UNESCO · Gao, Mali';
+        panel.querySelector('.panel-title').textContent = info.title;
+        panel.querySelector('.panel-desc').textContent  = info.text;
+        panel.querySelector('.panel-hint').innerHTML    =
+            '<span style="cursor:pointer;border-bottom:1px solid rgba(249,213,139,0.3);padding-bottom:2px" onclick="closeDetail()">← Retour à la vue générale</span>';
+        panel.classList.add('on');
+        document.body.classList.add('detail-open');
+    } else {
+        /* Desktop : panneau latéral */
+        document.getElementById('detail-title').textContent = info.title;
+        document.getElementById('detail-sub').textContent   = info.sub;
+        document.getElementById('detail-text').textContent  = info.text;
+        document.getElementById('detail-panel').classList.add('on');
+        document.body.classList.add('detail-open');
+    }
     zoomToAnnotation(pos);
 }
 
 function closeDetail() {
     document.getElementById('detail-panel').classList.remove('on');
     document.body.classList.remove('detail-open');
+
+    /* Mobile : restaure le contenu original du panneau du bas */
+    if (window.innerWidth < 768) {
+        const panel = document.getElementById('info-panel');
+        panel.querySelector('.panel-tag').textContent   = 'Tombeau des Askia · Gao, Mali · XVe siècle';
+        panel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
+        panel.querySelector('.panel-desc').textContent  = 'Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d\'un des plus grands empereurs de l\'Empire Songhaï. Classée Patrimoine Mondial de l\'UNESCO en 2004.';
+        panel.querySelector('.panel-hint').textContent  = '← Glissez pour explorer · Molette pour zoomer';
+    }
     const ctrl = window._controls;
     const cam  = window._camera;
     if (!ctrl || !cam) return;
