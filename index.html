@@ -592,13 +592,61 @@
                 transparent 70%);
             filter: blur(55px);
         }
-        /* Bouton 3D satellite : visible uniquement en ch5 */
-        .btn-3d { display: none !important; }
-        body.ch5 .btn-3d { display: inline-flex !important; }
+        /* Bouton personnage caché en ch5 */
         body.ch5 #btn-personnage { display: none; }
 
         body.ch5 .model-toggle { opacity: 0; pointer-events: none; }
         body.ch5 .hero-gao { font-size: clamp(5rem, 14vw, 14rem); letter-spacing: -0.03em; }
+
+        /* ══ CHAPITRE 6 — Lancement 3D ══ */
+        body.ch6 .model-toggle { opacity: 0; pointer-events: none; }
+        body.ch6 .hero-gao { font-size: clamp(5rem, 14vw, 13rem); letter-spacing: -0.03em; }
+
+        #launch-overlay {
+            position: fixed; inset: 0; z-index: 4;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            pointer-events: none;
+            opacity: 0; transition: opacity 0.9s ease;
+        }
+        #launch-overlay.visible { opacity: 1; }
+
+        /* Anneau de compte à rebours SVG */
+        #launch-ring-wrap {
+            position: relative; width: 110px; height: 110px;
+            margin-bottom: 28px;
+        }
+        #launch-ring-svg {
+            width: 110px; height: 110px;
+            transform: rotate(-90deg);
+        }
+        #launch-ring-track {
+            fill: none; stroke: rgba(249,213,139,0.12);
+            stroke-width: 2;
+        }
+        #launch-ring-bar {
+            fill: none; stroke: var(--gold);
+            stroke-width: 2; stroke-linecap: round;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset linear;
+            filter: drop-shadow(0 0 6px rgba(249,213,139,0.6));
+        }
+        #launch-count {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem; font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(249,213,139,0.4);
+        }
+        #launch-label {
+            font-size: 0.58rem; letter-spacing: 0.45em;
+            text-transform: uppercase; color: rgba(249,213,139,0.55);
+        }
+        @media (max-width: 768px) {
+            body.ch6 .hero-gao { font-size: clamp(2.8rem, 10vw, 5rem); }
+        }
         @media (max-width: 768px) {
             .ch5-tombeau { width: 105%; right: -3%; bottom: 35%; opacity: 0.55; }
             body.ch5 .hero-gao { font-size: clamp(2.8rem, 10vw, 5rem); letter-spacing: -0.02em; }
@@ -919,7 +967,6 @@
             <div class="title-divider" id="ch-divider" style="width:200px;"></div>
             <p class="hero-desc" id="ch-desc">L'empereur bâtisseur,<br>réformateur de l'Afrique de l'Ouest.</p>
             <a class="btn-experience" id="btn-personnage" href="experience-personnage.html">Explorer le personnage</a>
-            <a class="btn-experience btn-3d" href="tombeau-3d.html">Explorer le Monument →</a>
             <div class="nav-dots" id="nav-dots"></div>
         </div>
 
@@ -946,6 +993,18 @@
 <div id="ch5-overlay">
     <div class="ch5-glow"></div>
     <img class="ch5-tombeau" src="assets/images/tombeaux.png" alt="Tombeau des Askia" />
+</div>
+
+<!-- Chapitre 6 — Lancement 3D -->
+<div id="launch-overlay">
+    <div id="launch-ring-wrap">
+        <svg id="launch-ring-svg" viewBox="0 0 100 100">
+            <circle id="launch-ring-track" cx="50" cy="50" r="46"/>
+            <circle id="launch-ring-bar"   cx="50" cy="50" r="46"/>
+        </svg>
+        <div id="launch-count">3</div>
+    </div>
+    <div id="launch-label">Lancement de l'expérience 3D</div>
 </div>
 
 
@@ -1011,6 +1070,16 @@ const CHAPTERS = [
         btn:    false,
         year:   "XVe–XVIe siècle · Gao · Mali"
     },
+    {
+        gao:    "3D",
+        tag:    "Exploration immersive",
+        camera: "60deg 84deg 2.3m",
+        lines:  ["Explorer", "le Monument"],
+        desc:   "Plongez dans une reconstruction 3D interactive du Tombeau des Askia. Tournez, zoomez, découvrez chaque détail de cette œuvre de l'architecture soudano-sahélienne.",
+        btn:    false,
+        year:   "Tombeau des Askia · Vue 3D",
+        launch: true
+    },
 ];
 
 /* ══════════════════════════════════════════════
@@ -1058,6 +1127,43 @@ function setCh5(active) {
 
         gsap.to('.ch5-glow',    { opacity: 1,    duration: 2.0, ease: 'power2.out',  delay: 0.2 });
         gsap.to('.ch5-tombeau', { x: 0, opacity: 0.88, duration: 2.2, ease: 'power3.out', delay: 0.5 });
+    }
+}
+
+/* ── Chapitre 6 : compte à rebours + redirection ── */
+const launchOverlay = document.getElementById('launch-overlay');
+const launchBar     = document.getElementById('launch-ring-bar');
+const launchCount   = document.getElementById('launch-count');
+let launchTimer = null;
+
+function setCh6(active) {
+    launchOverlay.classList.toggle('visible', active);
+    document.body.classList.toggle('ch6', active);
+
+    if (launchTimer) { clearInterval(launchTimer); launchTimer = null; }
+
+    if (active) {
+        const TOTAL = 3000; // 3 secondes
+        const circumference = 2 * Math.PI * 46; // ~289
+        launchBar.style.transition = 'none';
+        launchBar.style.strokeDashoffset = circumference;
+        launchCount.textContent = '3';
+
+        let remaining = 3;
+        setTimeout(() => {
+            launchBar.style.transition = `stroke-dashoffset ${TOTAL}ms linear`;
+            launchBar.style.strokeDashoffset = '0';
+        }, 50);
+
+        launchTimer = setInterval(() => {
+            remaining--;
+            launchCount.textContent = remaining > 0 ? remaining : '↗';
+            if (remaining <= 0) {
+                clearInterval(launchTimer);
+                launchTimer = null;
+                setTimeout(() => { window.location.href = 'tombeau-3d.html'; }, 600);
+            }
+        }, 1000);
     }
 }
 
@@ -1127,7 +1233,7 @@ function goTo(index) {
         bottomY.textContent = next.year;
         heroGao.textContent = next.gao;
         chTag.innerHTML = index === 0 || !next.tag ? ''
-            : `<span class="ch-index">0${index}</span><span class="ch-sep">—</span><span class="ch-subtitle">${next.tag}</span>`;
+            : `<span class="ch-index">${String(index).padStart(2,'0')}</span><span class="ch-sep">—</span><span class="ch-subtitle">${next.tag}</span>`;
         chTitle.innerHTML   = '';
         next.lines.forEach(txt => {
             const line  = document.createElement('span');
@@ -1142,12 +1248,13 @@ function goTo(index) {
         current = index;
         updateScrollBar(index);
         /* Masquer le modèle 3D pour les chapitres avec overlay image */
-        const useOverlay = (index === 3 || index === 4);
+        const useOverlay = (index === 3 || index === 4 || index === 5);
         mv.style.transition = 'opacity 0.9s ease';
         mv.style.opacity    = useOverlay ? '0' : '';
         document.querySelector('.bg-glow').style.opacity = useOverlay ? '0' : '';
         setCh4(index === 3);
         setCh5(index === 4);
+        setCh6(index === 5);
     });
 
     /* ─── ENTRÉE ─── */
