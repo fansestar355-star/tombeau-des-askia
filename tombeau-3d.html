@@ -151,65 +151,73 @@
             margin-top:2px;
         }
 
-        /* ── Slider vertical (côté droit) ── */
+        /* ── Slider custom (côté droit) ── */
         #toggle-bar {
             position:fixed; right:20px; top:50%; transform:translateY(-50%);
-            display:flex; flex-direction:column; align-items:center; gap:10px;
+            display:flex; flex-direction:column; align-items:center; gap:8px;
             z-index:60; opacity:0; transition:opacity 1s ease 0.8s; pointer-events:none;
+            user-select:none; -webkit-user-select:none;
         }
         #toggle-bar.on { opacity:1; pointer-events:all; }
 
-        /* Icônes haut / bas */
-        .slider-icon {
-            width:20px; height:20px; display:flex; align-items:center; justify-content:center;
-            color:rgba(249,213,139,0.4); font-size:0.55rem; line-height:1;
-            transition:color 0.2s;
+        /* Label haut */
+        #slider-top-label {
+            font-size:0.32rem; letter-spacing:0.24em; text-transform:uppercase;
+            color:rgba(249,213,139,0.5); font-family:'Inter',sans-serif;
+            writing-mode:vertical-rl; transform:rotate(180deg);
         }
-        .slider-icon:hover { color:rgba(249,213,139,0.85); }
 
-        /* Conteneur piste */
+        /* Zone de drag */
         #slider-track {
-            position:relative; width:30px; height:160px;
-            display:flex; align-items:center; justify-content:center;
-            overflow:visible;
+            position:relative; width:36px; height:160px;
+            cursor:grab; touch-action:none;
         }
-        /* Piste fine centrale */
-        #slider-track::before {
-            content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
-            width:2px; height:100%; border-radius:2px;
-            background:rgba(249,213,139,0.12);
+        #slider-track:active { cursor:grabbing; }
+
+        /* Rail fin au centre */
+        #slider-rail {
+            position:absolute; top:0; left:50%; transform:translateX(-50%);
+            width:1px; height:100%; border-radius:1px;
+            background:rgba(249,213,139,0.15);
         }
-        /* Portion remplie */
+        /* Fill doré */
         #slider-fill {
             position:absolute; bottom:0; left:50%; transform:translateX(-50%);
-            width:2px;
-            background:linear-gradient(to top, rgba(249,213,139,0.95), rgba(249,213,139,0.35));
-            border-radius:2px; pointer-events:none;
+            width:1px; border-radius:1px;
+            background:linear-gradient(to top, var(--gold), rgba(249,213,139,0.25));
+            height:100%;
         }
-        /* Thumb doré */
+        /* Thumb — diamant doré */
         #slider-thumb {
-            position:absolute; left:50%; transform:translate(-50%,-50%);
-            width:12px; height:12px; border-radius:50%;
+            position:absolute; left:50%; top:0%;
+            transform:translate(-50%,-50%) rotate(45deg);
+            width:9px; height:9px;
             background:var(--gold);
-            box-shadow:0 0 0 3px rgba(249,213,139,0.12), 0 0 12px rgba(249,213,139,0.4);
-            pointer-events:none;
+            box-shadow:0 0 8px rgba(249,213,139,0.6);
+            transition:transform 0.1s, box-shadow 0.1s;
         }
-        /* Input range invisible par-dessus */
-        #layer-slider {
-            position:absolute; inset:0; margin:0;
-            -webkit-appearance:none; appearance:none;
-            width:30px; height:160px; background:transparent; outline:none; cursor:pointer;
-            writing-mode:vertical-lr; direction:rtl;
+        #slider-track:active #slider-thumb {
+            transform:translate(-50%,-50%) rotate(45deg) scale(1.5);
+            box-shadow:0 0 16px rgba(249,213,139,0.8);
         }
-        #layer-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:30px; height:30px; background:transparent; }
-        #layer-slider::-moz-range-thumb { width:30px; height:30px; border:none; background:transparent; }
+        /* Tirets déco sur le rail */
+        #slider-ticks {
+            position:absolute; top:0; left:50%; transform:translateX(-50%);
+            width:100%; height:100%; pointer-events:none;
+        }
+        .s-tick {
+            position:absolute; left:50%; transform:translateX(-50%);
+            height:1px; background:rgba(249,213,139,0.3);
+        }
+        .s-tick.major { width:10px; }
+        .s-tick.minor { width:5px; background:rgba(249,213,139,0.15); }
 
-        /* Label vertical */
+        /* Label bas */
         #toggle-label {
-            font-size:0.30rem; letter-spacing:0.28em; text-transform:uppercase;
+            font-size:0.30rem; letter-spacing:0.24em; text-transform:uppercase;
             color:rgba(249,213,139,0.25); font-family:'Inter',sans-serif;
             writing-mode:vertical-rl; transform:rotate(180deg);
-            white-space:nowrap; margin-top:6px;
+            white-space:nowrap;
         }
 
         /* ── Panneau détail — même style que #info-panel ── */
@@ -332,7 +340,7 @@
             #adhan-btn   { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
             #toggle-bar { right:12px; }
-            #slider-track, #layer-slider { height:120px; width:30px; }
+            #slider-track { height:120px; }
         }
     </style>
 </head>
@@ -365,16 +373,15 @@
 <button id="sketch-btn" onclick="toggleSketch()">✏ Mode Dessin</button>
 <button id="adhan-btn" onclick="toggleAdhan()">🔊 Appel à la prière</button>
 
-<!-- Barre slider -->
+<!-- Slider custom -->
 <div id="toggle-bar">
-    <div class="slider-icon" title="Afficher tout">◈</div>
+    <div id="slider-top-label">100%</div>
     <div id="slider-track">
-        <div id="slider-fill" style="height:100%"></div>
-        <div id="slider-thumb" style="top:0%"></div>
-        <input type="range" id="layer-slider" min="0" max="100" value="100"
-               oninput="onLayerSlider(this.value)">
+        <div id="slider-rail"></div>
+        <div id="slider-fill"></div>
+        <div id="slider-ticks"></div>
+        <div id="slider-thumb"></div>
     </div>
-    <div class="slider-icon" title="Masquer">○</div>
     <div id="toggle-label">Annotations</div>
 </div>
 
@@ -802,29 +809,62 @@ const ANN_INFO = {
     }
 };
 
-/* ── Slider couches ── */
+/* ── Slider custom (remplace input[type=range]) ── */
 function onLayerSlider(val) {
-    const t = val / 100;
-
-    /* Mise à jour visuelle du thumb et du fill */
+    val = Math.max(0, Math.min(100, val));
+    const t     = val / 100;
     const fill  = document.getElementById('slider-fill');
     const thumb = document.getElementById('slider-thumb');
-    if (fill)  fill.style.height  = val + '%';
-    if (thumb) thumb.style.top    = (100 - val) + '%';
+    const lbl   = document.getElementById('slider-top-label');
+    if (fill)  fill.style.height = val + '%';
+    if (thumb) thumb.style.top   = (100 - val) + '%';
+    if (lbl)   lbl.textContent   = Math.round(val) + '%';
 
-    /* Annotations */
     document.querySelectorAll('.ann').forEach(el => {
-        el.style.opacity      = t > 0 ? '' : '0';
-        el.style.pointerEvents= t > 0.05 ? '' : 'none';
+        el.style.opacity       = t > 0 ? '' : '0';
+        el.style.pointerEvents = t > 0.05 ? '' : 'none';
     });
     window._annOpacityScale = t;
 
-    /* Illustrations 3D */
     if (window._illusMeshes) {
         window._illusMeshes.forEach(m => {
             m.material.opacity = (window._illusOpacity || 1) * t;
         });
     }
+}
+
+function initCustomSlider() {
+    const track = document.getElementById('slider-track');
+    if (!track) return;
+
+    /* Tirets décoratifs */
+    const ticks = document.getElementById('slider-ticks');
+    for (let i = 0; i <= 10; i++) {
+        const tk = document.createElement('div');
+        tk.className = 's-tick ' + (i % 5 === 0 ? 'major' : 'minor');
+        tk.style.top = (i * 10) + '%';
+        ticks.appendChild(tk);
+    }
+
+    let dragging = false;
+
+    function getVal(clientY) {
+        const rect = track.getBoundingClientRect();
+        const raw  = 1 - (clientY - rect.top) / rect.height;
+        return Math.round(Math.max(0, Math.min(1, raw)) * 100);
+    }
+
+    track.addEventListener('mousedown',  e => { dragging = true; onLayerSlider(getVal(e.clientY)); });
+    track.addEventListener('touchstart', e => { dragging = true; onLayerSlider(getVal(e.touches[0].clientY)); }, { passive:true });
+
+    window.addEventListener('mousemove',  e => { if (dragging) onLayerSlider(getVal(e.clientY)); });
+    window.addEventListener('touchmove',  e => { if (dragging) onLayerSlider(getVal(e.touches[0].clientY)); }, { passive:true });
+
+    window.addEventListener('mouseup',   () => dragging = false);
+    window.addEventListener('touchend',  () => dragging = false);
+
+    /* État initial */
+    onLayerSlider(100);
 }
 
 /* ── Zoom animé vers une position 3D ── */
@@ -1398,6 +1438,7 @@ function revealHUD() {
     document.getElementById('back-btn').classList.add('on');
     document.getElementById('toggle-bar').classList.add('on');
     document.getElementById('sketch-btn').classList.add('on');
+    initCustomSlider();
 }
 </script>
 </body>
