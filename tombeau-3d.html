@@ -948,8 +948,8 @@ let _adhanTowerTop = null; /* initialisé dans setupAdhan() après chargement de
 
 /* URLs publiques CORS-friendly (essayées dans l'ordre) */
 const ADHAN_URLS = [
-    'https://upload.wikimedia.org/wikipedia/commons/7/7e/Azan.ogg',
-    'https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7e/Azan.ogg/Azan.ogg.mp3'
+    'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/86/Azan.ogg/Azan.ogg.mp3',
+    'https://upload.wikimedia.org/wikipedia/commons/8/86/Azan.ogg'
 ];
 
 function setupAdhan(scene, scene3d, camera) {
@@ -1322,7 +1322,7 @@ function addIllustrations3D(scene, scene3d) {
         trees.forEach(m => { m.material.opacity = op; window._illusMeshes.push(m); });
     };
     img.onerror = () => console.error("Impossible de charger l'image arbre");
-    img.src = encodeURI("assets/images/illustration d'arbre.jpg");
+    img.src = 'assets/images/illustration-arbre.jpg';
 }
 
 function fadeInIllustrations() {
