@@ -202,44 +202,50 @@
             background:var(--gold); cursor:pointer;
         }
 
-        /* ── Panneau détail (clic annotation) ── */
+        /* ── Panneau détail — même style que #info-panel ── */
         #detail-panel {
-            position:fixed; top:0; right:-420px; width:360px; height:100%;
-            z-index:55; padding:90px 36px 40px 36px;
-            background:linear-gradient(to left, rgba(7,5,15,0.97) 55%, transparent);
-            transition:right 0.5s cubic-bezier(0.4,0,0.2,1);
-            pointer-events:none; overflow-y:auto;
+            position:fixed; bottom:0; left:0; right:0;
+            padding:72px 40px 36px; z-index:55;
+            background:linear-gradient(transparent, rgba(7,5,15,0.96) 38%);
+            transform:translateY(100%);
+            transition:transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease;
+            opacity:0; pointer-events:none;
         }
-        #detail-panel.on { right:0; pointer-events:all; }
+        #detail-panel.on {
+            transform:translateY(0);
+            opacity:1; pointer-events:all;
+        }
         #detail-close {
-            position:absolute; top:26px; right:28px;
-            font-size:1rem; color:rgba(249,213,139,0.4); cursor:pointer;
+            position:absolute; top:18px; right:28px;
+            font-size:0.85rem; color:rgba(249,213,139,0.35); cursor:pointer;
             transition:color 0.2s; line-height:1;
+            letter-spacing:0.1em;
         }
         #detail-close:hover { color:var(--gold); }
         #detail-tag {
-            font-size:0.45rem; letter-spacing:0.28em; color:var(--gold);
-            text-transform:uppercase; margin-bottom:16px; opacity:0.6;
+            font-size:0.55rem; letter-spacing:0.25em; color:var(--gold);
+            text-transform:uppercase; margin-bottom:10px; opacity:0.7;
         }
         #detail-title {
-            font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:900;
-            line-height:1.15; margin-bottom:10px;
+            font-family:'Playfair Display',serif;
+            font-size:clamp(1.4rem,3vw,2.2rem); font-weight:900;
+            line-height:1.1; margin-bottom:6px; color:#fff;
         }
         #detail-sub {
-            font-size:0.48rem; letter-spacing:0.15em; color:var(--gold);
-            text-transform:uppercase; opacity:0.55; margin-bottom:22px;
+            font-size:0.5rem; letter-spacing:0.18em; color:var(--gold);
+            text-transform:uppercase; opacity:0.5; margin-bottom:14px;
         }
         #detail-text {
-            font-size:0.76rem; color:rgba(240,234,248,0.62); line-height:1.85;
+            font-size:0.78rem; color:rgba(240,234,248,0.65);
+            max-width:580px; line-height:1.75;
         }
         #detail-back {
-            display:inline-block; margin-top:30px;
-            font-size:0.46rem; letter-spacing:0.2em; text-transform:uppercase;
-            color:rgba(249,213,139,0.5); cursor:pointer;
-            border-bottom:1px solid rgba(249,213,139,0.2); padding-bottom:2px;
-            transition:color 0.2s;
+            display:inline-block; margin-top:16px;
+            font-size:0.58rem; letter-spacing:0.18em; text-transform:uppercase;
+            color:var(--gold); opacity:0.55; cursor:pointer;
+            transition:opacity 0.2s;
         }
-        #detail-back:hover { color:var(--gold); }
+        #detail-back:hover { opacity:1; }
 
         /* ── Handle drag (mobile) ── */
         #detail-handle {
@@ -285,24 +291,10 @@
             .ann-label-name { font-size:0.42rem; letter-spacing:0.12em; }
             .ann-label-sub  { font-size:0.34rem; }
 
-            /* Panneau détail : bottom sheet sur mobile */
-            #detail-panel {
-                display: block;
-                top: auto;
-                bottom: -100%;
-                right: 0;
-                left: 0;
-                width: 100%;
-                height: auto;
-                max-height: 60vh;
-                border-radius: 18px 18px 0 0;
-                padding: 24px 22px 32px;
-                background: rgba(7,5,15,0.97);
-                transition: bottom 0.5s cubic-bezier(0.4,0,0.2,1);
-            }
-            #detail-panel.on { bottom: 0; right: 0; }
-            #detail-handle { display: block; }
-            #detail-close { top: 16px; right: 18px; }
+            /* Panneau détail mobile — padding réduit */
+            #detail-panel { padding: 52px 20px 28px; }
+            #detail-close { top: 14px; right: 18px; }
+            #detail-text  { font-size: 0.75rem; }
             #sketch-btn { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
             #toggle-bar { bottom:18px; }
