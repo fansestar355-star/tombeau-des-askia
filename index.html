@@ -76,16 +76,16 @@
         /* ── "GAO" / année géante — fond décoratif haut-gauche ── */
         .hero-gao {
             position: absolute;
-            top: -4%;
-            left: 20px;
+            top: -2%;
+            left: 30px;
             font-family: 'Playfair Display', serif;
             font-size: clamp(9rem, 20vw, 17rem);
             font-weight: 900;
             color: transparent;
-            -webkit-text-stroke: 1px rgba(196,175,248,0.15);
+            -webkit-text-stroke: 1px rgba(196,175,248,0.12);
             background: linear-gradient(160deg,
-                rgba(196,175,248,0.50) 0%,
-                rgba(108,99,255,0.22) 50%,
+                rgba(196,175,248,0.42) 0%,
+                rgba(108,99,255,0.18) 55%,
                 transparent 85%);
             -webkit-background-clip: text;
             background-clip: text;
@@ -96,8 +96,6 @@
             will-change: transform, opacity;
             text-shadow: none;
             white-space: nowrap;
-            /* Coupe à ~55% du bas = visible seulement dans le tiers haut de l'écran */
-            clip-path: inset(0 0 55% 0);
         }
 
         /* ── MODÈLE 3D ── */
