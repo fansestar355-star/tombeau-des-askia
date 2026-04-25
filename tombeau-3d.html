@@ -799,13 +799,10 @@ function closeDetail() {
     if (backBtn) { backBtn.style.opacity = '1'; backBtn.style.pointerEvents = 'auto'; }
 
     setTimeout(() => {
-        infoPanel.classList.remove('detail-mode');
-        infoPanel.querySelector('.panel-tag').textContent   = 'Tombeau des Askia · Gao, Mali · XVe siècle';
+        /* Le titre reste en haut, le texte reste caché définitivement */
         infoPanel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
-        infoPanel.querySelector('.panel-desc').textContent  = 'Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d\'un des plus grands empereurs de l\'Empire Songhaï. Classée Patrimoine Mondial de l\'UNESCO en 2004.';
-        infoPanel.querySelector('.panel-hint').textContent  = '← Glissez pour explorer · Molette pour zoomer';
         infoPanel.style.opacity       = '1';
-        infoPanel.style.pointerEvents = 'auto';
+        infoPanel.style.pointerEvents = 'none';
     }, 320);
     const ctrl = window._controls;
     const cam  = window._camera;
