@@ -881,133 +881,113 @@ const ANN_DATA = [
 
 /* ════════════════════════════════════════════════
    AUDIO POSITIONNEL — Appel à la prière (Adhan)
-   Le son émane du sommet de la tour pyramidale
-   et est dirigé vers l'extérieur (cône directionnel)
 ════════════════════════════════════════════════ */
-let _adhanSound   = null;
+let _adhanCtx     = null;
+let _adhanSource  = null;
+let _adhanPanner  = null;
+let _adhanBuffer  = null;
 let _adhanPlaying = false;
-let _audioReady   = false;
+let _adhanTowerTop = new THREE.Vector3(52.82, 60, -26.69);
+
+/* URLs publiques CORS-friendly (essayées dans l'ordre) */
+const ADHAN_URLS = [
+    'https://upload.wikimedia.org/wikipedia/commons/7/7e/Azan.ogg',
+    'https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7e/Azan.ogg/Azan.ogg.mp3'
+];
 
 function setupAdhan(scene, scene3d, camera) {
-    /* 1. AudioListener attaché à la caméra */
-    const listener = new THREE.AudioListener();
-    camera.add(listener);
-
-    /* 2. Trouver la position du sommet de la tour (mesh "Tombeaux") */
-    let towerTop = new THREE.Vector3(52.82, 60, -26.69); // fallback
+    /* Sommet de la tour */
     scene3d.traverse(obj => {
         if (obj.isMesh && obj.name.trim() === 'Tombeaux') {
             const box = new THREE.Box3().setFromObject(obj);
-            towerTop.set(
+            _adhanTowerTop.set(
                 (box.min.x + box.max.x) / 2,
-                box.max.y,                        // sommet de la tour
+                box.max.y,
                 (box.min.z + box.max.z) / 2
             );
         }
     });
 
-    /* 3. Objet 3D au sommet de la tour — orienté vers le ciel/extérieur */
-    const towerObj = new THREE.Object3D();
-    towerObj.position.copy(towerTop);
-    /* Le haut-parleur diffuse vers l'est (direction principal de la mosquée) */
-    towerObj.rotation.y = Math.PI / 4;
-    scene.add(towerObj);
-
-    /* 4. PositionalAudio attaché au sommet */
-    const sound = new THREE.PositionalAudio(listener);
-    sound.setRefDistance(40);          // portée de référence (unités 3D)
-    sound.setMaxDistance(600);
-    sound.setRolloffFactor(1.2);
-    sound.setLoop(true);
-    sound.setVolume(1.0);
-
-    /* Cône directionnel : large devant (160°), atténué à 90° derrière */
-    sound.setDirectionalCone(
-        200,   // innerAngle  — son plein dans ce cône
-        300,   // outerAngle  — atténuation progressive
-        0.15   // outerGain   — volume hors du cône (15%)
-    );
-
-    towerObj.add(sound);
-    _adhanSound = sound;
-
-    /* 5. Charger l'audio depuis le web via un élément HTML Audio
-          (évite les restrictions CORS des AudioLoader directs) */
-    const ADHAN_URL = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
-    const htmlAudio = new Audio();
-    htmlAudio.crossOrigin = 'anonymous';
-    htmlAudio.loop        = true;
-    htmlAudio.src         = ADHAN_URL;
-    htmlAudio.preload     = 'auto';
-
-    /* Connecte l'élément audio à la chaîne Web Audio (positionalAudio) */
-    const audioCtx   = listener.context;
-    const mediaNode  = audioCtx.createMediaElementSource(htmlAudio);
-
-    /* Nœud de panoramique positionnel manuel (PannerNode) */
-    const panner = audioCtx.createPanner();
-    panner.panningModel    = 'HRTF';
-    panner.distanceModel   = 'inverse';
-    panner.refDistance     = 40;
-    panner.maxDistance     = 600;
-    panner.rolloffFactor   = 1.2;
-    panner.coneInnerAngle  = 200;
-    panner.coneOuterAngle  = 300;
-    panner.coneOuterGain   = 0.15;
-
-    /* Position du panner = sommet de la tour (mise à jour à chaque frame) */
-    panner.positionX.value = towerTop.x;
-    panner.positionY.value = towerTop.y;
-    panner.positionZ.value = towerTop.z;
-    /* Orientation : vers l'est */
-    panner.orientationX.value = 1;
-    panner.orientationY.value = 0;
-    panner.orientationZ.value = 0;
-
-    mediaNode.connect(panner);
-    panner.connect(audioCtx.destination);
-
-    /* Mise à jour position AudioListener à chaque frame */
-    const _origAnimate = window._animateHook;
-    window._audioPanner = panner;
-    window._audioHtmlEl = htmlAudio;
-
-    htmlAudio.addEventListener('canplaythrough', () => {
-        _audioReady = true;
-        document.getElementById('adhan-btn').classList.add('on');
-        console.log('✅ Adhan chargé depuis le web');
-    }, { once: true });
-    htmlAudio.addEventListener('error', () => {
-        document.getElementById('adhan-btn').classList.add('on');
-        document.getElementById('adhan-btn').title = 'Erreur chargement audio';
-        console.warn('⚠️ Impossible de charger l\'adhan depuis', ADHAN_URL);
-    });
-
-    /* Remplace _adhanSound par l'élément HTML pour play/pause */
-    _adhanSound = htmlAudio;
+    /* Pré-charger le buffer audio (sans créer l'AudioContext) */
+    function tryLoad(urls, idx) {
+        if (idx >= urls.length) {
+            console.warn('⚠️ Aucune source audio adhan disponible');
+            document.getElementById('adhan-btn').classList.add('on');
+            return;
+        }
+        fetch(urls[idx])
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+            .then(buf => {
+                /* Stocker le ArrayBuffer — décoder quand l'utilisateur clique */
+                _adhanBuffer = buf;
+                document.getElementById('adhan-btn').classList.add('on');
+                console.log('✅ Adhan pré-chargé depuis', urls[idx]);
+            })
+            .catch(() => tryLoad(urls, idx + 1));
+    }
+    tryLoad(ADHAN_URLS, 0);
 }
 
 function toggleAdhan() {
     const btn = document.getElementById('adhan-btn');
-    if (!_adhanSound) return;
-
-    /* Les navigateurs exigent un geste utilisateur avant de jouer du son.
-       On reprend le contexte audio si suspendu (autoplay policy). */
-    const ctx = window._adhanSound && window._adhanSound.context;
-    if (ctx && ctx.state === 'suspended') ctx.resume();
 
     if (_adhanPlaying) {
-        _adhanSound.pause();
+        /* Stoppe le son */
+        if (_adhanSource) { try { _adhanSource.stop(); } catch(e){} _adhanSource = null; }
         _adhanPlaying = false;
         btn.textContent = '🔊 Appel à la prière';
         btn.classList.remove('playing');
-    } else {
-        const playPromise = _adhanSound.play();
-        if (playPromise) playPromise.catch(e => console.warn('Audio play:', e));
+        return;
+    }
+
+    if (!_adhanBuffer) {
+        btn.textContent = '⏳ Chargement…';
+        setTimeout(() => { btn.textContent = '🔊 Appel à la prière'; }, 2000);
+        return;
+    }
+
+    /* Créer l'AudioContext au premier clic (exigence navigateur) */
+    if (!_adhanCtx) {
+        _adhanCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        _adhanPanner = _adhanCtx.createPanner();
+        _adhanPanner.panningModel   = 'HRTF';
+        _adhanPanner.distanceModel  = 'inverse';
+        _adhanPanner.refDistance    = 40;
+        _adhanPanner.maxDistance    = 600;
+        _adhanPanner.rolloffFactor  = 1.2;
+        _adhanPanner.coneInnerAngle = 200;
+        _adhanPanner.coneOuterAngle = 300;
+        _adhanPanner.coneOuterGain  = 0.15;
+        /* Position : sommet de la tour */
+        _adhanPanner.positionX.value = _adhanTowerTop.x;
+        _adhanPanner.positionY.value = _adhanTowerTop.y;
+        _adhanPanner.positionZ.value = _adhanTowerTop.z;
+        /* Orientation : diffuse vers l'extérieur */
+        _adhanPanner.orientationX.value = 1;
+        _adhanPanner.orientationY.value = 0.3;
+        _adhanPanner.orientationZ.value = 0;
+        _adhanPanner.connect(_adhanCtx.destination);
+        window._audioPanner = _adhanPanner;
+    }
+
+    if (_adhanCtx.state === 'suspended') _adhanCtx.resume();
+
+    /* Décoder et jouer */
+    _adhanCtx.decodeAudioData(_adhanBuffer.slice(0)).then(decoded => {
+        _adhanSource = _adhanCtx.createBufferSource();
+        _adhanSource.buffer = decoded;
+        _adhanSource.loop   = true;
+        _adhanSource.connect(_adhanPanner);
+        _adhanSource.start(0);
         _adhanPlaying = true;
         btn.textContent = '🔇 Couper le son';
         btn.classList.add('playing');
-    }
+    }).catch(e => {
+        console.error('Décodage audio:', e);
+        btn.textContent = '⚠️ Erreur audio';
+        setTimeout(() => { btn.textContent = '🔊 Appel à la prière'; }, 2000);
+    });
 }
 
 let _annotations = [];
