@@ -48,9 +48,31 @@
         }
         #info-panel.on { opacity:1; }
         .panel-tag  { font-size:0.55rem; letter-spacing:0.25em; color:var(--gold); text-transform:uppercase; margin-bottom:10px; }
-        .panel-title{ font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2.2rem); font-weight:900; margin-bottom:10px; }
-        .panel-desc { font-size:0.78rem; color:rgba(240,234,248,0.65); max-width:520px; line-height:1.75; }
-        .panel-hint { font-size:0.58rem; letter-spacing:0.18em; color:var(--gold); opacity:0.55; margin-top:14px; text-transform:uppercase; }
+        .panel-title{
+            font-family:'Playfair Display',serif; font-size:clamp(1.4rem,3vw,2.2rem);
+            font-weight:900; margin-bottom:10px;
+            transition: font-size 0.4s ease, top 0.4s ease, position 0.4s ease;
+        }
+        .panel-desc { font-size:0.78rem; color:rgba(240,234,248,0.65); max-width:520px; line-height:1.75; transition:opacity 0.3s ease; }
+        .panel-hint { font-size:0.58rem; letter-spacing:0.18em; color:var(--gold); opacity:0.55; margin-top:14px; text-transform:uppercase; transition:opacity 0.3s ease; }
+
+        /* Titre monté en haut quand une annotation est ouverte */
+        #info-panel.detail-mode {
+            background: none;
+            pointer-events: none;
+            padding: 18px 28px;
+            top: 0; bottom: auto;
+        }
+        #info-panel.detail-mode .panel-title {
+            font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+            color: rgba(249,213,139,0.75);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 0;
+        }
+        #info-panel.detail-mode .panel-tag,
+        #info-panel.detail-mode .panel-desc,
+        #info-panel.detail-mode .panel-hint { display: none; }
 
         /* Bouton retour */
         #back-btn {
@@ -727,26 +749,30 @@ function zoomToAnnotation(pos) {
 function openDetail(key, pos) {
     const info = ANN_INFO[key] || ANN_INFO['__cimetiere__'];
 
-    /* Cache le panneau info général */
     const infoPanel = document.getElementById('info-panel');
-    infoPanel.style.transition = 'opacity 0.3s ease';
-    infoPanel.style.opacity    = '0';
+    const backBtn   = document.getElementById('back-btn');
+
+    /* Cache le bouton retour */
+    if (backBtn) { backBtn.style.opacity = '0'; backBtn.style.pointerEvents = 'none'; }
+
+    /* Fait disparaître le panneau, puis le remonte en mode titre seul */
+    infoPanel.style.transition    = 'opacity 0.3s ease';
+    infoPanel.style.opacity       = '0';
     infoPanel.style.pointerEvents = 'none';
 
+    setTimeout(() => {
+        /* Le titre reste visible en haut, tout le reste est caché */
+        infoPanel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
+        infoPanel.classList.add('detail-mode');
+        infoPanel.style.transition = 'opacity 0.4s ease';
+        infoPanel.style.opacity    = '1';
+        infoPanel.style.pointerEvents = 'none';
+    }, 320);
+
     if (window.innerWidth < 768) {
-        /* Mobile : remplace le contenu du panneau du bas après la transition */
-        setTimeout(() => {
-            infoPanel.querySelector('.panel-tag').textContent   = 'Patrimoine UNESCO · Gao, Mali';
-            infoPanel.querySelector('.panel-title').textContent = info.title;
-            infoPanel.querySelector('.panel-desc').textContent  = info.text;
-            infoPanel.querySelector('.panel-hint').innerHTML    =
-                '<span style="cursor:pointer;border-bottom:1px solid rgba(249,213,139,0.3);padding-bottom:2px" onclick="closeDetail()">← Retour à la vue générale</span>';
-            infoPanel.style.opacity       = '1';
-            infoPanel.style.pointerEvents = 'auto';
-        }, 320);
         document.body.classList.add('detail-open');
     } else {
-        /* Desktop : panneau latéral */
+        /* Desktop : panneau latéral avec info annotation */
         document.getElementById('detail-title').textContent = info.title;
         document.getElementById('detail-sub').textContent   = info.sub;
         document.getElementById('detail-text').textContent  = info.text;
@@ -764,7 +790,12 @@ function closeDetail() {
     const infoPanel = document.getElementById('info-panel');
     infoPanel.style.opacity    = '0';
     infoPanel.style.pointerEvents = 'none';
+    /* Réaffiche le bouton retour */
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) { backBtn.style.opacity = '1'; backBtn.style.pointerEvents = 'auto'; }
+
     setTimeout(() => {
+        infoPanel.classList.remove('detail-mode');
         infoPanel.querySelector('.panel-tag').textContent   = 'Tombeau des Askia · Gao, Mali · XVe siècle';
         infoPanel.querySelector('.panel-title').textContent = 'La Tour Pyramidale de Gao';
         infoPanel.querySelector('.panel-desc').textContent  = 'Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d\'un des plus grands empereurs de l\'Empire Songhaï. Classée Patrimoine Mondial de l\'UNESCO en 2004.';
