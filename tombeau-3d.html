@@ -360,8 +360,14 @@
 </div>
 
 <div id="loader">
-    <div class="loader-txt">Chargement du modèle 3D</div>
-    <div class="loader-bar"></div>
+    <div class="loader-txt" id="loader-txt">Chargement du modèle 3D</div>
+    <div class="loader-bar" id="loader-bar"></div>
+    <div id="loader-error" style="display:none; text-align:center; margin-top:24px;">
+        <div style="font-size:0.6rem; color:rgba(249,213,139,0.5); letter-spacing:0.15em; margin-bottom:14px;" id="loader-error-msg">Impossible de charger le modèle</div>
+        <button onclick="location.reload()" style="font-size:0.55rem; letter-spacing:0.2em; text-transform:uppercase; border:1px solid rgba(249,213,139,0.4); color:rgba(249,213,139,0.8); background:rgba(249,213,139,0.08); padding:10px 28px; border-radius:20px; cursor:pointer;">
+            ↺ Réessayer
+        </button>
+    </div>
 </div>
 
 <div id="intro-overlay">
@@ -394,6 +400,15 @@ function loadScript(src) {
 
 const CDN = 'https://cdn.jsdelivr.net/npm/three@0.128.0';
 
+function showLoaderError(msg) {
+    const bar = document.getElementById('loader-bar');
+    if (bar) bar.style.display = 'none';
+    const errEl = document.getElementById('loader-error');
+    if (errEl) errEl.style.display = 'block';
+    const msgEl = document.getElementById('loader-error-msg');
+    if (msgEl && msg) msgEl.textContent = msg;
+}
+
 loadScript(CDN + '/build/three.min.js').then(() => {
     /* Scripts de base — chargés en parallèle */
     const base = [
@@ -401,17 +416,21 @@ loadScript(CDN + '/build/three.min.js').then(() => {
         loadScript(CDN + '/examples/js/loaders/GLTFLoader.js'),
         loadScript(CDN + '/examples/js/loaders/DRACOLoader.js'),
     ];
-    /* Post-processing uniquement sur desktop */
+    /* Post-processing desktop : ordre strict (dépendances) */
     if (!IS_MOBILE) {
-        base.push(
-            loadScript(CDN + '/examples/js/shaders/CopyShader.js'),
-            loadScript(CDN + '/examples/js/postprocessing/EffectComposer.js'),
-            loadScript(CDN + '/examples/js/postprocessing/RenderPass.js'),
-            loadScript(CDN + '/examples/js/postprocessing/ShaderPass.js'),
-        );
+        return Promise.all(base)
+            .then(() => loadScript(CDN + '/examples/js/shaders/CopyShader.js'))
+            .then(() => loadScript(CDN + '/examples/js/postprocessing/EffectComposer.js'))
+            .then(() => Promise.all([
+                loadScript(CDN + '/examples/js/postprocessing/RenderPass.js'),
+                loadScript(CDN + '/examples/js/postprocessing/ShaderPass.js'),
+            ]));
     }
     return Promise.all(base);
-}).then(initScene);
+}).then(initScene).catch(err => {
+    console.error('Erreur chargement scripts:', err);
+    showLoaderError('Erreur de chargement — vérifiez votre connexion');
+});
 
 /* ═══════════════════════════════════════════════════════════
    SCÈNE THREE.JS
@@ -465,9 +484,10 @@ function initScene() {
     fill.position.set(-60, 80, -80);
     scene.add(fill);
 
-    /* Scène complète depuis Blender (satellite + modèle) — alignement garanti */
+    /* GLTFLoader — DRACO avec deux sources de décodeur */
     const draco = new THREE.DRACOLoader();
-    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    /* jsDelivr en premier (plus rapide sur mobile en Afrique), gstatic en fallback */
+    draco.setDecoderPath(CDN + '/examples/js/libs/draco/gltf/');
     const loader = new THREE.GLTFLoader();
     loader.setDRACOLoader(draco);
 
@@ -516,12 +536,18 @@ function initScene() {
         window._modelLoaded = true;
     }, xhr => {
         /* Progression du téléchargement GLB */
-        if (xhr.total) {
+        const txt = document.getElementById('loader-txt');
+        if (!txt) return;
+        if (xhr.total && xhr.total > 0) {
             const pct = Math.round(xhr.loaded / xhr.total * 100);
-            const txt = document.querySelector('.loader-txt');
-            if (txt) txt.textContent = `Chargement du modèle 3D — ${pct}%`;
+            txt.textContent = `Chargement du modèle 3D — ${pct}%`;
+        } else if (xhr.loaded > 0) {
+            txt.textContent = `Chargement… ${Math.round(xhr.loaded / 1024)}  Ko`;
         }
-    }, err => console.warn('GLB:', err));
+    }, err => {
+        console.error('GLB erreur:', err);
+        showLoaderError('Erreur modèle 3D — vérifiez votre connexion et réessayez');
+    });
 
     /* OrbitControls — identique à saydnaya.amnesty.org */
     const controls = new THREE.OrbitControls(camera, canvas);
@@ -1315,13 +1341,18 @@ function startExperience() {
     document.getElementById('intro-overlay').classList.add('out');
     document.getElementById('loader').classList.add('on');
 
+    /* Timeout 45s — affiche erreur si le modèle ne charge pas */
+    const timeout = setTimeout(() => {
+        clearInterval(wait);
+        showLoaderError('Délai dépassé — connexion lente ou modèle inaccessible');
+    }, 45000);
+
     /* Attend que le modèle soit chargé */
     const wait = setInterval(() => {
         if (!window._modelLoaded) return;
         clearInterval(wait);
+        clearTimeout(timeout);
         document.getElementById('loader').classList.remove('on');
-
-        /* Fly-in animé vers le modèle */
         flyIn();
     }, 100);
 }
