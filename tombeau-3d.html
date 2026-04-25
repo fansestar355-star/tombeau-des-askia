@@ -1096,7 +1096,11 @@ function toggleAdhan() {
         _adhanPanner.orientationX.value = 1;
         _adhanPanner.orientationY.value = 0.3;
         _adhanPanner.orientationZ.value = 0;
-        _adhanPanner.connect(_adhanCtx.destination);
+        /* GainNode pour contrôler le volume (0.0 – 1.0) */
+        const gain = _adhanCtx.createGain();
+        gain.gain.value = 0.4;
+        _adhanPanner.connect(gain);
+        gain.connect(_adhanCtx.destination);
         window._audioPanner = _adhanPanner;
     }
 
