@@ -70,6 +70,7 @@
             display: flex;
             align-items: flex-end;
             padding: 0 50px 0 50px;
+            overflow: hidden;
         }
 
         /* ── "GAO" / année géante — fond décoratif haut-gauche ── */
@@ -95,8 +96,8 @@
             will-change: transform, opacity;
             text-shadow: none;
             white-space: nowrap;
-            /* Coupe le texte à mi-écran — ne descend pas sur le titre */
-            clip-path: inset(0 0 38% 0);
+            /* Coupe à ~55% du bas = visible seulement dans le tiers haut de l'écran */
+            clip-path: inset(0 0 55% 0);
         }
 
         /* ── MODÈLE 3D ── */
