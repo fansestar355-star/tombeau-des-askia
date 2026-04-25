@@ -651,14 +651,22 @@
                 transform: none;
             }
 
-            /* GAO géant — position originale sur mobile, pas de clip */
+            /* GAO géant — bien visible sur mobile */
             .hero-gao {
                 font-size: clamp(4.5rem, 22vw, 8rem);
-                top: 8%;
-                left: 10px;
+                top: 6%;
+                left: 8px;
                 right: auto;
                 transform: none;
                 clip-path: none;
+                /* Couleur plus opaque sur mobile pour lisibilité */
+                -webkit-text-stroke: 1px rgba(196,175,248,0.55);
+                background: linear-gradient(160deg,
+                    rgba(196,175,248,0.85) 0%,
+                    rgba(108,99,255,0.55) 55%,
+                    rgba(108,99,255,0.20) 100%);
+                -webkit-background-clip: text;
+                background-clip: text;
             }
 
             /* Toggle compact dans le coin haut-droit du modèle */
