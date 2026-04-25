@@ -1107,12 +1107,22 @@ function setCh5(active) {
     }
 }
 
-/* ── Chapitre 6 : affichage simple ── */
+/* ── Chapitre 6 : redirection automatique au scroll ── */
 const launchOverlay = document.getElementById('launch-overlay');
+let launchTimer = null;
 
 function setCh6(active) {
     launchOverlay.classList.toggle('visible', active);
     document.body.classList.toggle('ch6', active);
+
+    if (launchTimer) { clearTimeout(launchTimer); launchTimer = null; }
+
+    if (active) {
+        /* Redirige automatiquement après 1.2s */
+        launchTimer = setTimeout(() => {
+            window.location.href = 'tombeau-3d.html';
+        }, 1200);
+    }
 }
 
 const sbChevrons  = document.querySelector('.scroll-chevrons');
