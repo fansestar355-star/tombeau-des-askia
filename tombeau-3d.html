@@ -248,6 +248,29 @@
             opacity:0; transition:opacity 1s ease, background 0.2s, color 0.2s, border-color 0.2s;
             cursor:pointer;
         }
+
+        /* ── Bouton Adhan ── */
+        #adhan-btn {
+            position:fixed; top:62px; left:24px; z-index:60;
+            font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase;
+            color:rgba(249,213,139,0.7);
+            border:1px solid rgba(249,213,139,0.25); padding:9px 18px; border-radius:20px;
+            backdrop-filter:blur(6px); background:rgba(7,5,15,0.35);
+            opacity:0; transition:opacity 1s ease, background 0.2s, color 0.2s, border-color 0.2s;
+            cursor:pointer;
+        }
+        #adhan-btn.on { opacity:1; }
+        #adhan-btn.playing {
+            color:rgba(249,213,139,1);
+            border-color:rgba(249,213,139,0.6);
+            background:rgba(249,213,139,0.12);
+            box-shadow:0 0 14px rgba(249,213,139,0.2);
+        }
+        @keyframes adhanPulse {
+            0%,100% { box-shadow:0 0 8px rgba(249,213,139,0.2); }
+            50%      { box-shadow:0 0 20px rgba(249,213,139,0.45); }
+        }
+        #adhan-btn.playing { animation: adhanPulse 2s ease-in-out infinite; }
         #sketch-btn.on  { opacity:1; }
         #sketch-btn.active {
             background:rgba(249,213,139,0.15); border-color:rgba(249,213,139,0.6);
@@ -280,7 +303,8 @@
             #detail-panel { padding: 52px 20px 28px; }
             #detail-close { top: 14px; right: 18px; }
             #detail-text  { font-size: 0.75rem; }
-            #sketch-btn { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
+            #sketch-btn  { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
+            #adhan-btn   { font-size:0.46rem; padding:8px 14px; top:56px; left:16px; }
 
             #toggle-bar { bottom:18px; }
             #layer-slider { height:120px; }
@@ -315,6 +339,7 @@
 <div id="annotations"></div>
 <a href="#" id="back-btn" onclick="history.back(); return false;">← Retour</a>
 <button id="sketch-btn" onclick="toggleSketch()">✏ Mode Dessin</button>
+<button id="adhan-btn" onclick="toggleAdhan()">🔊 Appel à la prière</button>
 
 <!-- Barre slider -->
 <div id="toggle-bar">
@@ -462,6 +487,9 @@ function initScene() {
 
         /* Illustrations 3D dans la scène */
         addIllustrations3D(scene, scene3d);
+
+        /* ── Audio positionnel : Appel à la prière depuis le sommet de la tour ── */
+        setupAdhan(scene, scene3d, camera);
 
         window._modelLoaded = true;
     }, undefined, err => console.warn('GLB:', err));
@@ -830,6 +858,99 @@ const ANN_DATA = [
     { mesh:null, pos: [101.98, 1.12, -62.18],
       name:'Cimetière', sub:'Askia Mohamed I', side:'left' },
 ];
+
+/* ════════════════════════════════════════════════
+   AUDIO POSITIONNEL — Appel à la prière (Adhan)
+   Le son émane du sommet de la tour pyramidale
+   et est dirigé vers l'extérieur (cône directionnel)
+════════════════════════════════════════════════ */
+let _adhanSound   = null;
+let _adhanPlaying = false;
+let _audioReady   = false;
+
+function setupAdhan(scene, scene3d, camera) {
+    /* 1. AudioListener attaché à la caméra */
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    /* 2. Trouver la position du sommet de la tour (mesh "Tombeaux") */
+    let towerTop = new THREE.Vector3(52.82, 60, -26.69); // fallback
+    scene3d.traverse(obj => {
+        if (obj.isMesh && obj.name.trim() === 'Tombeaux') {
+            const box = new THREE.Box3().setFromObject(obj);
+            towerTop.set(
+                (box.min.x + box.max.x) / 2,
+                box.max.y,                        // sommet de la tour
+                (box.min.z + box.max.z) / 2
+            );
+        }
+    });
+
+    /* 3. Objet 3D au sommet de la tour — orienté vers le ciel/extérieur */
+    const towerObj = new THREE.Object3D();
+    towerObj.position.copy(towerTop);
+    /* Le haut-parleur diffuse vers l'est (direction principal de la mosquée) */
+    towerObj.rotation.y = Math.PI / 4;
+    scene.add(towerObj);
+
+    /* 4. PositionalAudio attaché au sommet */
+    const sound = new THREE.PositionalAudio(listener);
+    sound.setRefDistance(40);          // portée de référence (unités 3D)
+    sound.setMaxDistance(600);
+    sound.setRolloffFactor(1.2);
+    sound.setLoop(true);
+    sound.setVolume(1.0);
+
+    /* Cône directionnel : large devant (160°), atténué à 90° derrière */
+    sound.setDirectionalCone(
+        200,   // innerAngle  — son plein dans ce cône
+        300,   // outerAngle  — atténuation progressive
+        0.15   // outerGain   — volume hors du cône (15%)
+    );
+
+    towerObj.add(sound);
+    _adhanSound = sound;
+
+    /* 5. Charger le fichier audio */
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load(
+        'assets/audio/adhan.mp3',
+        buffer => {
+            sound.setBuffer(buffer);
+            _audioReady = true;
+            document.getElementById('adhan-btn').classList.add('on');
+            console.log('✅ Adhan chargé — clic sur le bouton pour écouter');
+        },
+        undefined,
+        err => {
+            console.warn('⚠️ Fichier audio introuvable :', err);
+            /* Affiche quand même le bouton pour indiquer la fonctionnalité */
+            document.getElementById('adhan-btn').classList.add('on');
+            document.getElementById('adhan-btn').title =
+                'Placez assets/audio/adhan.mp3 pour activer le son';
+        }
+    );
+}
+
+function toggleAdhan() {
+    const btn = document.getElementById('adhan-btn');
+    if (!_adhanSound || !_audioReady) {
+        btn.textContent = '⚠️ adhan.mp3 manquant';
+        setTimeout(() => { btn.textContent = '🔊 Appel à la prière'; }, 2000);
+        return;
+    }
+    if (_adhanPlaying) {
+        _adhanSound.pause();
+        _adhanPlaying = false;
+        btn.textContent = '🔊 Appel à la prière';
+        btn.classList.remove('playing');
+    } else {
+        _adhanSound.play();
+        _adhanPlaying = true;
+        btn.textContent = '🔇 Couper le son';
+        btn.classList.add('playing');
+    }
+}
 
 let _annotations = [];
 
