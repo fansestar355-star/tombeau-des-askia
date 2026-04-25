@@ -944,7 +944,7 @@ let _adhanSource  = null;
 let _adhanPanner  = null;
 let _adhanBuffer  = null;
 let _adhanPlaying = false;
-let _adhanTowerTop = new THREE.Vector3(52.82, 60, -26.69);
+let _adhanTowerTop = null; /* initialisé dans setupAdhan() après chargement de Three.js */
 
 /* URLs publiques CORS-friendly (essayées dans l'ordre) */
 const ADHAN_URLS = [
@@ -953,7 +953,9 @@ const ADHAN_URLS = [
 ];
 
 function setupAdhan(scene, scene3d, camera) {
-    /* Sommet de la tour */
+    /* Position par défaut — sera affinée si le mesh Tombeaux est trouvé */
+    _adhanTowerTop = new THREE.Vector3(52.82, 60, -26.69);
+
     scene3d.traverse(obj => {
         if (obj.isMesh && obj.name.trim() === 'Tombeaux') {
             const box = new THREE.Box3().setFromObject(obj);
