@@ -72,17 +72,18 @@
             padding: 0 50px 0 50px;
         }
 
-        /* ── "GAO" géant ── */
+        /* ── Mot géant derrière le modèle (droite) ── */
         .hero-gao {
             position: absolute;
-            top: -2%;
-            left: 30px;
+            top: 50%;
+            right: -2%;
+            transform: translateY(-52%);
             font-family: 'Playfair Display', serif;
-            font-size: clamp(8rem, 18vw, 15rem);
+            font-size: clamp(7rem, 16vw, 14rem);
             font-weight: 900;
             color: transparent;
-            -webkit-text-stroke: 1px rgba(196,175,248,0.18);
-            background: linear-gradient(170deg, rgba(196,175,248,0.55) 0%, rgba(108,99,255,0.20) 60%, transparent 100%);
+            -webkit-text-stroke: 1px rgba(196,175,248,0.12);
+            background: linear-gradient(170deg, rgba(196,175,248,0.40) 0%, rgba(108,99,255,0.15) 55%, transparent 90%);
             -webkit-background-clip: text;
             background-clip: text;
             line-height: 1;
@@ -91,6 +92,7 @@
             pointer-events: none;
             will-change: transform, opacity;
             text-shadow: none;
+            white-space: nowrap;
         }
 
         /* ── MODÈLE 3D ── */
@@ -646,11 +648,13 @@
                 transform: none;
             }
 
-            /* GAO bien visible à gauche en haut */
+            /* Mot géant — derrière le modèle en haut sur mobile */
             .hero-gao {
-                font-size: clamp(4.5rem, 22vw, 8rem);
+                font-size: clamp(3.5rem, 18vw, 6rem);
                 top: 8%;
-                left: 10px;
+                right: 0;
+                left: auto;
+                transform: none;
                 z-index: 2;
             }
 
@@ -1098,7 +1102,7 @@ function goTo(index) {
     const lines = chTitle.querySelectorAll('.title-line span');
 
     /* ─── SORTIE ─── */
-    tl.to(heroGao,   { y: dir*-40, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
+    tl.to(heroGao,   { x: dir*40, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
       .to(chTag,     { y: -18,     opacity: 0, duration: 0.3,  ease: 'power2.in' }, 0)
       .to(lines,     { y: dir*-60+'%', opacity: 0, stagger: 0.07, duration: 0.4, ease: 'power2.in' }, 0.05)
       .to(chDivider, { width: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
@@ -1138,8 +1142,8 @@ function goTo(index) {
     /* ─── ENTRÉE ─── */
     const eOff = dir * 50;
     tl.fromTo(heroGao,
-        { y: -eOff, x: 0, rotation: 0, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, '+=0.05')
+        { x: eOff, rotation: 0, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, '+=0.05')
       .fromTo(chTag,
         { y: 14, x: 0, rotation: 0, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' }, '<0.1')
@@ -1158,7 +1162,7 @@ function goTo(index) {
    ENTRÉE INITIALE
 ══════════════════════════════════════════════ */
 
-gsap.set(heroGao, { opacity: 0, y: 30 });
+gsap.set(heroGao, { opacity: 0, x: 30 });
 gsap.set(chTag,   { opacity: 0, y: 14 });
 gsap.set(chDesc, { opacity: 0, y: 16 });
 gsap.set(chDivider, { width: 0, opacity: 0 });
@@ -1166,7 +1170,7 @@ gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' })
 
 const intro = gsap.timeline({ paused: true, onComplete: () => { pageStarted = true; } });
 intro
-    .to(heroGao, { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out' })
+    .to(heroGao, { opacity: 1, x: 0, duration: 1.0, ease: 'power3.out' })
     .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
     .to(chTitle.querySelectorAll('.title-line span'),
         { opacity: 1, y: '0%', stagger: 0.12, duration: 0.65, ease: 'power3.out' }, '-=0.4')
