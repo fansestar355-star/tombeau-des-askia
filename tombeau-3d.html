@@ -492,10 +492,11 @@ function initScene() {
     });
 
     /* ── Shader dessin au crayon ── */
+    const pr = Math.min(devicePixelRatio, 2);
     const SketchShader = {
         uniforms: {
             tDiffuse:      { value: null },
-            resolution:    { value: new THREE.Vector2(W, H) },
+            resolution:    { value: new THREE.Vector2(W * pr, H * pr) },
             strength:      { value: 0.0 }
         },
         vertexShader: `
@@ -522,7 +523,7 @@ function initScene() {
                 float br=luma(texture2D(tDiffuse,uv+vec2( px.x,-px.y)).rgb);
                 float gx = -tl -2.0*ml -bl +tr +2.0*mr +br;
                 float gy =  tl +2.0*tm +tr -bl -2.0*bm -br;
-                return clamp(sqrt(gx*gx+gy*gy)*1.2, 0.0, 1.0);
+                return clamp(sqrt(gx*gx+gy*gy)*0.9, 0.0, 1.0);
             }
 
             float hatch(vec2 uv, float angle, float freq){
@@ -575,7 +576,8 @@ function initScene() {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
-        sketchPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+        const pr2 = Math.min(devicePixelRatio, 2);
+        sketchPass.uniforms.resolution.value.set(window.innerWidth * pr2, window.innerHeight * pr2);
     });
 
     /* Boucle */
