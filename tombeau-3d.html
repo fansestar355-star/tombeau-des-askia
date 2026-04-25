@@ -612,6 +612,26 @@ function initScene() {
         controls.update();
         composer.render();
         updateAnnotations();
+
+        /* Met à jour la position du listener audio selon la caméra */
+        if (window._audioPanner) {
+            const cp = camera.position;
+            const cd = new THREE.Vector3();
+            camera.getWorldDirection(cd);
+            const au = new THREE.Vector3(0, 1, 0);
+            const ctx = window._audioPanner.context;
+            if (ctx.listener.positionX) {
+                ctx.listener.positionX.value = cp.x;
+                ctx.listener.positionY.value = cp.y;
+                ctx.listener.positionZ.value = cp.z;
+                ctx.listener.forwardX.value  = cd.x;
+                ctx.listener.forwardY.value  = cd.y;
+                ctx.listener.forwardZ.value  = cd.z;
+                ctx.listener.upX.value = au.x;
+                ctx.listener.upY.value = au.y;
+                ctx.listener.upZ.value = au.z;
+            }
+        }
     })();
 
     window._controls = controls;
@@ -911,41 +931,79 @@ function setupAdhan(scene, scene3d, camera) {
     towerObj.add(sound);
     _adhanSound = sound;
 
-    /* 5. Charger le fichier audio */
-    const audioLoader = new THREE.AudioLoader();
-    audioLoader.load(
-        'assets/audio/adhan.mp3',
-        buffer => {
-            sound.setBuffer(buffer);
-            _audioReady = true;
-            document.getElementById('adhan-btn').classList.add('on');
-            console.log('✅ Adhan chargé — clic sur le bouton pour écouter');
-        },
-        undefined,
-        err => {
-            console.warn('⚠️ Fichier audio introuvable :', err);
-            /* Affiche quand même le bouton pour indiquer la fonctionnalité */
-            document.getElementById('adhan-btn').classList.add('on');
-            document.getElementById('adhan-btn').title =
-                'Placez assets/audio/adhan.mp3 pour activer le son';
-        }
-    );
+    /* 5. Charger l'audio depuis le web via un élément HTML Audio
+          (évite les restrictions CORS des AudioLoader directs) */
+    const ADHAN_URL = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
+    const htmlAudio = new Audio();
+    htmlAudio.crossOrigin = 'anonymous';
+    htmlAudio.loop        = true;
+    htmlAudio.src         = ADHAN_URL;
+    htmlAudio.preload     = 'auto';
+
+    /* Connecte l'élément audio à la chaîne Web Audio (positionalAudio) */
+    const audioCtx   = listener.context;
+    const mediaNode  = audioCtx.createMediaElementSource(htmlAudio);
+
+    /* Nœud de panoramique positionnel manuel (PannerNode) */
+    const panner = audioCtx.createPanner();
+    panner.panningModel    = 'HRTF';
+    panner.distanceModel   = 'inverse';
+    panner.refDistance     = 40;
+    panner.maxDistance     = 600;
+    panner.rolloffFactor   = 1.2;
+    panner.coneInnerAngle  = 200;
+    panner.coneOuterAngle  = 300;
+    panner.coneOuterGain   = 0.15;
+
+    /* Position du panner = sommet de la tour (mise à jour à chaque frame) */
+    panner.positionX.value = towerTop.x;
+    panner.positionY.value = towerTop.y;
+    panner.positionZ.value = towerTop.z;
+    /* Orientation : vers l'est */
+    panner.orientationX.value = 1;
+    panner.orientationY.value = 0;
+    panner.orientationZ.value = 0;
+
+    mediaNode.connect(panner);
+    panner.connect(audioCtx.destination);
+
+    /* Mise à jour position AudioListener à chaque frame */
+    const _origAnimate = window._animateHook;
+    window._audioPanner = panner;
+    window._audioHtmlEl = htmlAudio;
+
+    htmlAudio.addEventListener('canplaythrough', () => {
+        _audioReady = true;
+        document.getElementById('adhan-btn').classList.add('on');
+        console.log('✅ Adhan chargé depuis le web');
+    }, { once: true });
+    htmlAudio.addEventListener('error', () => {
+        document.getElementById('adhan-btn').classList.add('on');
+        document.getElementById('adhan-btn').title = 'Erreur chargement audio';
+        console.warn('⚠️ Impossible de charger l\'adhan depuis', ADHAN_URL);
+    });
+
+    /* Remplace _adhanSound par l'élément HTML pour play/pause */
+    _adhanSound = htmlAudio;
 }
 
 function toggleAdhan() {
     const btn = document.getElementById('adhan-btn');
-    if (!_adhanSound || !_audioReady) {
-        btn.textContent = '⚠️ adhan.mp3 manquant';
-        setTimeout(() => { btn.textContent = '🔊 Appel à la prière'; }, 2000);
-        return;
-    }
+    if (!_adhanSound) return;
+
+    /* Les navigateurs exigent un geste utilisateur avant de jouer du son.
+       On reprend le contexte audio si suspendu (autoplay policy). */
+    const ctx = window._adhanSound && window._adhanSound.context;
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+
     if (_adhanPlaying) {
         _adhanSound.pause();
         _adhanPlaying = false;
         btn.textContent = '🔊 Appel à la prière';
         btn.classList.remove('playing');
     } else {
-        _adhanSound.play();
+        const playPromise = _adhanSound.play();
+        if (playPromise) playPromise.catch(e => console.warn('Audio play:', e));
         _adhanPlaying = true;
         btn.textContent = '🔇 Couper le son';
         btn.classList.add('playing');
