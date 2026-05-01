@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Tombeau des Askia — Vue 3D</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         :root { --bg:#07050f; --gold:#f9d58b; --text:#f0eaf8; --muted:#9490b8; }
@@ -119,6 +120,55 @@
                         0 0 14px rgba(196,175,248,0.18);
         }
         .hud-btn-icon { font-style: normal; font-size: 0.8rem; opacity: 0.75; line-height:1; }
+
+        /* ── Premium AR Button ── */
+        #premium-ar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 24px;
+            padding: 10px 24px;
+            border-radius: 30px;
+            background: rgba(249, 213, 139, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(249, 213, 139, 0.5);
+            color: var(--gold);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(249, 213, 139, 0.15), inset 0 0 8px rgba(249, 213, 139, 0.1);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            pointer-events: auto;
+        }
+
+        #premium-ar-btn.on {
+            animation: arPulseGlow 3s infinite;
+        }
+
+        #premium-ar-btn:hover {
+            background: rgba(249, 213, 139, 0.2);
+            box-shadow: 0 0 30px rgba(249, 213, 139, 0.3), inset 0 0 12px rgba(249, 213, 139, 0.2);
+            border-color: rgba(249, 213, 139, 0.9);
+            transform: scale(1.05);
+        }
+
+        @keyframes arPulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(249, 213, 139, 0.2), inset 0 0 10px rgba(249, 213, 139, 0.1); }
+            50% { box-shadow: 0 0 35px rgba(249, 213, 139, 0.5), inset 0 0 15px rgba(249, 213, 139, 0.2); }
+        }
+
+        .ar-icon {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--gold);
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
         /* Loader */
         #loader {
@@ -448,6 +498,8 @@
             #sketch-btn  { display:none; } /* sketch shader non disponible sur mobile */
             #adhan-btn   { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
+            #premium-ar-btn { font-size: 0.5rem; padding: 10px 18px; margin-top: 16px; }
+
             #toggle-bar { right:12px; }
             #slider-track { height:120px; }
         }
@@ -475,12 +527,28 @@
     <div class="panel-title">La Tour Pyramidale de Gao</div>
     <div class="panel-desc">Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d'un des plus grands empereurs de l'Empire Songhaï. Classée Patrimoine Mondial de l'UNESCO en 2004.</div>
     <div class="panel-hint">← Glissez pour explorer · Molette pour zoomer</div>
+    <button id="premium-ar-btn" onclick="openAR()">
+        <svg class="ar-icon" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        Voir en Réalité Augmentée
+    </button>
 </div>
 
 <div id="annotations"></div>
 <a href="#" id="back-btn" onclick="history.back(); return false;"><i class="hud-btn-icon">←</i> Retour</a>
 <button id="sketch-btn" onclick="toggleSketch()"><i class="hud-btn-icon">✦</i> Mode Dessin</button>
 <button id="adhan-btn" onclick="toggleAdhan()"><i class="hud-btn-icon">♪</i> Adhan</button>
+<div style="position:fixed; top:0; left:0; width:1px; height:1px; overflow:hidden; z-index:-1; pointer-events:none;">
+    <model-viewer id="ar-viewer" 
+        src="assets/3d/Tombeaux_des_Askia.glb" 
+        ar ar-modes="scene-viewer webxr quick-look" 
+        reveal="auto" loading="eager"
+        camera-controls touch-action="pan-y">
+    </model-viewer>
+</div>
 
 <!-- Slider custom -->
 <div id="toggle-bar">
@@ -1560,7 +1628,18 @@ function revealHUD() {
     document.getElementById('back-btn').classList.add('on');
     document.getElementById('toggle-bar').classList.add('on');
     document.getElementById('sketch-btn').classList.add('on');
+    document.getElementById('premium-ar-btn').classList.add('on');
     initCustomSlider();
+}
+
+/* ── Ouvrir AR ── */
+function openAR() {
+    const viewer = document.getElementById('ar-viewer');
+    if (viewer && typeof viewer.activateAR === 'function') {
+        viewer.activateAR();
+    } else {
+        alert("La Réalité Augmentée n'est pas encore prête ou n'est pas supportée par votre navigateur.");
+    }
 }
 </script>
 </body>
