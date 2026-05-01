@@ -10,7 +10,8 @@
         :root { --bg:#07050f; --gold:#f9d58b; --text:#f0eaf8; --muted:#9490b8; }
         body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; overflow:hidden; }
 
-        canvas#c { position:fixed; inset:0; display:block; }
+        canvas#c { position:fixed; inset:0; display:block; opacity:0; transition:opacity 1.2s ease; }
+        canvas#c.visible { opacity:1; }
 
         /* Vignette */
         .vignette {
@@ -59,17 +60,65 @@
         /* Panneau complètement caché quand une annotation est ouverte */
         #info-panel.detail-mode { opacity: 0 !important; pointer-events: none; }
 
-        /* Bouton retour */
-        #back-btn {
-            position:fixed; top:22px; right:24px; z-index:60;
-            font-size:0.55rem; letter-spacing:0.22em; text-transform:uppercase;
-            color:rgba(249,213,139,0.7); text-decoration:none;
-            border:1px solid rgba(249,213,139,0.25); padding:9px 20px; border-radius:20px;
-            backdrop-filter:blur(6px); background:rgba(7,5,15,0.35);
-            opacity:0; transition:opacity 1s ease, background 0.2s;
+        /* ── HUD Buttons (back / sketch / adhan) ── */
+        #back-btn, #sketch-btn, #adhan-btn {
+            position: fixed; z-index:60;
+            display: inline-flex; align-items: center; gap: 7px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.46rem; letter-spacing: 0.24em; text-transform: uppercase;
+            color: rgba(196,175,248,0.55);
+            text-decoration: none;
+            background: rgba(7,5,15,0.55);
+            backdrop-filter: blur(10px);
+            border: none; outline: none;
+            padding: 9px 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 1s ease, color 0.25s, box-shadow 0.25s, background 0.25s;
+            clip-path: polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px);
         }
-        #back-btn.on { opacity:1; }
-        #back-btn:hover { background:rgba(249,213,139,0.1); }
+        #back-btn::before, #sketch-btn::before, #adhan-btn::before {
+            content: '';
+            position: absolute; inset: 0;
+            clip-path: polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px);
+            background: rgba(196,175,248,0.12);
+            pointer-events: none;
+        }
+        /* Fine bordure via box-shadow interne */
+        #back-btn, #sketch-btn, #adhan-btn {
+            box-shadow: inset 0 0 0 1px rgba(196,175,248,0.18);
+        }
+        #back-btn { top:22px; right:24px; }
+        @keyframes hudOnLeft {
+            0%   { opacity:0;   transform:translateX(-18px) scaleX(0.88); filter:brightness(0);   }
+            18%  { opacity:0.9; transform:translateX(3px)   scaleX(1.02); filter:brightness(2.8); }
+            28%  { opacity:0.1; transform:translateX(3px)   scaleX(1.02);                          }
+            42%  { opacity:1;   transform:translateX(-2px)  scaleX(0.99); filter:brightness(1.9); }
+            58%  { opacity:0.5;                                                                     }
+            74%  { opacity:1;   transform:translateX(0)     scaleX(1);    filter:brightness(1.3); }
+            88%  { opacity:0.85;                                           filter:brightness(1);   }
+            100% { opacity:1;   transform:translateX(0)     scaleX(1);    filter:brightness(1);   }
+        }
+        @keyframes hudOnRight {
+            0%   { opacity:0;   transform:translateX(18px)  scaleX(0.88); filter:brightness(0);   }
+            18%  { opacity:0.9; transform:translateX(-3px)  scaleX(1.02); filter:brightness(2.8); }
+            28%  { opacity:0.1; transform:translateX(-3px)  scaleX(1.02);                          }
+            42%  { opacity:1;   transform:translateX(2px)   scaleX(0.99); filter:brightness(1.9); }
+            58%  { opacity:0.5;                                                                     }
+            74%  { opacity:1;   transform:translateX(0)     scaleX(1);    filter:brightness(1.3); }
+            88%  { opacity:0.85;                                           filter:brightness(1);   }
+            100% { opacity:1;   transform:translateX(0)     scaleX(1);    filter:brightness(1);   }
+        }
+        #sketch-btn.on { animation: hudOnLeft  2.4s ease-out          infinite; }
+        #adhan-btn.on  { animation: hudOnLeft  2.4s ease-out 0.45s    infinite; }
+        #back-btn.on   { animation: hudOnRight 2.4s ease-out 0.22s    infinite; }
+        #back-btn:hover, #sketch-btn:hover, #adhan-btn:hover {
+            color: rgba(196,175,248,1);
+            background: rgba(196,175,248,0.08);
+            box-shadow: inset 0 0 0 1px rgba(196,175,248,0.5),
+                        0 0 14px rgba(196,175,248,0.18);
+        }
+        .hud-btn-icon { font-style: normal; font-size: 0.8rem; opacity: 0.75; line-height:1; }
 
         /* Loader */
         #loader {
@@ -94,23 +143,85 @@
         #intro-overlay {
             position:fixed; inset:0; z-index:100;
             display:flex; flex-direction:column; align-items:center; justify-content:center;
-            background:radial-gradient(ellipse 100% 80% at 50% 60%, rgba(30,18,5,0.95) 0%, rgba(7,5,15,0.99) 100%);
-            transition:opacity 0.8s ease, transform 0.8s ease;
+            background: rgba(7,5,15,0.95);
+            backdrop-filter: blur(10px);
+            transform-origin: center center;
+            animation: smokeSettle 1.8s ease-out forwards;
         }
-        #intro-overlay.out { opacity:0; transform:scale(1.04); pointer-events:none; }
-        .intro-logo  { height:44px; margin-bottom:32px; opacity:0.85; }
-        .intro-tag   { font-size:0.5rem; letter-spacing:0.35em; color:var(--gold); text-transform:uppercase; margin-bottom:18px; opacity:0.7; }
+        #intro-overlay.out { pointer-events:none; animation: smokeRise 1.6s ease-in forwards; }
+
+        @keyframes smokeSettle {
+            0%   { opacity:0;    filter:blur(40px); transform:translateY(18%) scale(1.12); }
+            20%  { opacity:0.30; filter:blur(22px); transform:translateY(10%) scale(1.08); }
+            50%  { opacity:0.72; filter:blur(10px); transform:translateY(4%)  scale(1.04); }
+            80%  { opacity:0.92; filter:blur(3px);  transform:translateY(1%)  scale(1.01); }
+            100% { opacity:1;    filter:blur(0px);  transform:translateY(0)   scale(1);    }
+        }
+        @keyframes smokeRise {
+            0%   { transform:translateY(0)    scale(1.00); opacity:1;    filter:blur(0px);  }
+            15%  { transform:translateY(-3%)  scale(1.01); opacity:0.92; filter:blur(2px);  }
+            45%  { transform:translateY(-12%) scale(1.05); opacity:0.55; filter:blur(12px); }
+            75%  { transform:translateY(-24%) scale(1.09); opacity:0.20; filter:blur(28px); }
+            100% { transform:translateY(-38%) scale(1.13); opacity:0;    filter:blur(48px); }
+        }
+
+        .intro-logo  { height:80px; margin-bottom:32px; opacity:0.85; }
+        .intro-tag   { font-size:0.5rem; letter-spacing:0.35em; color:rgba(196,175,248,0.7); text-transform:uppercase; margin-bottom:18px; opacity:0.7; }
         .intro-title { font-family:'Playfair Display',serif; font-size:clamp(2rem,6vw,3.8rem); font-weight:900; text-align:center; line-height:1.1; margin-bottom:14px; }
         .intro-title em { font-style:italic; color:var(--gold); }
-        .intro-coords{ font-size:0.55rem; letter-spacing:0.22em; color:rgba(249,213,139,0.5); text-transform:uppercase; margin-bottom:28px; }
-        .intro-divider{ width:40px; height:1px; background:rgba(249,213,139,0.3); margin:0 auto 32px; }
-        #start-btn {
-            font-size:0.6rem; letter-spacing:0.28em; text-transform:uppercase;
-            border:1px solid rgba(249,213,139,0.5); color:var(--gold);
-            background:rgba(249,213,139,0.06); padding:14px 36px; border-radius:30px;
-            cursor:pointer; transition:background 0.2s, transform 0.2s;
+        .intro-coords{ font-size:0.55rem; letter-spacing:0.22em; color:rgba(196,175,248,0.4); text-transform:uppercase; margin-bottom:28px; }
+        .intro-divider{ width:40px; height:1px; background:rgba(196,175,248,0.2); margin:0 auto 32px; }
+        .btn-neon-wrap {
+            position: relative;
+            display: inline-block;
+            transition: transform 0.2s ease;
         }
-        #start-btn:hover { background:rgba(249,213,139,0.14); transform:scale(1.03); }
+        .btn-border-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+        .btn-border-bg {
+            x: 1px; y: 1px;
+            width: calc(100% - 2px); height: calc(100% - 2px);
+            rx: 26px;
+            stroke: rgba(196,175,248,0.18);
+            stroke-width: 1.5;
+        }
+        .btn-border-light {
+            x: 1px; y: 1px;
+            width: calc(100% - 2px); height: calc(100% - 2px);
+            rx: 26px;
+            stroke: #c4aff8;
+            stroke-width: 2.5;
+            stroke-dasharray: 40 580;
+            stroke-dashoffset: 0;
+            filter: drop-shadow(0 0 4px #c4aff8) drop-shadow(0 0 10px rgba(196,175,248,0.8));
+            animation: borderTravel 4s linear infinite;
+        }
+        @keyframes borderTravel {
+            to { stroke-dashoffset: -620; }
+        }
+        #start-btn {
+            position: relative;
+            z-index: 1;
+            font-size:0.6rem; letter-spacing:0.28em; text-transform:uppercase;
+            color:#c4aff8;
+            background: rgba(7,5,15,0.94);
+            border: none;
+            padding:16px 44px; border-radius:26px;
+            cursor:pointer;
+            text-shadow: 0 0 8px #c4aff8, 0 0 20px rgba(196,175,248,0.5);
+            box-shadow: 0 0 20px rgba(196,175,248,0.08) inset;
+        }
+        .btn-neon-wrap:hover {
+            transform: scale(1.04);
+        }
+        .btn-neon-wrap:hover .btn-border-light {
+            filter: drop-shadow(0 0 6px #c4aff8) drop-shadow(0 0 16px rgba(196,175,248,0.9)) drop-shadow(0 0 30px rgba(196,175,248,0.5));
+        }
 
         /* ── Annotations simples ── */
         #annotations { position:fixed; inset:0; pointer-events:none; z-index:40; }
@@ -126,6 +237,21 @@
             width:5px; height:5px; border-radius:50%;
             background:var(--gold);
             transform:translate(-50%,-50%);
+        }
+        .ann-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--gold);
+            transform: translate(-50%, -50%);
+            animation: dotPulseAnim 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+            z-index: -1;
+        }
+        @keyframes dotPulseAnim {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(6); opacity: 0; }
         }
 
         .ann-svg {
@@ -271,60 +397,43 @@
             background:rgba(249,213,139,0.3); margin:0 auto 20px;
         }
 
-        /* ── Bouton mode sketch ── */
-        #sketch-btn {
-            position:fixed; top:22px; left:24px; z-index:60;
-            font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase;
-            color:rgba(249,213,139,0.7); text-decoration:none;
-            border:1px solid rgba(249,213,139,0.25); padding:9px 18px; border-radius:20px;
-            backdrop-filter:blur(6px); background:rgba(7,5,15,0.35);
-            opacity:0; transition:opacity 1s ease, background 0.2s, color 0.2s, border-color 0.2s;
-            cursor:pointer;
-        }
+        /* ── Positions sketch / adhan ── */
+        #sketch-btn { top:22px; left:24px; }
+        #adhan-btn  { top:62px; left:24px; }
 
-        /* ── Bouton Adhan ── */
-        #adhan-btn {
-            position:fixed; top:62px; left:24px; z-index:60;
-            font-size:0.52rem; letter-spacing:0.2em; text-transform:uppercase;
-            color:rgba(249,213,139,0.7);
-            border:1px solid rgba(249,213,139,0.25); padding:9px 18px; border-radius:20px;
-            backdrop-filter:blur(6px); background:rgba(7,5,15,0.35);
-            opacity:0; transition:opacity 1s ease, background 0.2s, color 0.2s, border-color 0.2s;
-            cursor:pointer;
+        /* ── États actifs ── */
+        #sketch-btn.active {
+            color: rgba(196,175,248,1);
+            background: rgba(196,175,248,0.12);
+            box-shadow: inset 0 0 0 1px rgba(196,175,248,0.55), 0 0 16px rgba(196,175,248,0.22);
         }
-        #adhan-btn.on { opacity:1; }
         #adhan-btn.playing {
-            color:rgba(249,213,139,1);
-            border-color:rgba(249,213,139,0.6);
-            background:rgba(249,213,139,0.12);
-            box-shadow:0 0 14px rgba(249,213,139,0.2);
+            color: var(--gold);
+            background: rgba(249,213,139,0.08);
+            box-shadow: inset 0 0 0 1px rgba(249,213,139,0.45), 0 0 16px rgba(249,213,139,0.18);
+            animation: adhanPulse 2s ease-in-out infinite;
         }
         @keyframes adhanPulse {
-            0%,100% { box-shadow:0 0 8px rgba(249,213,139,0.2); }
-            50%      { box-shadow:0 0 20px rgba(249,213,139,0.45); }
+            0%,100% { box-shadow: inset 0 0 0 1px rgba(249,213,139,0.3), 0 0 8px rgba(249,213,139,0.15); }
+            50%      { box-shadow: inset 0 0 0 1px rgba(249,213,139,0.6), 0 0 22px rgba(249,213,139,0.35); }
         }
-        #adhan-btn.playing { animation: adhanPulse 2s ease-in-out infinite; }
-        #sketch-btn.on  { opacity:1; }
-        #sketch-btn.active {
-            background:rgba(249,213,139,0.15); border-color:rgba(249,213,139,0.6);
-            color:var(--gold);
-        }
-        #sketch-btn:hover { background:rgba(249,213,139,0.12); }
 
         /* Dot cliquable */
         .ann { cursor:pointer; }
         .ann-dot { transition:transform 0.2s, background 0.2s; }
         .ann:hover .ann-dot { transform:translate(-50%,-50%) scale(1.8); background:#fff; }
+        .ann:hover .ann-dot::after { animation: none; opacity: 0; }
 
         /* ── Mode dessin : annotations sombres sur fond clair ── */
         body.sketch-mode .ann-dot { background:#2a1a00; }
+        body.sketch-mode .ann-dot::after { background:#2a1a00; }
         body.sketch-mode .ann-svg .ann-line-v,
         body.sketch-mode .ann-svg .ann-line-h { stroke:rgba(30,15,0,0.7); stroke-width:1px; }
         body.sketch-mode .ann-label-name { color:rgba(30,15,0,0.9); }
         body.sketch-mode .ann-label-sub  { color:rgba(30,15,0,0.5); }
         body.sketch-mode .ann:hover .ann-dot { background:#000; }
         body.sketch-mode #toggle-bar { filter:invert(1) brightness(0.4); }
-        body.sketch-mode #sketch-btn { color:#2a1a00; border-color:rgba(30,15,0,0.4); background:rgba(245,240,232,0.6); }
+        body.sketch-mode #sketch-btn { color:#2a1a00; box-shadow:inset 0 0 0 1px rgba(30,15,0,0.35); background:rgba(245,240,232,0.65); }
 
         @media (max-width:768px) {
             #hud-data { display:none; }
@@ -369,9 +478,9 @@
 </div>
 
 <div id="annotations"></div>
-<a href="#" id="back-btn" onclick="history.back(); return false;">← Retour</a>
-<button id="sketch-btn" onclick="toggleSketch()">✏ Mode Dessin</button>
-<button id="adhan-btn" onclick="toggleAdhan()">🔊 Appel à la prière</button>
+<a href="#" id="back-btn" onclick="history.back(); return false;"><i class="hud-btn-icon">←</i> Retour</a>
+<button id="sketch-btn" onclick="toggleSketch()"><i class="hud-btn-icon">✦</i> Mode Dessin</button>
+<button id="adhan-btn" onclick="toggleAdhan()"><i class="hud-btn-icon">♪</i> Adhan</button>
 
 <!-- Slider custom -->
 <div id="toggle-bar">
@@ -413,7 +522,13 @@
     <h1 class="intro-title">Tombeau des <em>Askia</em></h1>
     <p class="intro-coords">16.2890°N · 0.0448°W · Gao, Mali</p>
     <div class="intro-divider"></div>
-    <button id="start-btn" onclick="startExperience()">Explorer en 3D</button>
+    <div class="btn-neon-wrap">
+        <svg class="btn-border-svg" aria-hidden="true" fill="none">
+            <rect class="btn-border-bg"/>
+            <rect class="btn-border-light"/>
+        </svg>
+        <button id="start-btn" onclick="startExperience()">Explorer en 3D</button>
+    </div>
 </div>
 
 <script>
@@ -597,7 +712,7 @@ function initScene() {
     controls.minDistance     = 60;
     controls.maxDistance     = 450;
     controls.autoRotate      = true;
-    controls.autoRotateSpeed = 0.4;   /* rotation lente et continue */
+    controls.autoRotateSpeed = 0.18;   /* rotation lente et continue */
     controls.enableDamping   = true;
     controls.dampingFactor   = 0.05;
     controls.update();
@@ -907,7 +1022,7 @@ function zoomToAnnotation(pos) {
             /* Rotation lente autour de la partie sélectionnée */
             ctrl.target.copy(endTgt);
             ctrl.autoRotate      = true;
-            ctrl.autoRotateSpeed = 0.6;
+            ctrl.autoRotateSpeed = 0.28;
             ctrl.update();
         }
     })(t0);
@@ -986,7 +1101,7 @@ function closeDetail() {
         if (e < 1) requestAnimationFrame(tick);
         else {
             ctrl.autoRotate      = true;
-            ctrl.autoRotateSpeed = 0.4;
+            ctrl.autoRotateSpeed = 0.18;
         }
     })(t0);
 }
@@ -1377,8 +1492,11 @@ function fadeInIllustrations() {
    DÉMARRAGE — intro → fly-in → HUD
 ═══════════════════════════════════════════════════════════ */
 function startExperience() {
-    document.getElementById('intro-overlay').classList.add('out');
+    const overlay = document.getElementById('intro-overlay');
+    overlay.classList.add('out');
+    setTimeout(() => { overlay.style.display = 'none'; }, 1700);
     document.getElementById('loader').classList.add('on');
+    document.getElementById('c').classList.add('visible');
 
     /* Timeout 45s — affiche erreur si le modèle ne charge pas */
     const timeout = setTimeout(() => {

@@ -419,63 +419,92 @@
             background: rgba(249,213,139,0.25);
         }
 
-        /* ── SCROLL PROGRESS BAR — droite ── */
-        .scroll-hint {
+        /* ══ NAVIGATION PAR CHEVRONS — style fast-forward ══ */
+        .nav-ctrl {
             position: fixed;
-            right: 16px;
+            right: 22px;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            z-index: 20;
+            gap: 8px;
+            z-index: 30;
+            opacity: 0;
             pointer-events: none;
-            opacity: 1;
-            transition: opacity 0.6s ease;
+            transition: opacity 0.9s ease;
         }
-        .scroll-hint-label {
-            font-size: 0.38rem;
-            letter-spacing: 0.35em;
-            text-transform: uppercase;
-            color: rgba(196,175,248,0.4);
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
+        .nav-ctrl.visible { opacity: 1; pointer-events: all; }
+
+        /* ── Bouton chevrons empilés ── */
+        .nav-btn {
+            background: none; border: none; padding: 5px 3px;
+            cursor: pointer; outline: none;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.22s ease, opacity 0.3s ease;
         }
-        /* Conteneur barre */
-        .scroll-bar-track {
-            width: 3px;
-            height: 110px;
-            background: rgba(196,175,248,0.12);
-            border-radius: 3px;
+        .nav-btn:disabled { opacity: 0.09; cursor: default; pointer-events: none; }
+        .nav-btn:hover:not(:disabled)  { transform: scale(1.16); }
+        .nav-btn:active:not(:disabled) { transform: scale(0.88); }
+
+        /* SVG commun */
+        .nav-btn svg {
+            width: 28px; height: 40px;
+            overflow: visible;
+            transition: filter 0.3s ease;
+        }
+        .nav-btn:hover:not(:disabled) svg {
+            filter: drop-shadow(0 0 9px rgba(196,175,248,0.95));
+        }
+
+        /* Chevrons individuels — opacité cascade */
+        .ch {
+            stroke: var(--accent2);
+            stroke-width: 4.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            transition: stroke 0.28s ease, opacity 0.38s ease;
+        }
+        .c1 { opacity: 0.20; stroke-width: 2.6; }
+        .c2 { opacity: 0.52; stroke-width: 3.4; }
+        .c3 { opacity: 1.00; stroke-width: 4.5; }
+
+        .nav-btn:hover:not(:disabled) .ch { stroke: #fff; }
+        .nav-btn:hover:not(:disabled) .c1 { opacity: 0.38; }
+        .nav-btn:hover:not(:disabled) .c2 { opacity: 0.70; }
+        .nav-btn:hover:not(:disabled) .c3 { opacity: 1.00; }
+
+        /* Dot SVG */
+        .nav-dot-svg {
+            fill: var(--accent2);
+            opacity: 0.40;
+            transition: fill 0.28s ease, opacity 0.28s ease;
+        }
+        .nav-btn:hover:not(:disabled) .nav-dot-svg { fill: #fff; opacity: 0.80; }
+
+        /* ── Barre de progression ── */
+        .nav-track {
+            width: 2px; height: 72px;
+            background: rgba(196,175,248,0.09);
+            border-radius: 2px;
             position: relative;
         }
-        /* Progression réelle (chapitres) */
-        .scroll-bar-progress {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 33.33%; /* chapitre 0 = 1/3 */
-            border-radius: 3px;
-            background: linear-gradient(to bottom,
-                rgba(196,175,248,0.9),
-                rgba(108,99,255,0.7));
+        .nav-track-fill {
+            position: absolute; top: 0; left: 0; width: 100%;
+            height: 20%;
+            background: linear-gradient(to bottom, rgba(196,175,248,0.9), rgba(108,99,255,0.7));
+            border-radius: 2px;
             transition: height 0.7s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 0 10px rgba(140,30,230,0.6),
-                        0 0 22px rgba(140,30,230,0.25);
+            box-shadow: 0 0 10px rgba(140,30,230,0.6), 0 0 22px rgba(140,30,230,0.25);
         }
-        /* Dot lumineux à la pointe de la progression */
-        .scroll-bar-dot {
-            position: absolute;
-            left: 50%;
+        .nav-track-dot {
+            position: absolute; left: 50%;
             transform: translate(-50%, -50%);
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
+            width: 7px; height: 7px; border-radius: 50%;
             background: #c4aff8;
-            box-shadow: 0 0 8px rgba(196,175,248,0.9),
-                        0 0 18px rgba(140,30,230,0.6);
-            top: 33.33%;
+            box-shadow: 0 0 8px rgba(196,175,248,0.9), 0 0 18px rgba(140,30,230,0.6);
+            top: 20%;
             transition: top 0.7s cubic-bezier(0.4,0,0.2,1);
             animation: dotPulse 2s ease-in-out infinite;
         }
@@ -483,29 +512,57 @@
             0%,100% { box-shadow: 0 0 8px rgba(196,175,248,0.9), 0 0 18px rgba(140,30,230,0.6); }
             50%      { box-shadow: 0 0 14px rgba(196,175,248,1),  0 0 30px rgba(140,30,230,0.9); }
         }
-        /* Chevrons vers le haut */
-        .scroll-chevrons {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
+        @keyframes navScan {
+            0%   { top: -5%;  opacity: 0; }
+            12%  { opacity: 0.85; }
+            88%  { opacity: 0.85; }
+            100% { top: 105%; opacity: 0; }
         }
-        .scroll-chevrons i {
-            display: block;
-            width: 8px;
-            height: 8px;
-            border-top: 1.8px solid rgba(196,175,248,0.8);
-            border-right: 1.8px solid rgba(196,175,248,0.8);
-            transform: rotate(-45deg);
+
+        /* ── Compteur chapitre ── */
+        .nav-chap {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            font-family: 'Courier New', monospace;
         }
-        .scroll-chevrons i:nth-child(1) { animation: chevUp 1.4s ease-in-out infinite 0s; }
-        .scroll-chevrons i:nth-child(2) { animation: chevUp 1.4s ease-in-out infinite 0.2s; }
-        .scroll-chevrons i:nth-child(3) { animation: chevUp 1.4s ease-in-out infinite 0.4s; }
-        @keyframes chevUp {
-            0%,100% { opacity: 0.15; transform: rotate(-45deg) translateY(3px); }
-            50%      { opacity: 1;    transform: rotate(-45deg) translateY(-3px); }
+        #nav-idx {
+            font-size: 0.68rem; letter-spacing: 0.12em;
+            color: var(--accent2); font-weight: bold;
+            text-shadow: 0 0 10px rgba(196,175,248,0.5);
+            transition: color 0.4s ease;
         }
-        .scroll-hint.hidden { opacity: 0; }
+        .nav-sep-line {
+            width: 1px; height: 10px;
+            background: linear-gradient(to bottom, rgba(196,175,248,0.3), transparent);
+        }
+        .nav-total {
+            font-size: 0.46rem; letter-spacing: 0.14em;
+            color: rgba(196,175,248,0.28);
+        }
+
+        /* ══ ANIMATIONS PEPS ══ */
+
+        /* 1 — Cascade de chevrons : c3 (direction) s'allume en premier */
+        @keyframes c1Pulse { 0%,100%{opacity:0.12} 40%,60%{opacity:0.55} }
+        @keyframes c2Pulse { 0%,100%{opacity:0.38} 40%,60%{opacity:0.88} }
+        @keyframes c3Pulse { 0%,100%{opacity:0.78} 40%,60%{opacity:1.00} }
+
+        .nav-btn:not(:hover):not(:disabled) .c1 { animation: c1Pulse 1.35s ease-in-out infinite 0.44s; }
+        .nav-btn:not(:hover):not(:disabled) .c2 { animation: c2Pulse 1.35s ease-in-out infinite 0.22s; }
+        .nav-btn:not(:hover):not(:disabled) .c3 { animation: c3Pulse 1.35s ease-in-out infinite 0s;    }
+
+        /* 2 — Dot pulse synchronisé */
+        @keyframes dotGlow { 0%,100%{opacity:0.25} 50%{opacity:0.92} }
+        .nav-btn:not(:hover):not(:disabled) .nav-dot-svg {
+            animation: dotGlow 1.35s ease-in-out infinite;
+        }
+
+        /* 3 — Rebond directionnel du bouton entier */
+        @keyframes bounceUp   { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-7px)} }
+        @keyframes bounceDown { 0%,100%{transform:translateY(0)}  50%{transform:translateY(7px)}  }
+
+        #nav-prev:not(:hover):not(:disabled) { animation: bounceUp   2s ease-in-out infinite; }
+        #nav-next:not(:hover):not(:disabled) { animation: bounceDown 2s ease-in-out infinite; }
 
 
         /* ══ CHAPITRE 4 — OVERLAY PYRAMIDE ══ */
@@ -723,7 +780,10 @@
                 background: rgba(7,5,15,0.85);
             }
             .bottom-label { font-size: 0.55rem; letter-spacing: 0.2em; }
-            .scroll-hint  { right: 10px; }
+            .nav-ctrl { right: 8px; gap: 10px; }
+            .nav-btn  { width: 38px; height: 38px; }
+            .nav-btn-inner { width: 38px; height: 38px; }
+            .nav-track { height: 60px; }
         }
 
         /* ── Très petits écrans (≤ 480px) ── */
@@ -749,10 +809,40 @@
             justify-content: center;
             background: rgba(7,5,15,0.95);
             backdrop-filter: blur(10px);
-            cursor: pointer;
-            transition: opacity 0.8s ease;
+            cursor: default;
+            transform-origin: center center;
         }
-        #scroll-invite.out { opacity: 0; pointer-events: none; }
+        #scroll-invite.out {
+            pointer-events: none;
+            animation: smokeRise 1.6s ease-in forwards;
+        }
+        @keyframes smokeRise {
+            0%   {
+                transform: translateY(0)    scale(1.00);
+                opacity: 1;
+                filter: blur(0px);
+            }
+            15%  {
+                transform: translateY(-3%)  scale(1.01);
+                opacity: 0.92;
+                filter: blur(2px);
+            }
+            45%  {
+                transform: translateY(-12%) scale(1.05);
+                opacity: 0.55;
+                filter: blur(12px);
+            }
+            75%  {
+                transform: translateY(-24%) scale(1.09);
+                opacity: 0.20;
+                filter: blur(28px);
+            }
+            100% {
+                transform: translateY(-38%) scale(1.13);
+                opacity: 0;
+                filter: blur(48px);
+            }
+        }
 
         .si-logo {
             width: clamp(90px,16vw,150px);
@@ -783,65 +873,64 @@
             width: 22px; height: 1px;
             background: rgba(249,213,139,0.25);
         }
-        .si-mouse-wrap {
+        /* Chevrons intro — même style que les boutons nav, en grand */
+        .si-arrow-wrap {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
+            gap: 24px;
         }
-        .si-mouse {
-            width: 28px; height: 44px;
-            border: 2px solid rgba(255,255,255,0.45);
-            border-radius: 14px;
-            position: relative;
-            animation: siMousePulse 2s ease-in-out infinite;
+        .si-chevrons-svg {
+            width: 32px; height: 46px;
+            overflow: visible;
+            cursor: pointer;
+            padding: 12px;
+            box-sizing: content-box;
+            animation: siBounceDown 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px rgba(196,175,248,0.45));
         }
-        @keyframes siMousePulse {
-            0%,100% { border-color: rgba(255,255,255,0.25); }
-            50%     { border-color: rgba(255,255,255,0.75); }
+        @keyframes siBounceDown {
+            0%,100% { transform: translateY(0);   }
+            50%     { transform: translateY(9px);  }
         }
-        .si-wheel {
-            width: 4px; height: 8px;
-            background: rgba(255,255,255,0.85);
-            border-radius: 2px;
-            position: absolute;
-            top: 6px; left: 50%;
-            transform: translateX(-50%);
-            animation: siWheel 1.7s ease-in-out infinite;
+
+        /* Traits des chevrons intro */
+        .si-ch {
+            stroke: var(--accent2);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
         }
-        @keyframes siWheel {
-            0%   { top: 6px;  opacity: 1; }
-            80%  { top: 24px; opacity: 0; }
-            100% { top: 6px;  opacity: 0; }
+        .si-ch.c1 { stroke-width: 2.6; }
+        .si-ch.c2 { stroke-width: 3.4; }
+        .si-ch.c3 { stroke-width: 4.5; }
+
+        /* Cascade d'opacité synchronisée avec les boutons */
+        @keyframes siC1 { 0%,100%{opacity:0.12} 40%,60%{opacity:0.52} }
+        @keyframes siC2 { 0%,100%{opacity:0.38} 40%,60%{opacity:0.88} }
+        @keyframes siC3 { 0%,100%{opacity:0.78} 40%,60%{opacity:1.00} }
+
+        .si-ch.c1 { animation: siC1 1.35s ease-in-out infinite 0.44s; }
+        .si-ch.c2 { animation: siC2 1.35s ease-in-out infinite 0.22s; }
+        .si-ch.c3 { animation: siC3 1.35s ease-in-out infinite 0s;    }
+
+        /* Dot intro */
+        .si-ch-dot {
+            fill: var(--accent2);
+            animation: siDotPulse 1.35s ease-in-out infinite;
         }
-        .si-chevrons {
-            display: flex; flex-direction: column;
-            align-items: center; gap: 3px;
-        }
-        .si-chevrons span {
-            display: block; width: 12px; height: 12px;
-            border-right: 2px solid rgba(255,255,255,0.55);
-            border-bottom: 2px solid rgba(255,255,255,0.55);
-            transform: rotate(-135deg);
-        }
-        .si-chevrons span:nth-child(1) { animation: siChev 1.5s ease-in-out infinite 0s; }
-        .si-chevrons span:nth-child(2) { animation: siChev 1.5s ease-in-out infinite 0.22s; }
-        .si-chevrons span:nth-child(3) { animation: siChev 1.5s ease-in-out infinite 0.44s; }
-        @keyframes siChev {
-            0%,100% { opacity:0.15; transform: rotate(-135deg) translateY(3px); }
-            50%     { opacity:1;    transform: rotate(-135deg) translateY(-3px); }
-        }
+        @keyframes siDotPulse { 0%,100%{opacity:0.25} 50%{opacity:0.92} }
+
         .si-scroll-text {
-            font-size: 0.58rem;
-            letter-spacing: 0.48em;
+            font-size: 0.55rem;
+            letter-spacing: 0.46em;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.4);
-            margin-top: 16px;
-            animation: siTextBlink 2s ease-in-out infinite;
+            color: rgba(196,175,248,0.45);
+            animation: siTextBlink 2.2s ease-in-out infinite;
         }
         @keyframes siTextBlink {
-            0%,100% { opacity: 0.35; }
-            50%     { opacity: 1; }
+            0%,100% { opacity: 0.3; }
+            50%     { opacity: 1;   }
         }
 
     </style>
@@ -855,10 +944,14 @@
   <img src="assets/images/logo-kabakoo.png" class="si-logo" alt="Kabakoo" />
   <h2 class="si-title">Tombeau des <em>Askia</em></h2>
   <p class="si-sub">Empire Songhaï · 1495 · Gao, Mali</p>
-  <div class="si-mouse-wrap">
-    <div class="si-mouse"><div class="si-wheel"></div></div>
-    <div class="si-chevrons"><span></span><span></span><span></span></div>
-    <p class="si-scroll-text">Défiler pour explorer</p>
+  <div class="si-arrow-wrap">
+    <svg class="si-chevrons-svg" viewBox="0 0 30 43" fill="none">
+      <circle cx="15" cy="3"  r="2.5"      class="si-ch-dot"/>
+      <polyline points="11,9  15,14 19,9"  class="si-ch c1"/>
+      <polyline points="7,17  15,25 23,17" class="si-ch c2"/>
+      <polyline points="2,30  15,42 28,30" class="si-ch c3"/>
+    </svg>
+    <p class="si-scroll-text">Cliquer pour explorer</p>
   </div>
 </div>
 
@@ -948,16 +1041,40 @@
 
 
 
-<!-- Scroll progress bar droite -->
-<div class="scroll-hint" id="scroll-hint">
-    <div class="scroll-chevrons">
-        <i></i><i></i><i></i>
+<!-- Navigation par flèches futuristes -->
+<div class="nav-ctrl" id="nav-ctrl">
+
+    <!-- Bouton HAUT : 3 chevrons ∧∧∧ + point en bas (tailles croissantes vers le haut) -->
+    <button class="nav-btn" id="nav-prev" title="Chapitre précédent" disabled>
+        <svg viewBox="0 0 30 43" fill="none">
+            <polyline points="11,34 15,29 19,34" class="ch c1"/>
+            <polyline points="7,26  15,18 23,26" class="ch c2"/>
+            <polyline points="2,13  15,1  28,13" class="ch c3"/>
+            <circle cx="15" cy="40" r="2.5"      class="nav-dot-svg"/>
+        </svg>
+    </button>
+
+    <div class="nav-track">
+        <div class="nav-track-fill" id="sb-progress"></div>
+        <div class="nav-track-dot"  id="sb-dot"></div>
     </div>
-    <div class="scroll-bar-track">
-        <div class="scroll-bar-progress" id="sb-progress"></div>
-        <div class="scroll-bar-dot"      id="sb-dot"></div>
+
+    <div class="nav-chap">
+        <span id="nav-idx">01</span>
+        <span class="nav-sep-line"></span>
+        <span class="nav-total">05</span>
     </div>
-    <span class="scroll-hint-label" id="scroll-hint-label">Swipe</span>
+
+    <!-- Bouton BAS : point en haut + 3 chevrons ∨∨∨ (tailles croissantes vers le bas) -->
+    <button class="nav-btn" id="nav-next" title="Chapitre suivant">
+        <svg viewBox="0 0 30 43" fill="none">
+            <circle cx="15" cy="3"  r="2.5"      class="nav-dot-svg"/>
+            <polyline points="11,9  15,14 19,9"  class="ch c1"/>
+            <polyline points="7,17  15,25 23,17" class="ch c2"/>
+            <polyline points="2,30  15,42 28,30" class="ch c3"/>
+        </svg>
+    </button>
+
 </div>
 
 <script>
@@ -1026,7 +1143,7 @@ const chTitle   = document.getElementById('ch-title');
 const chDivider = document.getElementById('ch-divider');
 const chDesc    = document.getElementById('ch-desc');
 const bottomY   = document.getElementById('bottom-year');
-const scrollHint  = document.getElementById('scroll-hint');
+const navCtrl     = document.getElementById('nav-ctrl');
 const modelToggle = document.querySelector('.model-toggle');
 const sbProgress  = document.getElementById('sb-progress');
 const sbDot       = document.getElementById('sb-dot');
@@ -1034,51 +1151,62 @@ const ch4Overlay  = document.getElementById('ch4-overlay');
 const ch5Overlay  = document.getElementById('ch5-overlay');
 
 function setCh4(active) {
-    ch4Overlay.classList.toggle('visible', active);
     document.body.classList.toggle('ch4', active);
 
     if (active) {
+        ch4Overlay.classList.add('visible');
+        gsap.killTweensOf(['.ch4-pyramid', '.ch4-glow', '.ch4-line']);
+
         gsap.set('.ch4-pyramid', { x: 100, opacity: 0 });
         gsap.set('.ch4-glow',    { opacity: 0 });
         gsap.set('.ch4-line',    { scaleY: 0, opacity: 0, transformOrigin: 'top center' });
 
-        gsap.to('.ch4-glow',    { opacity: 1,    duration: 1.8, ease: 'power2.out',  delay: 0.2 });
+        gsap.to('.ch4-glow',    { opacity: 1,      duration: 1.8, ease: 'power2.out',  delay: 0.2 });
         gsap.to('.ch4-pyramid', { x: 0, opacity: 0.82, duration: 2.0, ease: 'power3.out', delay: 0.5 });
         gsap.to('.ch4-line',    { scaleY: 1, opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1.1 });
+    } else {
+        gsap.killTweensOf(['.ch4-pyramid', '.ch4-glow', '.ch4-line']);
+        gsap.to('.ch4-pyramid', { x: 60, opacity: 0, duration: 0.55, ease: 'power2.in' });
+        gsap.to('.ch4-glow',    { opacity: 0,        duration: 0.4,  ease: 'power2.in' });
+        gsap.to('.ch4-line',    { scaleY: 0, opacity: 0, duration: 0.3, ease: 'power2.in',
+            onComplete: () => ch4Overlay.classList.remove('visible')
+        });
     }
 }
+
 function setCh5(active) {
-    ch5Overlay.classList.toggle('visible', active);
     document.body.classList.toggle('ch5', active);
 
     if (launchTimer) { clearTimeout(launchTimer); launchTimer = null; }
 
     if (active) {
+        ch5Overlay.classList.add('visible');
+        gsap.killTweensOf(['.ch5-tombeau', '.ch5-glow']);
+
         gsap.set('.ch5-tombeau', { x: 80, opacity: 0 });
         gsap.set('.ch5-glow',   { opacity: 0 });
 
-        gsap.to('.ch5-glow',    { opacity: 1,    duration: 2.0, ease: 'power2.out',  delay: 0.2 });
+        gsap.to('.ch5-glow',    { opacity: 1,       duration: 2.0, ease: 'power2.out',  delay: 0.2 });
         gsap.to('.ch5-tombeau', { x: 0, opacity: 0.88, duration: 2.2, ease: 'power3.out', delay: 0.5 });
-
-        /* Redirige automatiquement vers tombeau-3d.html après la lecture du chapitre */
-        launchTimer = setTimeout(() => {
-            window.location.href = 'tombeau-3d.html';
-        }, 4000);
+    } else {
+        gsap.killTweensOf(['.ch5-tombeau', '.ch5-glow']);
+        gsap.to('.ch5-tombeau', { x: 60, opacity: 0, duration: 0.55, ease: 'power2.in' });
+        gsap.to('.ch5-glow',    { opacity: 0,        duration: 0.4,  ease: 'power2.in',
+            onComplete: () => ch5Overlay.classList.remove('visible')
+        });
     }
 }
 
 let launchTimer = null;
 
-const sbChevrons  = document.querySelector('.scroll-chevrons');
-
 function updateScrollBar(idx) {
-    const total  = CHAPTERS.length;
-    const pct    = ((idx + 1) / total * 100).toFixed(2);
-    const isLast = idx === total - 1;
+    const total = CHAPTERS.length;
+    const pct   = ((idx + 1) / total * 100).toFixed(2);
     sbProgress.style.height = pct + '%';
     sbDot.style.top         = pct + '%';
-    /* Dernier chapitre : stoppe les chevrons */
-    sbChevrons.style.opacity = isLast ? '0' : '1';
+    document.getElementById('nav-idx').textContent  = String(idx + 1).padStart(2, '0');
+    document.getElementById('nav-prev').disabled = idx === 0;
+    document.getElementById('nav-next').disabled = false;
 }
 const dotsWrap  = document.getElementById('nav-dots');
 
@@ -1092,7 +1220,6 @@ CHAPTERS.forEach((_, i) => {
 
 /* ── Caméra mobile : zoom arrière + décalage droite ── */
 const isMobile = window.innerWidth <= 768;
-if (isMobile) document.getElementById('scroll-hint-label').textContent = 'Swipe';
 
 function applyMobileCamera(orbit) {
     if (!isMobile) return;
@@ -1187,7 +1314,10 @@ gsap.set(chDesc, { opacity: 0, y: 16 });
 gsap.set(chDivider, { width: 0, opacity: 0 });
 gsap.set(chTitle.querySelectorAll('.title-line span'), { opacity: 0, y: '80%' });
 
-const intro = gsap.timeline({ paused: true, onComplete: () => { pageStarted = true; } });
+const intro = gsap.timeline({ paused: true, onComplete: () => {
+    pageStarted = true;
+    navCtrl.classList.add('visible');
+} });
 intro
     .to(heroGao, { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out' })
     .to(chTag,   { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.6')
@@ -1198,44 +1328,27 @@ intro
     ;
 
 /* ══════════════════════════════════════════════
-   SCROLL WHEEL
+   NAVIGATION PAR FLÈCHES
 ══════════════════════════════════════════════ */
-let wheelCooldown = false;
-window.addEventListener('wheel', (e) => {
-    /* Ignorer les micro-scrolls (inertie trackpad, smooth scroll) */
-    if (Math.abs(e.deltaY) < 40) return;
-    if (!pageStarted || wheelCooldown || transitioning) return;
-    wheelCooldown = true;
-    /* Attend la fin de l'animation + 700ms tampon anti-inertie */
-    const waitDone = setInterval(() => {
-        if (!transitioning) {
-            clearInterval(waitDone);
-            setTimeout(() => { wheelCooldown = false; }, 700);
-        }
-    }, 50);
+document.getElementById('nav-prev').addEventListener('click', () => {
+    if (!pageStarted || transitioning) return;
+    goTo(current - 1);
+});
+document.getElementById('nav-next').addEventListener('click', () => {
+    if (!pageStarted || transitioning) return;
+    if (current === CHAPTERS.length - 1) {
+        window.location.href = 'tombeau-3d.html';
+        return;
+    }
+    goTo(current + 1);
+});
 
-    if (e.deltaY > 0) goTo(current + 1);
-    else               goTo(current - 1);
-}, { passive: true });
-
-/* ── Touch mobile ── */
-let touchStartY = 0;
-let touchCooldown = false;
-window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
-window.addEventListener('touchend', e => {
-    if (!pageStarted || touchCooldown || transitioning) return;
-    const delta = touchStartY - e.changedTouches[0].clientY;
-    if (Math.abs(delta) < 30) return;
-    touchCooldown = true;
-    const waitTouchDone = setInterval(() => {
-        if (!transitioning) {
-            clearInterval(waitTouchDone);
-            setTimeout(() => { touchCooldown = false; }, 400);
-        }
-    }, 50);
-    if (delta > 0) goTo(current + 1);
-    else           goTo(current - 1);
-}, { passive: true });
+/* Touches clavier ↑ ↓ (bonus accessibilité) */
+window.addEventListener('keydown', e => {
+    if (!pageStarted || transitioning) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') goTo(current + 1);
+    if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  goTo(current - 1);
+});
 
 /* ══════════════════════════════════════════════
    TOGGLE DRAW / REAL
@@ -1273,18 +1386,17 @@ document.getElementById('arrow-left').addEventListener('click',  () => switchMod
 ══════════════════════════════════════════════ */
 (function () {
     function onFirstInteraction() {
-        window.removeEventListener('wheel',      onFirstInteraction);
-        window.removeEventListener('touchstart', onFirstInteraction);
-        window.removeEventListener('keydown',    onFirstInteraction);
+        arrow.removeEventListener('click',      onFirstInteraction);
+        arrow.removeEventListener('touchstart', onFirstInteraction);
         const si = document.getElementById('scroll-invite');
         if (!si) return;
         si.classList.add('out');
-        setTimeout(() => { si.style.display = 'none'; }, 800);
+        setTimeout(() => { si.style.display = 'none'; }, 1650);
         intro.play();
     }
-    window.addEventListener('wheel',      onFirstInteraction, { passive: true });
-    window.addEventListener('touchstart', onFirstInteraction, { passive: true });
-    window.addEventListener('keydown',    onFirstInteraction);
+    const arrow = document.querySelector('.si-chevrons-svg');
+    arrow.addEventListener('click',      onFirstInteraction);
+    arrow.addEventListener('touchstart', onFirstInteraction, { passive: true });
 })();
 
 </script>
