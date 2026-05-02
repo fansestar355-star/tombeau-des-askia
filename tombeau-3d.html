@@ -1257,13 +1257,13 @@ function openDetail(key, pos) {
     const backBtn   = document.getElementById('back-btn');
 
     /* Cache le bouton retour et les autres boutons (AR, Dessin, Adhan) */
-    if (backBtn) { backBtn.style.opacity = '0'; backBtn.style.pointerEvents = 'none'; }
+    if (backBtn) { backBtn.classList.remove('on'); backBtn.style.opacity = '0'; backBtn.style.pointerEvents = 'none'; }
     const arBtn = document.getElementById('premium-ar-btn');
     const sketchBtn = document.getElementById('sketch-btn');
     const adhanBtn = document.getElementById('adhan-btn');
-    if (arBtn) { arBtn.style.opacity = '0'; arBtn.style.pointerEvents = 'none'; }
-    if (sketchBtn) { sketchBtn.style.opacity = '0'; sketchBtn.style.pointerEvents = 'none'; }
-    if (adhanBtn) { adhanBtn.style.opacity = '0'; adhanBtn.style.pointerEvents = 'none'; }
+    if (arBtn) { arBtn.classList.remove('on'); arBtn.style.opacity = '0'; arBtn.style.pointerEvents = 'none'; }
+    if (sketchBtn) { sketchBtn.classList.remove('on'); sketchBtn.style.opacity = '0'; sketchBtn.style.pointerEvents = 'none'; }
+    if (adhanBtn) { adhanBtn.classList.remove('on'); adhanBtn.style.opacity = '0'; adhanBtn.style.pointerEvents = 'none'; }
 
     /* Fait disparaître le panneau, puis le remonte en mode titre seul */
     infoPanel.style.transition    = 'opacity 0.3s ease';
@@ -1298,13 +1298,13 @@ function closeDetail() {
     infoPanel.style.pointerEvents = 'none';
     /* Réaffiche le bouton retour et les autres boutons */
     const backBtn = document.getElementById('back-btn');
-    if (backBtn) { backBtn.style.opacity = '1'; backBtn.style.pointerEvents = 'auto'; }
+    if (backBtn) { backBtn.classList.add('on'); backBtn.style.opacity = '1'; backBtn.style.pointerEvents = 'auto'; }
     const arBtn = document.getElementById('premium-ar-btn');
     const sketchBtn = document.getElementById('sketch-btn');
     const adhanBtn = document.getElementById('adhan-btn');
-    if (arBtn) { arBtn.style.opacity = '1'; arBtn.style.pointerEvents = 'auto'; }
-    if (sketchBtn) { sketchBtn.style.opacity = '1'; sketchBtn.style.pointerEvents = 'auto'; }
-    if (adhanBtn) { adhanBtn.style.opacity = '1'; adhanBtn.style.pointerEvents = 'auto'; }
+    if (arBtn) { arBtn.classList.add('on'); arBtn.style.opacity = '1'; arBtn.style.pointerEvents = 'auto'; }
+    if (sketchBtn) { sketchBtn.classList.add('on'); sketchBtn.style.opacity = '1'; sketchBtn.style.pointerEvents = 'auto'; }
+    if (adhanBtn) { adhanBtn.classList.add('on'); adhanBtn.style.opacity = '1'; adhanBtn.style.pointerEvents = 'auto'; }
 
     setTimeout(() => {
         /* Le titre reste en haut, le texte reste caché définitivement */
