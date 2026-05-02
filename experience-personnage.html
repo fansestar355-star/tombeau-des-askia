@@ -196,6 +196,43 @@
       color: rgba(167,139,250,0.25); z-index: 10; pointer-events: none;
       white-space: nowrap;
     }
+    /* Bouton Audio */
+    #btn-audio {
+      position: fixed;
+      top: 24px; right: 24px;
+      pointer-events: all;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 1.5px solid rgba(249,213,139,0.45);
+      background: rgba(11,15,26,0.7);
+      color: #f9d58b;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      z-index: 60;
+    }
+    #btn-audio:hover {
+      background: rgba(249,213,139,0.15);
+      box-shadow: 0 0 15px rgba(249,213,139,0.2);
+    }
+    #btn-audio.playing {
+      background: var(--gold);
+      color: #0b0f1a;
+      animation: audioPulse 2s infinite;
+    }
+    @keyframes audioPulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(249,213,139,0.3); }
+      50% { box-shadow: 0 0 25px rgba(249,213,139,0.6); }
+    }
+
     /* Cacher les touches flèches sur mobile */
     @media (max-width: 768px) { #controls-hud { display: none; } }
 
@@ -213,6 +250,11 @@
     </svg>
     Retour
   </a>
+
+  <button id="btn-audio" onclick="toggleAudio()">
+    <span id="audio-icon">♪</span>
+    Écouter Askia
+  </button>
 
   <div id="title-hud">Askia Mohamed — Expérience interactive</div>
 
@@ -834,6 +876,62 @@ function animate() {
   updateCamera();
   renderer.render(scene, camera);
 }
+
+/* ═══════════════════════════════════════════
+   AUDIO — Ambiance sonore (Adhan / Désert)
+═══════════════════════════════════════════ */
+let _audioCtx    = null;
+let _audioBuffer = null;
+let _audioSource = null;
+let _isPlaying   = false;
+
+const AUDIO_URL = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/86/Azan.ogg/Azan.ogg.mp3';
+
+async function preloadAudio() {
+  try {
+    const r = await fetch(AUDIO_URL);
+    _audioBuffer = await r.arrayBuffer();
+    console.log("✅ Audio d'ambiance chargé");
+  } catch (e) {
+    console.warn("⚠️ Impossible de charger l'audio");
+  }
+}
+preloadAudio();
+
+window.toggleAudio = async function() {
+  const btn = document.getElementById('btn-audio');
+  const icon = document.getElementById('audio-icon');
+
+  if (_isPlaying) {
+    if (_audioSource) { _audioSource.stop(); _audioSource = null; }
+    _isPlaying = false;
+    btn.classList.remove('playing');
+    icon.textContent = '♪';
+    return;
+  }
+
+  if (!_audioBuffer) return;
+
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === 'suspended') await _audioCtx.resume();
+
+  const decoded = await _audioCtx.decodeAudioData(_audioBuffer.slice(0));
+  _audioSource = _audioCtx.createBufferSource();
+  _audioSource.buffer = decoded;
+  _audioSource.loop = true;
+
+  const gain = _audioCtx.createGain();
+  gain.gain.value = 0.45;
+  _audioSource.connect(gain);
+  gain.connect(_audioCtx.destination);
+
+  _audioSource.start(0);
+  _isPlaying = true;
+  btn.classList.add('playing');
+  icon.textContent = '🔇';
+};
 
 animate();
 

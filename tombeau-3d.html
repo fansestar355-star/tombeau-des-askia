@@ -1812,9 +1812,12 @@ function revealHUD() {
 function openAR() {
     const viewer = document.getElementById('ar-viewer');
     
-    /* Vérification mobile (l'AR est conçue pour les smartphones) */
-    if (!IS_MOBILE) {
-        showArModal("Expérience Mobile", "La Réalité Augmentée est optimisée pour les smartphones. Veuillez ouvrir ce lien sur votre mobile pour placer le tombeau dans votre environnement réel.");
+    /* Détection spécifique pour les casques VR/AR autonomes (comme le Meta Quest) */
+    const isHeadset = /VR|Quest|Oculus/i.test(navigator.userAgent);
+    
+    /* Vérification mobile ou casque (l'AR nécessite un appareil avec caméra spatiale) */
+    if (!IS_MOBILE && !isHeadset) {
+        showArModal("Expérience Spatiale", "La Réalité Augmentée est optimisée pour les smartphones et les casques VR/AR. Veuillez ouvrir ce lien sur un appareil compatible pour placer le tombeau dans votre environnement.");
         return;
     }
 
