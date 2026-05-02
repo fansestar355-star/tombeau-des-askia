@@ -1345,13 +1345,14 @@ const ANN_DATA = [
 /* ════════════════════════════════════════════════
    AUDIO POSITIONNEL — Appel à la prière (Adhan)
 ════════════════════════════════════════════════ */
-let _adhanCtx     = null;
-let _adhanSource  = null;
-let _adhanPanner  = null;
-let _adhanBuffer  = null;
-let _adhanPlaying = false;
-let _adhanTowerTop = null; /* initialisé dans setupAdhan() après chargement de Three.js */
-let _adhanDirection = null; /* initialisé dans setupAdhan() quand THREE est disponible */
+let _adhanCtx           = null;
+let _adhanSource        = null;
+let _adhanPanner        = null;
+let _adhanBuffer        = null;
+let _adhanDecodedBuffer = null;
+let _adhanPlaying       = false;
+let _adhanTowerTop      = null; /* initialisé dans setupAdhan() après chargement de Three.js */
+let _adhanDirection     = null; /* initialisé dans setupAdhan() quand THREE est disponible */
 
 /* URLs publiques CORS-friendly (essayées dans l'ordre) */
 const ADHAN_URLS = [
@@ -1463,8 +1464,9 @@ function toggleAdhan() {
 
     if (_adhanCtx.state === 'suspended') _adhanCtx.resume();
 
-    /* Décoder et jouer */
-    _adhanCtx.decodeAudioData(_adhanBuffer.slice(0)).then(decoded => {
+    /* Fonction pour décoder et jouer */
+    function playDecoded(decoded) {
+        _adhanDecodedBuffer = decoded;
         _adhanSource = _adhanCtx.createBufferSource();
         _adhanSource.buffer = decoded;
         _adhanSource.loop   = true;
@@ -1473,11 +1475,22 @@ function toggleAdhan() {
         _adhanPlaying = true;
         btn.innerHTML = '<i class="hud-btn-icon">🔇</i> Couper le son';
         btn.classList.add('playing');
-    }).catch(e => {
-        console.error('Décodage audio:', e);
-        btn.innerHTML = '<i class="hud-btn-icon">⚠️</i> Erreur';
-        setTimeout(() => { btn.innerHTML = '<i class="hud-btn-icon">♪</i> Adhan'; }, 2000);
-    });
+    }
+
+    if (_adhanDecodedBuffer) {
+        playDecoded(_adhanDecodedBuffer);
+    } else {
+        /* Décoder (compatible Safari avec Promise explicite) */
+        new Promise((resolve, reject) => {
+            _adhanCtx.decodeAudioData(_adhanBuffer.slice(0), resolve, reject);
+        }).then(decoded => {
+            playDecoded(decoded);
+        }).catch(e => {
+            console.error('Décodage audio:', e);
+            btn.innerHTML = '<i class="hud-btn-icon">⚠️</i> Erreur';
+            setTimeout(() => { btn.innerHTML = '<i class="hud-btn-icon">♪</i> Adhan'; }, 2000);
+        });
+    }
 }
 
 let _annotations = [];

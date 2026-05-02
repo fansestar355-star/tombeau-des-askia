@@ -880,10 +880,11 @@ function animate() {
 /* ═══════════════════════════════════════════
    AUDIO — Ambiance sonore (Adhan / Désert)
 ═══════════════════════════════════════════ */
-let _audioCtx    = null;
-let _audioBuffer = null;
-let _audioSource = null;
-let _isPlaying   = false;
+let _audioCtx       = null;
+let _audioBuffer    = null;
+let _decodedBuffer  = null;
+let _audioSource    = null;
+let _isPlaying      = false;
 
 const AUDIO_URL = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/86/Azan.ogg/Azan.ogg.mp3';
 
@@ -917,20 +918,31 @@ window.toggleAudio = async function() {
   }
   if (_audioCtx.state === 'suspended') await _audioCtx.resume();
 
-  const decoded = await _audioCtx.decodeAudioData(_audioBuffer.slice(0));
-  _audioSource = _audioCtx.createBufferSource();
-  _audioSource.buffer = decoded;
-  _audioSource.loop = true;
+  try {
+    if (!_decodedBuffer) {
+      _decodedBuffer = await new Promise((resolve, reject) => {
+        _audioCtx.decodeAudioData(_audioBuffer.slice(0), resolve, reject);
+      });
+    }
 
-  const gain = _audioCtx.createGain();
-  gain.gain.value = 0.45;
-  _audioSource.connect(gain);
-  gain.connect(_audioCtx.destination);
+    _audioSource = _audioCtx.createBufferSource();
+    _audioSource.buffer = _decodedBuffer;
+    _audioSource.loop = true;
 
-  _audioSource.start(0);
-  _isPlaying = true;
-  btn.classList.add('playing');
-  icon.textContent = '🔇';
+    const gain = _audioCtx.createGain();
+    gain.gain.value = 0.45;
+    _audioSource.connect(gain);
+    gain.connect(_audioCtx.destination);
+
+    _audioSource.start(0);
+    _isPlaying = true;
+    btn.classList.add('playing');
+    icon.textContent = '🔇';
+  } catch (e) {
+    console.error('Erreur audio:', e);
+    icon.textContent = '⚠️';
+    setTimeout(() => { icon.textContent = '♪'; }, 2000);
+  }
 };
 
 animate();
