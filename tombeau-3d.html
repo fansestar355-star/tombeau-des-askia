@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Tombeau des Askia — Vue 3D</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         :root { --bg:#07050f; --gold:#f9d58b; --text:#f0eaf8; --muted:#9490b8; }
@@ -123,25 +123,29 @@
 
         /* ── Premium AR Button ── */
         #premium-ar-btn {
+            position: fixed;
+            top: 62px;
+            right: 24px;
+            z-index: 70;
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            margin-top: 24px;
-            padding: 10px 24px;
+            padding: 10px 20px;
             border-radius: 30px;
             background: rgba(249, 213, 139, 0.1);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(249, 213, 139, 0.5);
             color: var(--gold);
             font-family: 'Inter', sans-serif;
-            font-size: 0.6rem;
-            letter-spacing: 0.2em;
+            font-size: 0.58rem;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(249, 213, 139, 0.15), inset 0 0 8px rgba(249, 213, 139, 0.1);
             transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             pointer-events: auto;
+            opacity: 0; /* Hidden initially, shown in revealHUD */
         }
 
         #premium-ar-btn.on {
@@ -273,58 +277,155 @@
             filter: drop-shadow(0 0 6px #c4aff8) drop-shadow(0 0 16px rgba(196,175,248,0.9)) drop-shadow(0 0 30px rgba(196,175,248,0.5));
         }
 
-        /* ── Annotations simples ── */
-        #annotations { position:fixed; inset:0; pointer-events:none; z-index:40; }
-
+        /* ── Points d'intérêt (Annotations) ── */
+        #annotations {
+            position:fixed; inset:0; pointer-events:none; z-index:100;
+        }
         .ann {
             position:absolute; top:0; left:0;
             opacity:0; transition:opacity 0.5s ease;
             pointer-events:none;
         }
 
-        .ann-dot {
-            position:absolute; top:0; left:0;
-            width:5px; height:5px; border-radius:50%;
-            background:var(--gold);
-            transform:translate(-50%,-50%);
-        }
-        .ann-dot::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background: var(--gold);
-            transform: translate(-50%, -50%);
-            animation: dotPulseAnim 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
-            z-index: -1;
-        }
-        @keyframes dotPulseAnim {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-            100% { transform: translate(-50%, -50%) scale(6); opacity: 0; }
+        /* Simple Breathing Dot */
+        @keyframes simple-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(249, 213, 139, 0.4); transform: translate(-50%,-50%) scale(1); }
+            50% { box-shadow: 0 0 0 8px rgba(249, 213, 139, 0); transform: translate(-50%,-50%) scale(1.15); }
         }
 
+        .ann-dot {
+            width:10px; height:10px;
+            background: var(--gold);
+            border-radius: 50%;
+            position:absolute; transform:translate(-50%,-50%);
+            cursor:pointer;
+            z-index: 2;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: simple-pulse 2s infinite;
+        }
+        .ann:hover .ann-dot {
+            transform: translate(-50%,-50%) scale(1.6);
+            background: #fff;
+            animation: none;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Lignes HUD - Clean */
         .ann-svg {
             position:absolute; top:0; left:0;
-            overflow:visible; pointer-events:none;
+            width:300px; height:300px;
+            pointer-events:none; overflow:visible;
         }
-        .ann-svg .ann-line-v { stroke:rgba(249,213,139,0.5); stroke-width:0.7; }
-        .ann-svg .ann-line-h { stroke:rgba(249,213,139,0.5); stroke-width:0.7; }
+        .ann-svg line {
+            stroke: var(--gold);
+            stroke-width: 1;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+        .ann:hover .ann-svg line {
+            opacity: 0.8; stroke: #fff; stroke-width: 1.2;
+        }
 
+        /* Animations continues pour les textes et lignes d'annotation */
+        @keyframes label-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        @keyframes line-expand {
+            0%, 100% { width: 15px; opacity: 0.4; }
+            50% { width: calc(100% - 30px); opacity: 0.8; }
+        }
+        @keyframes text-glow {
+            0%, 100% {
+                color: var(--gold);
+                text-shadow: 0 0 4px rgba(249, 213, 139, 0.2);
+            }
+            50% {
+                color: #fff;
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+            }
+        }
+        @keyframes sub-glow {
+            0%, 100% {
+                color: rgba(249, 213, 139, 0.4);
+                opacity: 0.6;
+                transform: translateY(0);
+            }
+            50% {
+                color: rgba(255, 255, 255, 0.8);
+                opacity: 1;
+                transform: translateY(1px);
+            }
+        }
+
+        /* Label - Elegant & Minimal */
         .ann-label {
             position:absolute;
             white-space:nowrap;
+            padding: 10px;
+            margin: -10px;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: label-float 3s infinite ease-in-out;
         }
+        
+        .ann:hover .ann-label {
+            transform: translateY(-4px);
+            animation: none;
+        }
+
+        .ann-label::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 10px;
+            width: 0;
+            height: 1px;
+            background: #fff;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 8px rgba(255,255,255,0.4);
+            animation: line-expand 3s infinite ease-in-out;
+        }
+        .ann.side-left .ann-label::after {
+            left: auto;
+            right: 10px;
+        }
+        .ann:hover .ann-label::after {
+            width: calc(100% - 20px);
+            animation: none;
+        }
+
         .ann-label-name {
             display:block;
-            font-size:0.5rem; letter-spacing:0.22em; text-transform:uppercase;
-            color:rgba(249,213,139,0.9); font-family:'Inter',sans-serif; font-weight:500;
+            font-size:0.55rem; letter-spacing:0.2em; text-transform:uppercase;
+            font-family:'Inter',sans-serif; font-weight:600;
+            color: var(--gold);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: text-glow 3s infinite ease-in-out;
         }
+        .ann:hover .ann-label-name {
+            color: #fff;
+            letter-spacing: 0.25em;
+            text-shadow: 0 0 12px rgba(255,255,255,0.4);
+            animation: none;
+        }
+
         .ann-label-sub {
             display:block;
-            font-size:0.4rem; letter-spacing:0.1em; text-transform:uppercase;
-            color:rgba(240,234,248,0.3); font-family:'Inter',sans-serif;
+            font-size:0.4rem; letter-spacing:0.12em; text-transform:uppercase;
+            color: rgba(249, 213, 139, 0.4);
+            font-family:'Inter',sans-serif;
             margin-top:2px;
+            opacity: 0.6;
+            transform: translateY(0);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: sub-glow 3s infinite ease-in-out;
+        }
+        .ann:hover .ann-label-sub {
+            color: rgba(255,255,255,0.8);
+            opacity: 1;
+            transform: translateY(2px);
+            animation: none;
         }
 
         /* ── Slider custom (côté droit) ── */
@@ -462,6 +563,7 @@
             background: rgba(249,213,139,0.08);
             box-shadow: inset 0 0 0 1px rgba(249,213,139,0.45), 0 0 16px rgba(249,213,139,0.18);
             animation: adhanPulse 2s ease-in-out infinite;
+            opacity: 1;
         }
         @keyframes adhanPulse {
             0%,100% { box-shadow: inset 0 0 0 1px rgba(249,213,139,0.3), 0 0 8px rgba(249,213,139,0.15); }
@@ -477,6 +579,42 @@
         /* ── Mode dessin : annotations sombres sur fond clair ── */
         body.sketch-mode .ann-dot { background:#2a1a00; }
         body.sketch-mode .ann-dot::after { background:#2a1a00; }
+
+        /* ── AR Error Modal ── */
+        #ar-modal {
+            position: fixed; inset: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(7,5,15,0.85);
+            backdrop-filter: blur(12px);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s ease;
+            padding: 20px;
+        }
+        #ar-modal.on { opacity: 1; pointer-events: all; }
+        .ar-modal-box {
+            background: #0d0a1a;
+            border: 1px solid rgba(249, 213, 139, 0.2);
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transform: translateY(20px);
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        #ar-modal.on .ar-modal-box { transform: translateY(0); }
+        .ar-modal-icon { font-size: 2.5rem; margin-bottom: 20px; display: block; }
+        .ar-modal-title { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.4rem; margin-bottom: 12px; }
+        .ar-modal-text { color: rgba(240, 234, 248, 0.6); font-size: 0.85rem; line-height: 1.6; margin-bottom: 25px; }
+        .ar-modal-btn {
+            background: var(--gold); color: #07050f;
+            border: none; padding: 12px 30px; border-radius: 30px;
+            font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+            font-weight: 700; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .ar-modal-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(249, 213, 139, 0.3); }
         body.sketch-mode .ann-svg .ann-line-v,
         body.sketch-mode .ann-svg .ann-line-h { stroke:rgba(30,15,0,0.7); stroke-width:1px; }
         body.sketch-mode .ann-label-name { color:rgba(30,15,0,0.9); }
@@ -498,7 +636,7 @@
             #sketch-btn  { display:none; } /* sketch shader non disponible sur mobile */
             #adhan-btn   { font-size:0.46rem; padding:8px 14px; top:18px; left:16px; }
 
-            #premium-ar-btn { font-size: 0.5rem; padding: 10px 18px; margin-top: 16px; }
+            #premium-ar-btn { top: 58px; right: 16px; font-size: 0.48rem; padding: 8px 16px; }
 
             #toggle-bar { right:12px; }
             #slider-track { height:120px; }
@@ -527,14 +665,25 @@
     <div class="panel-title">La Tour Pyramidale de Gao</div>
     <div class="panel-desc">Érigée vers 1495 par Askia Mohamed I, cette tour de 17 mètres en banco — argile, paille et bois de rônier — marque le lieu de sépulture d'un des plus grands empereurs de l'Empire Songhaï. Classée Patrimoine Mondial de l'UNESCO en 2004.</div>
     <div class="panel-hint">← Glissez pour explorer · Molette pour zoomer</div>
-    <button id="premium-ar-btn" onclick="openAR()">
-        <svg class="ar-icon" viewBox="0 0 24 24">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-        </svg>
-        Voir en Réalité Augmentée
-    </button>
+</div>
+
+<button id="premium-ar-btn" onclick="openAR()">
+    <svg class="ar-icon" viewBox="0 0 24 24">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+    </svg>
+    Voir en AR
+</button>
+
+<!-- Modal AR non supporté -->
+<div id="ar-modal">
+    <div class="ar-modal-box">
+        <span class="ar-modal-icon">📱</span>
+        <div class="ar-modal-title" id="ar-modal-title">AR non supportée</div>
+        <div class="ar-modal-text" id="ar-modal-text">Votre appareil ne semble pas supporter la Réalité Augmentée.</div>
+        <button class="ar-modal-btn" onclick="closeArModal()">Compris</button>
+    </div>
 </div>
 
 <div id="annotations"></div>
@@ -544,9 +693,13 @@
 <div style="position:fixed; top:0; left:0; width:1px; height:1px; overflow:hidden; z-index:-1; pointer-events:none;">
     <model-viewer id="ar-viewer" 
         src="assets/3d/Tombeaux_des_Askia.glb" 
-        ar ar-modes="scene-viewer webxr quick-look" 
+        ar ar-modes="webxr scene-viewer quick-look" 
+        ar-scale="auto"
+        ar-placement="floor"
+        camera-target="52.82m 0m -26.69m"
         reveal="auto" loading="eager"
-        camera-controls touch-action="pan-y">
+        camera-controls touch-action="pan-y"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; opacity:0; pointer-events:none; z-index:-1;">
     </model-viewer>
 </div>
 
@@ -1198,6 +1351,7 @@ let _adhanPanner  = null;
 let _adhanBuffer  = null;
 let _adhanPlaying = false;
 let _adhanTowerTop = null; /* initialisé dans setupAdhan() après chargement de Three.js */
+let _adhanDirection = null; /* initialisé dans setupAdhan() quand THREE est disponible */
 
 /* URLs publiques CORS-friendly (essayées dans l'ordre) */
 const ADHAN_URLS = [
@@ -1208,17 +1362,36 @@ const ADHAN_URLS = [
 function setupAdhan(scene, scene3d, camera) {
     /* Position par défaut — sera affinée si le mesh Tombeaux est trouvé */
     _adhanTowerTop = new THREE.Vector3(52.82, 60, -26.69);
+    _adhanDirection = new THREE.Vector3(1, 0, 0); /* valeur par défaut */
+    let womenPos = new THREE.Vector3();
+    let foundWomen = false;
 
     scene3d.traverse(obj => {
-        if (obj.isMesh && obj.name.trim() === 'Tombeaux') {
-            const box = new THREE.Box3().setFromObject(obj);
-            _adhanTowerTop.set(
-                (box.min.x + box.max.x) / 2,
-                box.max.y,
-                (box.min.z + box.max.z) / 2
-            );
+        if (obj.isMesh) {
+            const name = obj.name.trim();
+            if (name === 'Tombeaux') {
+                const box = new THREE.Box3().setFromObject(obj);
+                _adhanTowerTop.set(
+                    (box.min.x + box.max.x) / 2,
+                    box.max.y,
+                    (box.min.z + box.max.z) / 2
+                );
+            }
+            if (name === 'Espace_des_femmes') {
+                const box = new THREE.Box3().setFromObject(obj);
+                box.getCenter(womenPos);
+                foundWomen = true;
+            }
         }
     });
+
+    if (foundWomen) {
+        /* Calcul de la direction vers l'espace des femmes */
+        _adhanDirection.subVectors(womenPos, _adhanTowerTop).normalize();
+    } else {
+        /* Fallback si non trouvé : orientation vers l'intérieur (inverse de l'original) */
+        _adhanDirection.set(-1, -0.3, 0).normalize();
+    }
 
     /* Pré-charger le buffer audio (sans créer l'AudioContext) */
     function tryLoad(urls, idx) {
@@ -1247,14 +1420,15 @@ function toggleAdhan() {
         /* Stoppe le son */
         if (_adhanSource) { try { _adhanSource.stop(); } catch(e){} _adhanSource = null; }
         _adhanPlaying = false;
-        btn.textContent = '🔊 Appel à la prière';
+        btn.innerHTML = '<i class="hud-btn-icon">♪</i> Adhan';
         btn.classList.remove('playing');
         return;
     }
 
     if (!_adhanBuffer) {
-        btn.textContent = '⏳ Chargement…';
-        setTimeout(() => { btn.textContent = '🔊 Appel à la prière'; }, 2000);
+        const old = btn.innerHTML;
+        btn.innerHTML = '<i class="hud-btn-icon">⏳</i> Chargement…';
+        setTimeout(() => { btn.innerHTML = old; }, 2000);
         return;
     }
 
@@ -1275,10 +1449,10 @@ function toggleAdhan() {
         _adhanPanner.positionX.value = _adhanTowerTop.x;
         _adhanPanner.positionY.value = _adhanTowerTop.y;
         _adhanPanner.positionZ.value = _adhanTowerTop.z;
-        /* Orientation : diffuse vers l'extérieur */
-        _adhanPanner.orientationX.value = 1;
-        _adhanPanner.orientationY.value = 0.3;
-        _adhanPanner.orientationZ.value = 0;
+        /* Orientation : dirigée vers l'espace des femmes */
+        _adhanPanner.orientationX.value = _adhanDirection.x;
+        _adhanPanner.orientationY.value = _adhanDirection.y;
+        _adhanPanner.orientationZ.value = _adhanDirection.z;
         /* GainNode pour contrôler le volume (0.0 – 1.0) */
         const gain = _adhanCtx.createGain();
         gain.gain.value = 0.4;
@@ -1297,12 +1471,12 @@ function toggleAdhan() {
         _adhanSource.connect(_adhanPanner);
         _adhanSource.start(0);
         _adhanPlaying = true;
-        btn.textContent = '🔇 Couper le son';
+        btn.innerHTML = '<i class="hud-btn-icon">🔇</i> Couper le son';
         btn.classList.add('playing');
     }).catch(e => {
         console.error('Décodage audio:', e);
-        btn.textContent = '⚠️ Erreur audio';
-        setTimeout(() => { btn.textContent = '🔊 Appel à la prière'; }, 2000);
+        btn.innerHTML = '<i class="hud-btn-icon">⚠️</i> Erreur';
+        setTimeout(() => { btn.innerHTML = '<i class="hud-btn-icon">♪</i> Adhan'; }, 2000);
     });
 }
 
@@ -1333,6 +1507,7 @@ function buildAnnotations(scene3d, camera, renderer) {
 
         const wrap = document.createElement('div');
         wrap.className = 'ann';
+        if (side === 'left') wrap.classList.add('side-left');
         wrap.addEventListener('click', () => openDetail(infoKey, annPos));
 
         /* Dot */
@@ -1628,6 +1803,7 @@ function revealHUD() {
     document.getElementById('back-btn').classList.add('on');
     document.getElementById('toggle-bar').classList.add('on');
     document.getElementById('sketch-btn').classList.add('on');
+    document.getElementById('premium-ar-btn').style.opacity = '1';
     document.getElementById('premium-ar-btn').classList.add('on');
     initCustomSlider();
 }
@@ -1635,11 +1811,28 @@ function revealHUD() {
 /* ── Ouvrir AR ── */
 function openAR() {
     const viewer = document.getElementById('ar-viewer');
+    
+    /* Vérification mobile (l'AR est conçue pour les smartphones) */
+    if (!IS_MOBILE) {
+        showArModal("Expérience Mobile", "La Réalité Augmentée est optimisée pour les smartphones. Veuillez ouvrir ce lien sur votre mobile pour placer le tombeau dans votre environnement réel.");
+        return;
+    }
+
     if (viewer && typeof viewer.activateAR === 'function') {
         viewer.activateAR();
     } else {
-        alert("La Réalité Augmentée n'est pas encore prête ou n'est pas supportée par votre navigateur.");
+        showArModal("AR non supportée", "Votre appareil ou votre navigateur ne semble pas supporter la Réalité Augmentée. Assurez-vous d'utiliser un smartphone récent avec un navigateur à jour.");
     }
+}
+
+function showArModal(title, text) {
+    document.getElementById('ar-modal-title').textContent = title;
+    document.getElementById('ar-modal-text').textContent = text;
+    document.getElementById('ar-modal').classList.add('on');
+}
+
+function closeArModal() {
+    document.getElementById('ar-modal').classList.remove('on');
 }
 </script>
 </body>
