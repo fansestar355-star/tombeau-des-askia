@@ -253,7 +253,7 @@
 
   <button id="btn-audio" onclick="toggleAudio()">
     <span id="audio-icon">♪</span>
-    Écouter Askia
+    Écouter le vent
   </button>
 
   <div id="title-hud">Askia Mohamed — Expérience interactive</div>
@@ -824,6 +824,15 @@ function animate() {
   // Voile CSS bas d'écran (sable qui remonte)
   sandVeil.style.opacity = (0.25 + gust * 0.55).toFixed(2);
 
+  // Modulation audio du vent en fonction de la rafale
+  if (_isPlaying && _windFilter && _windGain && _audioCtx) {
+    const targetFreq = 180 + gust * 600;  // Plus le vent souffle fort, plus il siffle
+    const targetVol = 0.15 + gust * 0.45; // Et plus il est fort
+    const t = _audioCtx.currentTime;
+    _windFilter.frequency.setTargetAtTime(targetFreq, t, 0.1);
+    _windGain.gain.setTargetAtTime(targetVol, t, 0.1);
+  }
+
   const cx = camera.position.x, cz = camera.position.z;
 
   // Couche sol
@@ -878,71 +887,60 @@ function animate() {
 }
 
 /* ═══════════════════════════════════════════
-   AUDIO — Ambiance sonore (Adhan / Désert)
+   AUDIO — Ambiance sonore (Vent procédural)
 ═══════════════════════════════════════════ */
-let _audioCtx       = null;
-let _audioBuffer    = null;
-let _decodedBuffer  = null;
-let _audioSource    = null;
-let _isPlaying      = false;
-
-const AUDIO_URL = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/86/Azan.ogg/Azan.ogg.mp3';
-
-async function preloadAudio() {
-  try {
-    const r = await fetch(AUDIO_URL);
-    _audioBuffer = await r.arrayBuffer();
-    console.log("✅ Audio d'ambiance chargé");
-  } catch (e) {
-    console.warn("⚠️ Impossible de charger l'audio");
-  }
-}
-preloadAudio();
+let _audioCtx   = null;
+let _windNoise  = null;
+let _windFilter = null;
+let _windGain   = null;
+let _isPlaying  = false;
 
 window.toggleAudio = async function() {
   const btn = document.getElementById('btn-audio');
   const icon = document.getElementById('audio-icon');
 
   if (_isPlaying) {
-    if (_audioSource) { _audioSource.stop(); _audioSource = null; }
+    if (_windNoise) { _windNoise.stop(); _windNoise = null; }
     _isPlaying = false;
     btn.classList.remove('playing');
     icon.textContent = '♪';
     return;
   }
 
-  if (!_audioBuffer) return;
-
   if (!_audioCtx) {
     _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   if (_audioCtx.state === 'suspended') await _audioCtx.resume();
 
-  try {
-    if (!_decodedBuffer) {
-      _decodedBuffer = await new Promise((resolve, reject) => {
-        _audioCtx.decodeAudioData(_audioBuffer.slice(0), resolve, reject);
-      });
-    }
-
-    _audioSource = _audioCtx.createBufferSource();
-    _audioSource.buffer = _decodedBuffer;
-    _audioSource.loop = true;
-
-    const gain = _audioCtx.createGain();
-    gain.gain.value = 0.45;
-    _audioSource.connect(gain);
-    gain.connect(_audioCtx.destination);
-
-    _audioSource.start(0);
-    _isPlaying = true;
-    btn.classList.add('playing');
-    icon.textContent = '🔇';
-  } catch (e) {
-    console.error('Erreur audio:', e);
-    icon.textContent = '⚠️';
-    setTimeout(() => { icon.textContent = '♪'; }, 2000);
+  // Création du bruit blanc pour simuler le vent
+  const bufferSize = _audioCtx.sampleRate * 2;
+  const buffer = _audioCtx.createBuffer(1, bufferSize, _audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
   }
+
+  _windNoise = _audioCtx.createBufferSource();
+  _windNoise.buffer = buffer;
+  _windNoise.loop = true;
+
+  // Filtre passe-bas pour rendre le bruit sourd (grondement du vent)
+  _windFilter = _audioCtx.createBiquadFilter();
+  _windFilter.type = 'lowpass';
+  _windFilter.frequency.value = 300;
+  _windFilter.Q.value = 0.8;
+
+  _windGain = _audioCtx.createGain();
+  _windGain.gain.value = 0.3;
+
+  _windNoise.connect(_windFilter);
+  _windFilter.connect(_windGain);
+  _windGain.connect(_audioCtx.destination);
+
+  _windNoise.start(0);
+  _isPlaying = true;
+  btn.classList.add('playing');
+  icon.textContent = '🔇';
 };
 
 animate();
