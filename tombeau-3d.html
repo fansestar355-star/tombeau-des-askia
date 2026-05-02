@@ -690,7 +690,8 @@
 <a href="#" id="back-btn" onclick="history.back(); return false;"><i class="hud-btn-icon">←</i> Retour</a>
 <button id="sketch-btn" onclick="toggleSketch()"><i class="hud-btn-icon">✦</i> Mode Dessin</button>
 <button id="adhan-btn" onclick="toggleAdhan()"><i class="hud-btn-icon">♪</i> Adhan</button>
-<div style="position:fixed; top:0; left:0; width:1px; height:1px; overflow:hidden; z-index:-1; pointer-events:none;">
+<!-- Conteneur pour Model Viewer (AR) -->
+<div id="ar-container" style="position:fixed; top:0; left:0; width:1px; height:1px; overflow:hidden; z-index:-1; pointer-events:none;">
     <model-viewer id="ar-viewer" 
         src="assets/3d/Tombeaux_des_Askia.glb" 
         ar ar-modes="webxr scene-viewer quick-look" 
@@ -699,7 +700,7 @@
         camera-target="52.82m 0m -26.69m"
         reveal="auto" loading="eager"
         camera-controls touch-action="pan-y"
-        style="position:fixed; top:0; left:0; width:100%; height:100%; opacity:0; pointer-events:none; z-index:-1;">
+        style="width:100%; height:100%; background:transparent;">
     </model-viewer>
 </div>
 
@@ -1344,7 +1345,7 @@ function closeDetail() {
 ═══════════════════════════════════════════════════════════ */
 const ANN_DATA = [
     { mesh:'Tombeaux',          name:'La Tour Pyramidale', sub:'~17 m · banco', side:'right' },
-    { mesh:'La_base ',          name:'Enceinte Principale', sub:'Cour intérieure', side:'left' },
+    { mesh:'La_base',           name:'Enceinte Principale', sub:'Cour intérieure', side:'left' },
     { mesh:'Espace_des_femmes', name:'Espace des Femmes',  sub:'Salle de prière', side:'left' },
     { mesh:'Espace_des_hommes', name:'Espace des Hommes',  sub:'Mosquée', side:'right' },
     { mesh:'Branche',           name:'Les Piquets',         sub:'Bois de rônier', side:'right' },
@@ -1517,11 +1518,17 @@ function buildAnnotations(scene3d, camera, renderer) {
         let annPos;
         if (mesh) {
             let found = null;
-            scene3d.traverse(obj => { if (obj.name.trim() === mesh.trim()) found = obj; });
-            if (!found) return;
+            scene3d.traverse(obj => { 
+                if (obj.name.trim() === mesh.trim()) found = obj; 
+            });
+            if (!found) { 
+                console.warn(`Annotation: Mesh "${mesh}" non trouvé dans le modèle.`); 
+                return; 
+            }
             const box3 = new THREE.Box3().setFromObject(found);
             annPos = new THREE.Vector3();
             box3.getCenter(annPos);
+            /* On place le point d'ancrage au sommet de l'objet pour plus de visibilité */
             annPos.y = box3.max.y;
         } else {
             annPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
@@ -1836,6 +1843,7 @@ function revealHUD() {
 /* ── Ouvrir AR ── */
 function openAR() {
     const viewer = document.getElementById('ar-viewer');
+    const container = document.getElementById('ar-container');
     
     /* Détection spécifique pour les casques VR/AR autonomes (comme le Meta Quest) */
     const isHeadset = /VR|Quest|Oculus/i.test(navigator.userAgent);
@@ -1847,7 +1855,29 @@ function openAR() {
     }
 
     if (viewer && typeof viewer.activateAR === 'function') {
+        /* Pour WebXR (Android/Quest), le conteneur doit être visible */
+        if (container) {
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.zIndex = '1000';
+            container.style.pointerEvents = 'all';
+        }
+
         viewer.activateAR();
+
+        /* On détecte quand l'utilisateur quitte le mode AR */
+        const onARStatus = (event) => {
+            if (event.detail.status === 'not-presenting') {
+                if (container) {
+                    container.style.width = '1px';
+                    container.style.height = '1px';
+                    container.style.zIndex = '-1';
+                    container.style.pointerEvents = 'none';
+                }
+                viewer.removeEventListener('ar-status', onARStatus);
+            }
+        };
+        viewer.addEventListener('ar-status', onARStatus);
     } else {
         showArModal("AR non supportée", "Votre appareil ou votre navigateur ne semble pas supporter la Réalité Augmentée. Assurez-vous d'utiliser un smartphone récent avec un navigateur à jour.");
     }
