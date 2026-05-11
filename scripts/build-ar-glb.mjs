@@ -72,7 +72,7 @@ console.log(`bbox min: ${min.map(n => n.toFixed(2)).join(', ')}`);
 console.log(`bbox max: ${max.map(n => n.toFixed(2)).join(', ')}`);
 console.log(`dimensions (m): ${size.map(n => n.toFixed(2)).join(' x ')}`);
 
-const TARGET_HEIGHT = 1.7;
+const TARGET_HEIGHT = 0.5;
 const currentHeight = size[1];
 const scale = TARGET_HEIGHT / currentHeight;
 console.log(`echelle pour hauteur ${TARGET_HEIGHT}m: ${scale.toFixed(4)}`);
